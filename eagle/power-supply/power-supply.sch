@@ -13531,18 +13531,18 @@ Source: http://www.mouser.com/ds/2/392/products_18-2245.pdf</description>
 <library name="MJL1302A-MJL3281A">
 <packages>
 <package name="TO-264">
-<pad name="COLLECTOR" x="0" y="0" drill="2" diameter="3.81"/>
-<pad name="BASE" x="-5.45" y="0" drill="2" diameter="3.81"/>
-<pad name="EMITTER" x="5.45" y="0" drill="2" diameter="3.81"/>
+<pad name="COLLECTOR" x="0" y="0" drill="2" diameter="3.81" rot="R180"/>
+<pad name="EMITTER" x="5.45" y="0" drill="2" diameter="3.81" rot="R180"/>
+<pad name="BASE" x="-5.45" y="0" drill="2" diameter="3.81" rot="R180"/>
+<wire x1="9.9" y1="-3.77" x2="-9.9" y2="-3.77" width="0.127" layer="21"/>
+<wire x1="-9.9" y1="-3.77" x2="-9.9" y2="2.5" width="0.127" layer="21"/>
 <wire x1="-9.9" y1="2.5" x2="9.9" y2="2.5" width="0.127" layer="21"/>
-<wire x1="9.9" y1="2.5" x2="9.9" y2="-2.5" width="0.127" layer="21"/>
-<wire x1="9.9" y1="-2.5" x2="-9.9" y2="-2.5" width="0.127" layer="21"/>
-<wire x1="-9.9" y1="-2.5" x2="-9.9" y2="2.5" width="0.127" layer="21"/>
-<wire x1="-9.9" y1="-2.5" x2="-9.9" y2="-4.5" width="0.127" layer="21"/>
-<wire x1="-9.9" y1="-4.5" x2="9.9" y2="-4.5" width="0.127" layer="21"/>
-<wire x1="9.9" y1="-4.5" x2="9.9" y2="-2.5" width="0.127" layer="21"/>
-<text x="-8.89" y="3.81" size="1.27" layer="25">Name</text>
-<text x="-8.89" y="-6.35" size="1.27" layer="27">Value</text>
+<wire x1="9.9" y1="2.5" x2="9.9" y2="-3.77" width="0.127" layer="21"/>
+<wire x1="9.9" y1="2.5" x2="9.9" y2="4.5" width="0.127" layer="21"/>
+<wire x1="9.9" y1="4.5" x2="-9.9" y2="4.5" width="0.127" layer="21"/>
+<wire x1="-9.9" y1="4.5" x2="-9.9" y2="2.5" width="0.127" layer="21"/>
+<text x="-8.89" y="5.08" size="1.27" layer="25">&gt;Name</text>
+<text x="-8.89" y="-6.35" size="1.27" layer="27">&gt;Value</text>
 </package>
 </packages>
 <symbols>
@@ -13585,7 +13585,7 @@ Source: http://www.mouser.com/ds/2/392/products_18-2245.pdf</description>
 </symbol>
 </symbols>
 <devicesets>
-<deviceset name="MJL1302A">
+<deviceset name="MJL1302A" prefix="Q" uservalue="yes">
 <gates>
 <gate name="G$1" symbol="MJL1302A" x="0" y="0"/>
 </gates>
@@ -13602,7 +13602,7 @@ Source: http://www.mouser.com/ds/2/392/products_18-2245.pdf</description>
 </device>
 </devices>
 </deviceset>
-<deviceset name="MJL3281A">
+<deviceset name="MJL3281A" prefix="Q" uservalue="yes">
 <gates>
 <gate name="G$1" symbol="MJL3281A" x="0" y="0"/>
 </gates>
@@ -13753,8 +13753,8 @@ Source: http://eshop.phoenixcontact.com .. 1751251.pdf</description>
 <part name="C6" library="rcl" deviceset="C-EU" device="102-054X133" value="0.1uF"/>
 <part name="R1" library="resistor" deviceset="R-EU_" device="0411/15" value="3R"/>
 <part name="R2" library="resistor" deviceset="R-EU_" device="0411/15" value="3R"/>
-<part name="Q1" library="MJL1302A-MJL3281A" deviceset="MJL1302A" device=""/>
-<part name="Q2" library="MJL1302A-MJL3281A" deviceset="MJL3281A" device=""/>
+<part name="Q1" library="MJL1302A-MJL3281A" deviceset="MJL1302A" device="" value="MJL1302A"/>
+<part name="Q2" library="MJL1302A-MJL3281A" deviceset="MJL3281A" device="" value="MJL3281A"/>
 <part name="C3" library="rcl" deviceset="CPOL-EU" device="E2.5-5" value="0.33uF"/>
 <part name="C4" library="rcl" deviceset="CPOL-EU" device="E2.5-5" value="0.33uF"/>
 <part name="J1" library="con-phoenix-350" deviceset="1751251" device=""/>
@@ -13791,9 +13791,9 @@ Source: http://eshop.phoenixcontact.com .. 1751251.pdf</description>
 <attribute name="NAME" x="109.22" y="83.82" size="1.778" layer="95" rot="R180"/>
 <attribute name="VALUE" x="119.38" y="78.74" size="1.778" layer="96" rot="R180"/>
 </instance>
-<instance part="Q2" gate="G$1" x="101.6" y="43.18" smashed="yes" rot="R270">
-<attribute name="NAME" x="106.68" y="43.18" size="1.778" layer="95"/>
-<attribute name="VALUE" x="106.68" y="38.1" size="1.778" layer="96"/>
+<instance part="Q2" gate="G$1" x="101.6" y="43.18" smashed="yes" rot="MR270">
+<attribute name="NAME" x="96.52" y="43.18" size="1.778" layer="95" rot="MR0"/>
+<attribute name="VALUE" x="96.52" y="38.1" size="1.778" layer="96" rot="MR0"/>
 </instance>
 <instance part="C3" gate="G$1" x="101.6" y="68.58"/>
 <instance part="C4" gate="G$1" x="101.6" y="55.88"/>
@@ -13877,17 +13877,17 @@ Source: http://eshop.phoenixcontact.com .. 1751251.pdf</description>
 <segment>
 <pinref part="C6" gate="G$1" pin="2"/>
 <wire x1="137.16" y1="50.8" x2="137.16" y2="48.26" width="0.1524" layer="91"/>
-<junction x="137.16" y="40.64"/>
 <wire x1="137.16" y1="48.26" x2="137.16" y2="40.64" width="0.1524" layer="91"/>
 <wire x1="137.16" y1="40.64" x2="147.32" y2="40.64" width="0.1524" layer="91"/>
 <wire x1="147.32" y1="40.64" x2="147.32" y2="50.8" width="0.1524" layer="91"/>
 <wire x1="147.32" y1="50.8" x2="152.4" y2="50.8" width="0.1524" layer="91"/>
-<pinref part="Q2" gate="G$1" pin="COLLECTOR"/>
-<wire x1="106.68" y1="40.64" x2="137.16" y2="40.64" width="0.1524" layer="91"/>
 <pinref part="J2" gate="-3" pin="K"/>
 <pinref part="IC2" gate="1" pin="OUT"/>
 <wire x1="132.08" y1="48.26" x2="137.16" y2="48.26" width="0.1524" layer="91"/>
 <junction x="137.16" y="48.26"/>
+<pinref part="Q2" gate="G$1" pin="EMITTER"/>
+<wire x1="106.68" y1="40.64" x2="137.16" y2="40.64" width="0.1524" layer="91"/>
+<junction x="137.16" y="40.64"/>
 </segment>
 </net>
 <net name="N$3" class="0">
@@ -13953,8 +13953,6 @@ Source: http://eshop.phoenixcontact.com .. 1751251.pdf</description>
 </net>
 <net name="N$8" class="0">
 <segment>
-<pinref part="Q2" gate="G$1" pin="EMITTER"/>
-<wire x1="96.52" y1="40.64" x2="83.82" y2="40.64" width="0.1524" layer="91"/>
 <wire x1="83.82" y1="40.64" x2="83.82" y2="48.26" width="0.1524" layer="91"/>
 <pinref part="R2" gate="G$1" pin="1"/>
 <wire x1="83.82" y1="48.26" x2="86.36" y2="48.26" width="0.1524" layer="91"/>
@@ -13966,6 +13964,8 @@ Source: http://eshop.phoenixcontact.com .. 1751251.pdf</description>
 <wire x1="48.26" y1="40.64" x2="76.2" y2="40.64" width="0.1524" layer="91"/>
 <wire x1="83.82" y1="40.64" x2="76.2" y2="40.64" width="0.1524" layer="91"/>
 <junction x="76.2" y="40.64"/>
+<pinref part="Q2" gate="G$1" pin="COLLECTOR"/>
+<wire x1="96.52" y1="40.64" x2="83.82" y2="40.64" width="0.1524" layer="91"/>
 <junction x="83.82" y="40.64"/>
 </segment>
 </net>
