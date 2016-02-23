@@ -1,18 +1,20 @@
 #define DIGIT_COUNT 2
 #define PIN_LATCH 3
 #define PIN_CLK 4
-#define PIN_DATA 2
+#define PIN_DATA 5
+#define PIN_RESET 6
+#define PIN_BUTTON 2
 
 byte DIGITS[10];
-byte value = 0;
+volatile byte channel = 1;
+volatile long lastButtonPress = 0;
 
 void setup() {
-  // put your setup code here, to run once:
   pinMode(PIN_LATCH, OUTPUT);
   pinMode(PIN_CLK, OUTPUT);
   pinMode(PIN_DATA, OUTPUT);
-
-  Serial.begin(9600);
+  pinMode(PIN_RESET, OUTPUT);
+  pinMode(PIN_BUTTON, INPUT);
 
   // Segments:  ABCDEFGdp
   DIGITS[0] = 0b11111100;
@@ -26,21 +28,43 @@ void setup() {
   DIGITS[8] = 0b11111110;
   DIGITS[9] = 0b11110110;
 
-  digitalWrite(PIN_LATCH, LOW);
-  update7Seg(1);
+  attachInterrupt(digitalPinToInterrupt(PIN_BUTTON), buttonOnPressed, FALLING); 
 
-  // TODO: bind reset to board, set high here
-  // TODO: add pushbutton on an interrupt pin
-  // TODO: increment number upon debounced push
+  digitalWrite(PIN_LATCH, LOW);
+  digitalWrite(PIN_RESET, LOW);  
+  delay(5);
+  digitalWrite(PIN_RESET, HIGH);
+  // TODO: ugly hack for weird bug to be removed. Figure out
+  // why I'm having to run this twice.
+  update7Seg(1);
+  update7Seg(1);
 }
 
 void loop() {
+}
 
+void buttonOnPressed() {
+  // Debounce
+  long currentTime = millis();
+  if (currentTime - lastButtonPress < 150) return;
+  lastButtonPress = currentTime;
+  
+  increment();
+}
+
+void increment() {
+  channel++;
+  if (channel > 16) channel = 1;
+
+  // TODO: ugly hack for weird bug to be removed. Figure out
+  // why I'm having to run this twice.
+  update7Seg(channel);
+  update7Seg(channel);
 }
 
 void update7Seg(int number) {
   byte *digits = getDigitBytes(number);
-
+ 
   // Listen for data
   digitalWrite(PIN_LATCH, HIGH);
 
