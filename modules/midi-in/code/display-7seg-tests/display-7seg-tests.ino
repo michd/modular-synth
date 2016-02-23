@@ -1,4 +1,3 @@
-
 #define DIGIT_COUNT 2
 #define PIN_LATCH 3
 #define PIN_CLK 4
