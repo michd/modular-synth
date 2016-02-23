@@ -2,8 +2,10 @@
 #define PIN_LATCH 3
 #define PIN_CLK 4
 #define PIN_DATA 5
-#define PIN_RESET 6
 #define PIN_BUTTON 2
+#define POWERUP_MS 200
+#define BUTTON_DEBOUNCE_MS 150
+#define MIDI_CHANNELS 16
 
 byte DIGITS[10];
 volatile byte channel = 1;
@@ -13,7 +15,6 @@ void setup() {
   pinMode(PIN_LATCH, OUTPUT);
   pinMode(PIN_CLK, OUTPUT);
   pinMode(PIN_DATA, OUTPUT);
-  pinMode(PIN_RESET, OUTPUT);
   pinMode(PIN_BUTTON, INPUT);
 
   // Segments:  ABCDEFGdp
@@ -31,13 +32,8 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(PIN_BUTTON), buttonOnPressed, FALLING); 
 
   digitalWrite(PIN_LATCH, LOW);
-  digitalWrite(PIN_RESET, LOW);  
-  delay(5);
-  digitalWrite(PIN_RESET, HIGH);
-  // TODO: ugly hack for weird bug to be removed. Figure out
-  // why I'm having to run this twice.
-  update7Seg(1);
-  update7Seg(1);
+  delay(POWERUP_MS); // Power-up register reset leeway.
+  update7Seg(channel);
 }
 
 void loop() {
@@ -46,32 +42,33 @@ void loop() {
 void buttonOnPressed() {
   // Debounce
   long currentTime = millis();
-  if (currentTime - lastButtonPress < 150) return;
+  if (currentTime - lastButtonPress < BUTTON_DEBOUNCE_MS) return;
   lastButtonPress = currentTime;
-  
+
   increment();
 }
 
 void increment() {
   channel++;
-  if (channel > 16) channel = 1;
+  if (channel > MIDI_CHANNELS) channel = 1;
 
-  // TODO: ugly hack for weird bug to be removed. Figure out
-  // why I'm having to run this twice.
-  update7Seg(channel);
   update7Seg(channel);
 }
 
 void update7Seg(int number) {
   byte *digits = getDigitBytes(number);
- 
-  // Listen for data
+
   digitalWrite(PIN_LATCH, HIGH);
 
   shiftOut(PIN_DATA, PIN_CLK, LSBFIRST, ~digits[1]);
   shiftOut(PIN_DATA, PIN_CLK, LSBFIRST, ~digits[0]);
 
   // Done writing data
+  digitalWrite(PIN_LATCH, LOW);
+
+  // Slightly hacky lacking, but doing this makes the registers actually output
+  // the newly shifted data. Maybe that's how it's meant to work.
+  digitalWrite(PIN_LATCH, HIGH);
   digitalWrite(PIN_LATCH, LOW);
 }
 
@@ -86,5 +83,3 @@ byte * getDigitBytes(int number) {
   digits[1] = DIGITS[ones];
   return digits;
 }
-
-
