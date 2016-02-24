@@ -2,6 +2,7 @@
 // TODO: outputting PWM for frequency control voltage
 // TODO: listening to for control param changes, output 4 of them via PWM
 #include <SoftwareSerial.h>
+#include <EEPROM.h>
 
 // Constant values
 // MIDI standard, don't anticipate these will ever change
@@ -12,6 +13,8 @@
 #define BUTTON_DEBOUNCE_MS 150
 // Allows shift registers to reset on power-up
 #define POWERUP_MS 200
+// Where in the EEPROM we store the selected channel
+#define MIDI_CHANNEL_EEPROM_ADDRESS 0
 
 // Output pins
 #define PIN_GATE 7
@@ -74,9 +77,17 @@ void setup() {
     channelSelectButtonOnPressed,
     FALLING); 
   
+  // Prepare to receive MIDI data
   sSerial.begin(MIDI_SERIAL_BAUD_RATE);
   
+  // Ensure shift registers don't think we're writing
   digitalWrite(PIN_LATCH, LOW);
+
+  // Retrieve last MIDI channel used from EEPROM
+  midiChannel = EEPROM.read(MIDI_CHANNEL_EEPROM_ADDRESS);
+  if (midiChannel < 1 || midiChannel > MIDI_CHANNELS) {
+    midiChannel = 1;
+  }
   
   // Allow some time for the power-up reset circuit to do its thing,
   // resetting the shift registers before we pump data into them
@@ -138,6 +149,8 @@ void increment() {
 
   update7Seg(midiChannel);
   
+  EEPROM.write(MIDI_CHANNEL_EEPROM_ADDRESS, midiChannel);
+
   notesOn = 0;
   updateGate();
   // TODO: update any variables pertaining to infering
