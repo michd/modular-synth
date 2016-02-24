@@ -1,4 +1,3 @@
-// TODO: listening to note on/off events based on channel
 // TODO: outputting PWM for frequency control voltage
 // TODO: listening to for control param changes, output 4 of them via PWM
 #include <SoftwareSerial.h>
@@ -16,6 +15,20 @@
 // Where in the EEPROM we store the selected channel
 #define MIDI_CHANNEL_EEPROM_ADDRESS 0
 
+// Used to cancel out a piece of information from a MIDI status
+#define MIDI_STATUS_ACTION_BITMASK  0b11110000
+#define MIDI_STATUS_CHANNEL_BITMASK 0b00001111
+
+// MIDI status bytes (when the channel info is stripped off)
+#define MIDIS_NOTE_OFF        0b10000000
+#define MIDIS_NOTE_ON         0b10010000
+#define MIDIS_POLY_AFTERTOUCH 0b10100000
+#define MIDIS_CONTROL_CHANGE  0b10110000
+#define MIDIS_PROGRAM_CHANGE  0b11000000
+#define MIDIS_CHAN_AFTERTOUCH 0b11010000
+#define MIDIS_PITCH_BEND      0b11100000
+// TODO?: Timing clock?
+
 // Output pins
 #define PIN_GATE 7
 #define PIN_TRIGGER 8
@@ -32,22 +45,20 @@
 // Channel select button
 #define PIN_CHANNEL_SELECT_BUTTON 2
 
-// Deprecated, TODO: base on channel
-#define STATUS_NOTE_ON 0x90
-#define STATUS_NOTE_OFF 0x80
-
 // Hard-coded array of 7segment sequences.
 // Values set up in setup()
 byte DIGITS[10];
 
 // The MIDI channel we're interested in
-volatile byte midiChannel = 1;
+volatile byte midiChannel = 0;
 
 // Used for debouncing channel select button
 volatile long lastButtonPress = 0;
 
 // Number of keys being pressed on keyboard
-unsigned short notesOn = 0;
+volatile unsigned short notesOn = 0;
+
+volatile byte activeNote;
 
 SoftwareSerial sSerial(PIN_SOFTWARE_RX, PIN_SOFTWARE_TX);
 
@@ -85,14 +96,15 @@ void setup() {
 
   // Retrieve last MIDI channel used from EEPROM
   midiChannel = EEPROM.read(MIDI_CHANNEL_EEPROM_ADDRESS);
-  if (midiChannel < 1 || midiChannel > MIDI_CHANNELS) {
-    midiChannel = 1;
-  }
-  
+
+  if (midiChannel >= MIDI_CHANNELS) midiChannel = 0;
+
   // Allow some time for the power-up reset circuit to do its thing,
   // resetting the shift registers before we pump data into them
   delay(POWERUP_MS);
-  update7Seg(midiChannel);
+
+  // MIDI channels are 0-indexed, increment one for human-friendly display
+  update7Seg(midiChannel + 1);
 }
 
 void loop() {
@@ -111,19 +123,58 @@ void loop() {
 }
 
 void processMIDIMessage(byte data[3]) {
-  if (data[0] == STATUS_NOTE_ON) {
-    notesOn++;
-    sendTriggerPulse();
-  } else if (data[0] == STATUS_NOTE_OFF) {
-    notesOn--;
-    updateGate();
+  // Separate out just channel, discarding action
+  byte statusChannel = data[0] & MIDI_STATUS_CHANNEL_BITMASK;
+  byte statusAction;
+
+  // Message is not for the channel we're interested in, abort
+  // further processing
+  if (statusChannel != midiChannel) return;
+
+  // Separate out just the action, discarding channel
+  statusAction = data[0] & MIDI_STATUS_ACTION_BITMASK;
+
+  switch(statusAction) {
+     case MIDIS_NOTE_ON:
+       notesOn++;
+       activeNote = data[1];
+       sendTriggerPulse();
+       updateGate();
+       updateFreqOutput();
+       // TODO: use velocity for something
+       break;
+
+    case MIDIS_NOTE_OFF:
+      notesOn--;
+      updateGate();
+      // TODO: maybe keep an array of which keys are pressed, to determine
+      // which the active note should be (it should be the last key pressed)
+      break;
+
+     case MIDIS_CONTROL_CHANGE:
+       // TODO: keep an array of output controls.
+       // Ignore any controls beyond the assigned ones
+       break;
+
+     case MIDIS_PITCH_BEND:
+       // TODO: special case controller change I guess
+       break;
+
+     case MIDIS_POLY_AFTERTOUCH:
+     case MIDIS_CHAN_AFTERTOUCH:
+     case MIDIS_PROGRAM_CHANGE:
+     default:
+       // Not implemented
+       break;
   }
-  
-  updateGate();
 }
 
 void updateGate() {
   digitalWrite(PIN_GATE, notesOn > 0 ? HIGH : LOW);
+}
+
+void updateFreqOutput() {
+  // TODO: analogWrite etc
 }
 
 void sendTriggerPulse() {
@@ -140,14 +191,14 @@ void channelSelectButtonOnPressed() {
   if (currentTime - lastButtonPress < BUTTON_DEBOUNCE_MS) return;
   lastButtonPress = currentTime;
 
-  increment();
+  incrementMIDIChannel();
 }
 
-void increment() {
+void incrementMIDIChannel() {
   midiChannel++;
-  if (midiChannel > MIDI_CHANNELS) midiChannel = 1;
+  if (midiChannel >= MIDI_CHANNELS) midiChannel = 0;
 
-  update7Seg(midiChannel);
+  update7Seg(midiChannel + 1);
   
   EEPROM.write(MIDI_CHANNEL_EEPROM_ADDRESS, midiChannel);
 
