@@ -1,12 +1,13 @@
-// TODO: outputting PWM for frequency control voltage
-// TODO: listening to for control param changes, output 4 of them via PWM
-#include <SoftwareSerial.h>
+// MIDI library from https://github.com/FortySevenEffects/arduino_midi_library
+#include <MIDI.h>
+#include <midi_Defs.h>
+#include <midi_Message.h>
+#include <midi_Namespace.h>
+#include <midi_Settings.h>
+
 #include <EEPROM.h>
 
 // Constant values
-// MIDI standard, don't anticipate these will ever change
-#define MIN_MIDI_BYTES 3
-#define MIDI_SERIAL_BAUD_RATE 31250
 #define MIDI_CHANNELS 16
 // Wait this long before accepting another button press
 #define BUTTON_DEBOUNCE_MS 150
@@ -15,42 +16,38 @@
 // Where in the EEPROM we store the selected channel
 #define MIDI_CHANNEL_EEPROM_ADDRESS 0
 
-// Used to cancel out a piece of information from a MIDI status
-#define MIDI_STATUS_ACTION_BITMASK  0b11110000
-#define MIDI_STATUS_CHANNEL_BITMASK 0b00001111
-
-// MIDI status bytes (when the channel info is stripped off)
-#define MIDIS_NOTE_OFF        0b10000000
-#define MIDIS_NOTE_ON         0b10010000
-#define MIDIS_POLY_AFTERTOUCH 0b10100000
-#define MIDIS_CONTROL_CHANGE  0b10110000
-#define MIDIS_PROGRAM_CHANGE  0b11000000
-#define MIDIS_CHAN_AFTERTOUCH 0b11010000
-#define MIDIS_PITCH_BEND      0b11100000
-// TODO?: Timing clock?
+// MIDI control identifiers
+#define MIDIC_MODULATION 0b00000001
+#define MIDIC_VOLUME     0b00000111
+#define MIDIC_BALANCE    0b00001000
+#define MIDIC_PAN        0b00001010
 
 // Output pins
 #define PIN_GATE 7
 #define PIN_TRIGGER 8
+#define PIN_FREQ 9
+#define PIN_MOD1 10
+#define PIN_MOD2 6
+#define PIN_MOD3 5
+#define PIN_MOD4 3
 // 7 Segment-related
-#define PIN_LATCH 3
+#define PIN_LATCH 19
 #define PIN_CLK 4
-#define PIN_DATA 5
-// Not actually used to send anything
-#define PIN_SOFTWARE_TX 14
+#define PIN_DATA 18
 
 // Input pins
-// MIDI serial in
-#define PIN_SOFTWARE_RX 15
 // Channel select button
 #define PIN_CHANNEL_SELECT_BUTTON 2
+
+//Initialize the MIDI library
+MIDI_CREATE_DEFAULT_INSTANCE();
 
 // Hard-coded array of 7segment sequences.
 // Values set up in setup()
 byte DIGITS[10];
 
 // The MIDI channel we're interested in
-volatile byte midiChannel = 0;
+volatile byte midiChannel = 1;
 
 // Used for debouncing channel select button
 volatile long lastButtonPress = 0;
@@ -59,8 +56,6 @@ volatile long lastButtonPress = 0;
 volatile unsigned short notesOn = 0;
 
 volatile byte activeNote;
-
-SoftwareSerial sSerial(PIN_SOFTWARE_RX, PIN_SOFTWARE_TX);
 
 void setup() {
   pinMode(PIN_LATCH, OUTPUT);
@@ -87,86 +82,78 @@ void setup() {
     digitalPinToInterrupt(PIN_CHANNEL_SELECT_BUTTON),
     channelSelectButtonOnPressed,
     FALLING); 
-  
-  // Prepare to receive MIDI data
-  sSerial.begin(MIDI_SERIAL_BAUD_RATE);
-  
+
   // Ensure shift registers don't think we're writing
   digitalWrite(PIN_LATCH, LOW);
 
   // Retrieve last MIDI channel used from EEPROM
   midiChannel = EEPROM.read(MIDI_CHANNEL_EEPROM_ADDRESS);
-
-  if (midiChannel >= MIDI_CHANNELS) midiChannel = 0;
+  
+  if (midiChannel > MIDI_CHANNELS) midiChannel = 1;
+  
+  // Begin listening for midi messages
+  // We listen to all channels so we can change the channel
+  // at runtime and filter ourselves. This means we don't
+  // have to hardcode the channel.
+  MIDI.begin(MIDI_CHANNEL_OMNI);
 
   // Allow some time for the power-up reset circuit to do its thing,
   // resetting the shift registers before we pump data into them
   delay(POWERUP_MS);
 
-  // MIDI channels are 0-indexed, increment one for human-friendly display
-  update7Seg(midiChannel + 1);
+  update7Seg(midiChannel);
 }
 
 void loop() {
-  do {
-    if (!sSerial.available()) continue;
-
-    byte data[3];
-    
-    data[0] = sSerial.read();
-    data[1] = sSerial.read();
-    data[2] = sSerial.read();
-    
-    processMIDIMessage(data);
-  }
-  while(sSerial.available() >= MIN_MIDI_BYTES);
+  if (MIDI.read())
+  {
+    // Ignore messages not destined for our channel
+    if (MIDI.getChannel() !=  midiChannel) return;
+    processMIDIMessage();
+  }   
 }
 
-void processMIDIMessage(byte data[3]) {
-  // Separate out just channel, discarding action
-  byte statusChannel = data[0] & MIDI_STATUS_CHANNEL_BITMASK;
-  byte statusAction;
+void processMIDIMessage() {
+  switch(MIDI.getType()) {
+    case midi::NoteOn:
+      notesOn++;
+      activeNote = MIDI.getData1();
+      sendTriggerPulse();
+      updateGate();
+      updateFreqOutput();
+      // TODO: use velocity for something
+      break;
 
-  // Message is not for the channel we're interested in, abort
-  // further processing
-  if (statusChannel != midiChannel) return;
-
-  // Separate out just the action, discarding channel
-  statusAction = data[0] & MIDI_STATUS_ACTION_BITMASK;
-
-  switch(statusAction) {
-     case MIDIS_NOTE_ON:
-       notesOn++;
-       activeNote = data[1];
-       sendTriggerPulse();
-       updateGate();
-       updateFreqOutput();
-       // TODO: use velocity for something
-       break;
-
-    case MIDIS_NOTE_OFF:
+    case midi::NoteOff:
       notesOn--;
       updateGate();
       // TODO: maybe keep an array of which keys are pressed, to determine
       // which the active note should be (it should be the last key pressed)
       break;
-
-     case MIDIS_CONTROL_CHANGE:
-       // TODO: keep an array of output controls.
-       // Ignore any controls beyond the assigned ones
-       break;
-
-     case MIDIS_PITCH_BEND:
-       // TODO: special case controller change I guess
-       break;
-
-     case MIDIS_POLY_AFTERTOUCH:
-     case MIDIS_CHAN_AFTERTOUCH:
-     case MIDIS_PROGRAM_CHANGE:
-     default:
-       // Not implemented
-       break;
+      
+    case midi::ControlChange:
+      processControlChange(MIDI.getData1(), MIDI.getData2());
+      break;
+      
+    case midi::PitchBend:
+      // TODO
+      break;
   }
+};
+
+void processControlChange(byte controllerNumber, byte value) {
+  byte outputPin;
+
+  switch(controllerNumber) {
+    case MIDIC_MODULATION: outputPin = PIN_MOD1; break;
+    case MIDIC_VOLUME: outputPin = PIN_MOD2; break;
+    case MIDIC_BALANCE: outputPin = PIN_MOD3; break;
+    case MIDIC_PAN: outputPin = PIN_MOD4; break;
+    // If the controller isn't listed above, we can do nothing
+    default: return;
+  }
+  
+  analogWrite(outputPin, value << 1);
 }
 
 void updateGate() {
@@ -178,9 +165,7 @@ void updateFreqOutput() {
 }
 
 void sendTriggerPulse() {
-   digitalWrite(PIN_TRIGGER, HIGH);
-   // TODO: this can cause some messages to be missed.
-   // Checking for data should be done on an interrupt basis (timed)
+  digitalWrite(PIN_TRIGGER, HIGH);
   delay(1);
   digitalWrite(PIN_TRIGGER, LOW);
 }
@@ -196,16 +181,14 @@ void channelSelectButtonOnPressed() {
 
 void incrementMIDIChannel() {
   midiChannel++;
-  if (midiChannel >= MIDI_CHANNELS) midiChannel = 0;
+  if (midiChannel > MIDI_CHANNELS) midiChannel = 1;
 
-  update7Seg(midiChannel + 1);
+  update7Seg(midiChannel);
   
   EEPROM.write(MIDI_CHANNEL_EEPROM_ADDRESS, midiChannel);
-
   notesOn = 0;
   updateGate();
-  // TODO: update any variables pertaining to infering
-  // channel from messages
+  // TODO: reset all analog outputs to the middle value (128; 0V at the output)
 }
 
 void update7Seg(int number) {
