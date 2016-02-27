@@ -15,6 +15,10 @@
 #define POWERUP_MS 200
 // Where in the EEPROM we store the selected channel
 #define MIDI_CHANNEL_EEPROM_ADDRESS 0
+// Analog outputs are made symmetrical around 0, this value
+// sits in the center of the PWM output range of 0-255, setting
+// The output to 0V.
+#define ANALOG_CENTER_VALUE 128
 
 // MIDI control identifiers
 #define MIDIC_MODULATION 0b00000001
@@ -26,6 +30,7 @@
 #define PIN_GATE 7
 #define PIN_TRIGGER 8
 #define PIN_FREQ 9
+
 #define PIN_MOD1 10
 #define PIN_MOD2 6
 #define PIN_MOD3 5
@@ -47,7 +52,7 @@ MIDI_CREATE_DEFAULT_INSTANCE();
 byte DIGITS[10];
 
 // The MIDI channel we're interested in
-volatile byte midiChannel = 1;
+volatile byte midiChannel = 0;
 
 // Used for debouncing channel select button
 volatile long lastButtonPress = 0;
@@ -86,11 +91,6 @@ void setup() {
   // Ensure shift registers don't think we're writing
   digitalWrite(PIN_LATCH, LOW);
 
-  // Retrieve last MIDI channel used from EEPROM
-  midiChannel = EEPROM.read(MIDI_CHANNEL_EEPROM_ADDRESS);
-  
-  if (midiChannel > MIDI_CHANNELS) midiChannel = 1;
-  
   // Begin listening for midi messages
   // We listen to all channels so we can change the channel
   // at runtime and filter ourselves. This means we don't
@@ -100,8 +100,9 @@ void setup() {
   // Allow some time for the power-up reset circuit to do its thing,
   // resetting the shift registers before we pump data into them
   delay(POWERUP_MS);
-
-  update7Seg(midiChannel);
+  
+  // Retrieve last MIDI channel used from EEPROM
+  setMIDIChannel(EEPROM.read(MIDI_CHANNEL_EEPROM_ADDRESS));
 }
 
 void loop() {
@@ -122,6 +123,7 @@ void processMIDIMessage() {
       updateGate();
       updateFreqOutput();
       // TODO: use velocity for something
+      // Maybe in a later version.
       break;
 
     case midi::NoteOff:
@@ -136,7 +138,8 @@ void processMIDIMessage() {
       break;
       
     case midi::PitchBend:
-      // TODO
+      unsigned int pitchValue = MIDI.getData2() << 7 + MIDI.getData1();
+      analogWrite(PIN_MOD4, pitchValue / 64);
       break;
   }
 };
@@ -148,11 +151,14 @@ void processControlChange(byte controllerNumber, byte value) {
     case MIDIC_MODULATION: outputPin = PIN_MOD1; break;
     case MIDIC_VOLUME: outputPin = PIN_MOD2; break;
     case MIDIC_BALANCE: outputPin = PIN_MOD3; break;
-    case MIDIC_PAN: outputPin = PIN_MOD4; break;
     // If the controller isn't listed above, we can do nothing
     default: return;
   }
   
+  // The value here comes from a MIDI value and will be
+  // in the range of 0-127(0b01111111), shifting it to the left
+  // effectively just multiplies it by two, getting 0-255 range
+  // with the same precision.
   analogWrite(outputPin, value << 1);
 }
 
@@ -161,7 +167,7 @@ void updateGate() {
 }
 
 void updateFreqOutput() {
-  // TODO: analogWrite etc
+  // TODO: Map notes to analogWrite values to achieve 1V/octave
 }
 
 void sendTriggerPulse() {
@@ -176,23 +182,30 @@ void channelSelectButtonOnPressed() {
   if (currentTime - lastButtonPress < BUTTON_DEBOUNCE_MS) return;
   lastButtonPress = currentTime;
 
-  incrementMIDIChannel();
+  setMIDIChannel(midiChannel + 1);
 }
 
-void incrementMIDIChannel() {
-  midiChannel++;
-  if (midiChannel > MIDI_CHANNELS) midiChannel = 1;
-
-  update7Seg(midiChannel);
+void setMIDIChannel(byte newChannel) {
+  if (newChannel > MIDI_CHANNELS) newChannel = 1;
   
-  EEPROM.write(MIDI_CHANNEL_EEPROM_ADDRESS, midiChannel);
+  if (midiChannel == newChannel) return;
+  
+  midiChannel = newChannel;
+  updateDisplay();
+  
   notesOn = 0;
   updateGate();
-  // TODO: reset all analog outputs to the middle value (128; 0V at the output)
+  analogWrite(PIN_MOD1, ANALOG_CENTER_VALUE);
+  analogWrite(PIN_MOD2, ANALOG_CENTER_VALUE);
+  analogWrite(PIN_MOD3, ANALOG_CENTER_VALUE);
+  analogWrite(PIN_MOD4, ANALOG_CENTER_VALUE);
+  analogWrite(PIN_FREQ, ANALOG_CENTER_VALUE);
+  
+  EEPROM.write(MIDI_CHANNEL_EEPROM_ADDRESS, midiChannel);
 }
 
-void update7Seg(int number) {
-  byte *digits = getDigitBytes(number);
+void updateDisplay() {
+  byte *digits = getDigitBytes(midiChannel);
 
   digitalWrite(PIN_LATCH, HIGH);
 
@@ -202,19 +215,17 @@ void update7Seg(int number) {
   // Done writing data
   digitalWrite(PIN_LATCH, LOW);
 
-  // Slightly hacky lacking, but doing this makes the registers actually output
+  // Slightly hacky fix, but doing this makes the registers actually output
   // the newly shifted data. Maybe that's how it's meant to work.
   digitalWrite(PIN_LATCH, HIGH);
   digitalWrite(PIN_LATCH, LOW);
 }
 
-byte * getDigitBytes(int number) {
+// Assumes number < 100. In this program we're only dealing with 1-16.
+byte * getDigitBytes(byte number) {
   static byte digits[2];
-  // TODO: the local var types here could be optimized
-  int ones = number % 10;
-  int tens = (number - ones) / 10;
-
-  if (tens > 9) tens = 0;
+  byte ones = number % 10;
+  byte tens = (number - ones) / 10;
 
   digits[0] = DIGITS[tens];
   digits[1] = DIGITS[ones];
