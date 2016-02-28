@@ -183,7 +183,7 @@ void processMIDIMessage() {
       if (notesOn > 0) {
         byte releasedNote = MIDI.getData1();
         // If the released note is the one we last pressed,
-        // return the previously pressed note (that is still held).
+        // return to the previously pressed note (that is still held).
         // Otherwise, remove the newly released notes from the stack
         // of held notes, so we don't return to it later.
         if (releasedNote == activeNote) {
@@ -342,7 +342,7 @@ void outputControlChange(byte controllerNumber, byte value) {
 // Special case controller, pitch bend.
 // Pitch bend messages have 14 bit precision, spread across the
 // the 2 data bytes. We re-map it to our available 8 bit precision.
-void outputPitchBend(byte data1, data2) {
+void outputPitchBend(byte data1, byte data2) {
   unsigned int pitchValue = data2 << 7 + data1;
   analogWrite(PIN_MOD4, pitchValue / 64);
 }
