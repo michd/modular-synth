@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="7.5.0">
+<eagle version="7.3.0">
 <drawing>
 <settings>
 <setting alwaysvectorfont="yes"/>
@@ -7725,8 +7725,6 @@ POWER-UP</text>
 <wire x1="30.48" y1="50.8" x2="30.48" y2="60.96" width="0.1524" layer="91"/>
 <pinref part="P+6" gate="VCC" pin="VCC"/>
 </segment>
-</net>
-<net name="VCC1" class="0">
 <segment>
 <wire x1="213.36" y1="53.34" x2="213.36" y2="58.42" width="0.1524" layer="91"/>
 <pinref part="D2" gate="G$1" pin="CA2"/>
@@ -7885,7 +7883,7 @@ POWER-UP</text>
 <wire x1="297.18" y1="63.5" x2="292.1" y2="63.5" width="0.1524" layer="91"/>
 </segment>
 </net>
-<net name="GND" class="0">
+<net name="N$46" class="0">
 <segment>
 <pinref part="V1" gate="/-UB" pin="-UB"/>
 <pinref part="SUPPLY1" gate="GND" pin="GND"/>
