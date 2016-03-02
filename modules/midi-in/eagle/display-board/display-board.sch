@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="7.3.0">
+<eagle version="7.5.0">
 <drawing>
 <settings>
 <setting alwaysvectorfont="yes"/>
@@ -7551,10 +7551,10 @@ POWER-UP</text>
 <attribute name="NAME" x="19.05" y="85.3186" size="1.778" layer="95"/>
 <attribute name="VALUE" x="19.05" y="80.518" size="1.778" layer="96"/>
 </instance>
-<instance part="R18" gate="G$1" x="43.18" y="76.2"/>
-<instance part="SUPPLY5" gate="GND" x="35.56" y="71.12"/>
-<instance part="C1" gate="G$1" x="50.8" y="83.82"/>
-<instance part="P+5" gate="VCC" x="35.56" y="96.52"/>
+<instance part="R18" gate="G$1" x="35.56" y="109.22" rot="R270"/>
+<instance part="SUPPLY5" gate="GND" x="35.56" y="73.66"/>
+<instance part="C1" gate="G$1" x="35.56" y="93.98" rot="R180"/>
+<instance part="P+5" gate="VCC" x="15.24" y="121.92"/>
 <instance part="SV1" gate="G$1" x="17.78" y="53.34"/>
 <instance part="P+6" gate="VCC" x="30.48" y="63.5"/>
 <instance part="SUPPLY6" gate="GND" x="30.48" y="43.18"/>
@@ -7706,20 +7706,6 @@ POWER-UP</text>
 <wire x1="304.8" y1="35.56" x2="304.8" y2="33.02" width="0.1524" layer="91"/>
 </segment>
 <segment>
-<pinref part="C1" gate="G$1" pin="1"/>
-<wire x1="50.8" y1="86.36" x2="50.8" y2="91.44" width="0.1524" layer="91"/>
-<wire x1="50.8" y1="91.44" x2="35.56" y2="91.44" width="0.1524" layer="91"/>
-<pinref part="T1" gate="G$1" pin="C"/>
-<wire x1="35.56" y1="91.44" x2="35.56" y2="88.9" width="0.1524" layer="91"/>
-<wire x1="35.56" y1="91.44" x2="15.24" y2="91.44" width="0.1524" layer="91"/>
-<wire x1="15.24" y1="91.44" x2="15.24" y2="83.82" width="0.1524" layer="91"/>
-<pinref part="R17" gate="G$1" pin="1"/>
-<wire x1="15.24" y1="83.82" x2="17.78" y2="83.82" width="0.1524" layer="91"/>
-<junction x="35.56" y="91.44"/>
-<pinref part="P+5" gate="VCC" pin="VCC"/>
-<wire x1="35.56" y1="93.98" x2="35.56" y2="91.44" width="0.1524" layer="91"/>
-</segment>
-<segment>
 <pinref part="SV1" gate="G$1" pin="2"/>
 <wire x1="25.4" y1="50.8" x2="30.48" y2="50.8" width="0.1524" layer="91"/>
 <wire x1="30.48" y1="50.8" x2="30.48" y2="60.96" width="0.1524" layer="91"/>
@@ -7732,6 +7718,17 @@ POWER-UP</text>
 <wire x1="210.82" y1="53.34" x2="213.36" y2="53.34" width="0.1524" layer="91"/>
 <wire x1="213.36" y1="88.9" x2="213.36" y2="93.98" width="0.1524" layer="91"/>
 <pinref part="P+2" gate="VCC" pin="VCC"/>
+</segment>
+<segment>
+<pinref part="R17" gate="G$1" pin="1"/>
+<wire x1="15.24" y1="119.38" x2="15.24" y2="116.84" width="0.1524" layer="91"/>
+<wire x1="15.24" y1="116.84" x2="15.24" y2="83.82" width="0.1524" layer="91"/>
+<wire x1="15.24" y1="83.82" x2="17.78" y2="83.82" width="0.1524" layer="91"/>
+<pinref part="P+5" gate="VCC" pin="VCC"/>
+<pinref part="R18" gate="G$1" pin="1"/>
+<wire x1="35.56" y1="114.3" x2="35.56" y2="116.84" width="0.1524" layer="91"/>
+<wire x1="35.56" y1="116.84" x2="15.24" y2="116.84" width="0.1524" layer="91"/>
+<junction x="15.24" y="116.84"/>
 </segment>
 </net>
 <net name="N$9" class="0">
@@ -7908,12 +7905,8 @@ POWER-UP</text>
 </segment>
 <segment>
 <pinref part="SUPPLY5" gate="GND" pin="GND"/>
-<wire x1="35.56" y1="73.66" x2="35.56" y2="76.2" width="0.1524" layer="91"/>
 <pinref part="T1" gate="G$1" pin="E"/>
 <wire x1="35.56" y1="78.74" x2="35.56" y2="76.2" width="0.1524" layer="91"/>
-<pinref part="R18" gate="G$1" pin="1"/>
-<wire x1="35.56" y1="76.2" x2="38.1" y2="76.2" width="0.1524" layer="91"/>
-<junction x="35.56" y="76.2"/>
 </segment>
 <segment>
 <pinref part="SV1" gate="G$1" pin="1"/>
@@ -7932,19 +7925,20 @@ POWER-UP</text>
 <net name="N$34" class="0">
 <segment>
 <pinref part="R18" gate="G$1" pin="2"/>
-<pinref part="C1" gate="G$1" pin="2"/>
-<wire x1="48.26" y1="76.2" x2="50.8" y2="76.2" width="0.1524" layer="91"/>
-<wire x1="50.8" y1="76.2" x2="50.8" y2="78.74" width="0.1524" layer="91"/>
 <pinref part="V1" gate="1" pin="!SRCLR"/>
-<wire x1="50.8" y1="76.2" x2="60.96" y2="76.2" width="0.1524" layer="91"/>
-<junction x="50.8" y="76.2"/>
 <wire x1="60.96" y1="76.2" x2="83.82" y2="76.2" width="0.1524" layer="91"/>
-<wire x1="60.96" y1="76.2" x2="60.96" y2="109.22" width="0.1524" layer="91"/>
+<wire x1="60.96" y1="76.2" x2="60.96" y2="101.6" width="0.1524" layer="91"/>
+<wire x1="60.96" y1="101.6" x2="60.96" y2="109.22" width="0.1524" layer="91"/>
 <wire x1="60.96" y1="109.22" x2="317.5" y2="109.22" width="0.1524" layer="91"/>
 <wire x1="317.5" y1="109.22" x2="317.5" y2="76.2" width="0.1524" layer="91"/>
 <pinref part="V2" gate="1" pin="!SRCLR"/>
 <wire x1="317.5" y1="76.2" x2="292.1" y2="76.2" width="0.1524" layer="91"/>
-<junction x="60.96" y="76.2"/>
+<pinref part="C1" gate="G$1" pin="2"/>
+<wire x1="35.56" y1="104.14" x2="35.56" y2="101.6" width="0.1524" layer="91"/>
+<wire x1="35.56" y1="101.6" x2="35.56" y2="99.06" width="0.1524" layer="91"/>
+<wire x1="35.56" y1="101.6" x2="60.96" y2="101.6" width="0.1524" layer="91"/>
+<junction x="60.96" y="101.6"/>
+<junction x="35.56" y="101.6"/>
 </segment>
 </net>
 <net name="N$35" class="0">
@@ -7986,6 +7980,13 @@ POWER-UP</text>
 <wire x1="50.8" y1="63.5" x2="50.8" y2="58.42" width="0.1524" layer="91"/>
 <pinref part="SV1" gate="G$1" pin="5"/>
 <wire x1="50.8" y1="58.42" x2="25.4" y2="58.42" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="N$61" class="0">
+<segment>
+<pinref part="C1" gate="G$1" pin="1"/>
+<pinref part="T1" gate="G$1" pin="C"/>
+<wire x1="35.56" y1="91.44" x2="35.56" y2="88.9" width="0.1524" layer="91"/>
 </segment>
 </net>
 </nets>
