@@ -6726,7 +6726,7 @@ LED</text>
 <junction x="106.68" y="81.28"/>
 </segment>
 </net>
-<net name="N$31" class="0">
+<net name="N$3" class="0">
 <segment>
 <pinref part="R20" gate="G$1" pin="2"/>
 <pinref part="IC4" gate="A" pin="-IN"/>
@@ -6981,7 +6981,7 @@ LED</text>
 <junction x="180.34" y="45.72"/>
 </segment>
 </net>
-<net name="VCC" class="0">
+<net name="N$30" class="0">
 <segment>
 <pinref part="T2" gate="G$1" pin="C"/>
 <pinref part="P+10" gate="VCC" pin="VCC"/>
