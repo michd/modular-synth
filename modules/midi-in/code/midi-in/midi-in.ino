@@ -16,9 +16,9 @@
 // Where in the EEPROM we store the selected channel
 #define MIDI_CHANNEL_EEPROM_ADDRESS 0
 // Analog outputs are made symmetrical around 0, this value
-// sits in the center of the PWM output range of 0-255, setting
+// sits in the center of the DAC output range of 0-1023, setting
 // The output to 0V.
-#define ANALOG_CENTER_VALUE 128
+#define ANALOG_CENTER_VALUE 512
 // Constraining MIDI notes because of limit output voltage range
 // C2
 #define MIDI_MIN_NOTE 24
@@ -37,24 +37,33 @@
 #define MIDIC_BALANCE    0b00001000
 #define MIDIC_PAN        0b00001010
 
+// Addresses taken from LTC1660 datasheet
+#define DAC_ADDR_FREQ 0b0001 // DAC A
+#define DAC_ADDR_MOD1 0b0010 // DAC B, Modulation
+#define DAC_ADDR_MOD2 0b0011 // DAC C, Volume
+#define DAC_ADDR_MOD3 0b0100 // DAC D, Balance
+#define DAC_ADDR_MOD4 0b0101 // DAC E, Pitch Bend
+// 5 - 7 currently unused, though to be available as output of the 
+// MIDI-in board.
+#define DAC_ADDR_MOD5 0b0110 // DAC F, Unassigned
+#define DAC_ADDR_MOD6 0b0111 // DAC G, Unassigned
+#define DAC_ADDR_MOD7 0b1000 // DAC H, Unassigned
+// Special address that loads the value into all DAC output
+#define DAC_ADDR_ALL  0b1111
+
 // Output pins
 #define PIN_GATE 7
 #define PIN_TRIGGER 8
-#define PIN_FREQ 9
-// Needless to say, these MOD pins can be reprogrammed to
-// output other things.
-// Modulation
-#define PIN_MOD1 10
-// Volume
-#define PIN_MOD2 6
-// Balance
-#define PIN_MOD3 5
-// Pitch bend
-#define PIN_MOD4 3
+
 // 7 Segment-related
-#define PIN_LATCH 19
-#define PIN_CLK 4
-#define PIN_DATA 18
+#define PIN_DISP_LATCH 19
+#define PIN_DISP_CLK 4
+#define PIN_DISP_DATA 18
+
+// DAC-related
+#define PIN_DAC_LATCH 6
+#define PIN_DAC_CLK 5
+#define PIN_DAC_DATA 3
 
 // Input pins
 // Channel select button
@@ -64,7 +73,7 @@
 MIDI_CREATE_DEFAULT_INSTANCE();
 
 // Array of precalculated values per note (see setup())
-byte noteOutputValues[MIDI_NOTE_RANGE + 1];
+int noteOutputValues[MIDI_NOTE_RANGE + 1];
 
 // Contains active notes in order of when they
 // were pressed. While we only have one frequency output,
@@ -90,9 +99,16 @@ volatile unsigned short notesOn = 0;
 volatile byte activeNote;
 
 void setup() {
-  pinMode(PIN_LATCH, OUTPUT);
-  pinMode(PIN_CLK, OUTPUT);
-  pinMode(PIN_DATA, OUTPUT);
+  // Serial for display
+  pinMode(PIN_DISP_LATCH, OUTPUT);
+  pinMode(PIN_DISP_CLK, OUTPUT);
+  pinMode(PIN_DISP_DATA, OUTPUT);
+
+  // Serial for DAC
+  pinMode(PIN_DAC_LATCH, OUTPUT);
+  pinMode(PIN_DAC_CLK, OUTPUT);
+  pinMode(PIN_DAC_DATA, OUTPUT);
+
   pinMode(PIN_GATE, OUTPUT);
   pinMode(PIN_TRIGGER, OUTPUT);
   pinMode(PIN_CHANNEL_SELECT_BUTTON, INPUT);
@@ -117,7 +133,10 @@ void setup() {
     FALLING);
 
   // Ensure the display shift registers don't think we're writing
-  digitalWrite(PIN_LATCH, LOW);
+  digitalWrite(PIN_DISP_LATCH, LOW);
+
+  // Ensure the DAC shift register doesn't think we're writing
+  digitalWrite(PIN_DAC_LATCH, HIGH);
 
   // Begin listening for midi messages
   // We listen to all channels so we can change the channel
@@ -130,13 +149,13 @@ void setup() {
   delay(POWERUP_MS);
 
   // Calculate output values for each supported note
-  float noteStep = (float)255 / (float)MIDI_NOTE_RANGE;
+  float noteStep = (float)1024 / (float)MIDI_NOTE_RANGE;
 
   // Precalculate all the note values, so we don't have to
   // do it during normal runtime. Takes up some memory, but
   // I think it's worth it.
   for (byte i = 0; i <= MIDI_NOTE_RANGE; i++) {
-    noteOutputValues[i] = (byte)round(noteStep * (float)i);
+    noteOutputValues[i] = (int)round(noteStep * (float)i);
   }
 
   // Retrieve last MIDI channel used from EEPROM
@@ -316,35 +335,53 @@ void updateFreqOutput() {
   // Retrieve the value from the precalculated values,
   // so we don't have to do float arithmetic every time
   // this function is called.
-  analogWrite(PIN_FREQ, noteOutputValues[note]);
+  dacWrite(DAC_ADDR_FREQ, noteOutputValues[note]);
 }
 
 // Update a control voltage output for a given controller.
 // These map to the PIN_MODx pins.
 void outputControlChange(byte controllerNumber, byte value) {
-  byte outputPin;
+  byte outputAddress;
 
   switch (controllerNumber) {
-    case MIDIC_MODULATION: outputPin = PIN_MOD1; break;
-    case MIDIC_VOLUME: outputPin = PIN_MOD2; break;
-    case MIDIC_BALANCE: outputPin = PIN_MOD3; break;
+    case MIDIC_MODULATION: outputAddress = DAC_ADDR_MOD1; break;
+    case MIDIC_VOLUME: outputAddress = DAC_ADDR_MOD2; break;
+    case MIDIC_BALANCE: outputAddress = DAC_ADDR_MOD3; break;
     // If the controller isn't listed above, we can do nothing
     default: return;
   }
 
   // The value here comes from a MIDI value and will be
   // in the range of 0-127(0b01111111), shifting it to the left
-  // effectively multiplies it by two, getting 0-255 range
+  // effectively multiplies it by 8, getting 0-1024 range
   // with the same precision.
-  analogWrite(outputPin, value << 1);
+  dacWrite(outputAddress, value << 3);
 }
 
 // Special case controller, pitch bend.
 // Pitch bend messages have 14 bit precision, spread across the
-// the 2 data bytes. We re-map it to our available 8 bit precision.
+// the 2 data bytes. We re-map it to our available 10 bit precision.
 void outputPitchBend(byte data1, byte data2) {
   unsigned int pitchValue = data2 << 7 + data1;
-  analogWrite(PIN_MOD4, pitchValue / 64);
+  dacWrite(DAC_ADDR_MOD4, pitchValue / 16);
+}
+
+// Write a value to a DAC channel.
+// dacChannel should be one of the DAC_ADDR_* constants.
+// value should be 10 bit; this will be enforced by bitmasking.
+void dacWrite(byte dacChannel, int value) {
+  digitalWrite(PIN_DAC_LATCH, LOW);
+
+  // According to LTC1660 datasheet, we send out the address,
+  // then the value, then 2 irrelevant bits, making up a
+  // 16 bit message.
+  word shiftedValue = (dacChannel & 0b1111) << 12;
+  shiftedValue |= ((value << 2) & 0b111111111100);
+
+  shiftOut(PIN_DAC_DATA, PIN_DAC_CLK, MSBFIRST, shiftedValue >> 8);
+  shiftOut(PIN_DAC_DATA, PIN_DAC_CLK, MSBFIRST, shiftedValue & 0b11111111);
+
+  digitalWrite(PIN_DAC_LATCH, HIGH);
 }
 
 // --- MIDI channel selection
@@ -377,11 +414,7 @@ void setMIDIChannel(byte newChannel) {
   notesOn = 0;
   clearNoteStack();
   updateGate();
-  analogWrite(PIN_MOD1, ANALOG_CENTER_VALUE);
-  analogWrite(PIN_MOD2, ANALOG_CENTER_VALUE);
-  analogWrite(PIN_MOD3, ANALOG_CENTER_VALUE);
-  analogWrite(PIN_MOD4, ANALOG_CENTER_VALUE);
-  analogWrite(PIN_FREQ, ANALOG_CENTER_VALUE);
+  dacWrite(DAC_ADDR_ALL, ANALOG_CENTER_VALUE);
 
   // Save the newly set MIDI channel to the EEPROM,
   // so it may be recovered next power-up
@@ -393,19 +426,19 @@ void setMIDIChannel(byte newChannel) {
 void updateDisplay() {
   byte *digits = getDigitBytes(midiChannel);
 
-  digitalWrite(PIN_LATCH, HIGH);
+  digitalWrite(PIN_DISP_LATCH, HIGH);
 
   // Shift out the bytes to the shift registers connected
   // to the displays.
-  shiftOut(PIN_DATA, PIN_CLK, LSBFIRST, ~digits[1]);
-  shiftOut(PIN_DATA, PIN_CLK, LSBFIRST, ~digits[0]);
+  shiftOut(PIN_DISP_DATA, PIN_DISP_CLK, LSBFIRST, ~digits[1]);
+  shiftOut(PIN_DISP_DATA, PIN_DISP_CLK, LSBFIRST, ~digits[0]);
 
-  digitalWrite(PIN_LATCH, LOW);
+  digitalWrite(PIN_DISP_LATCH, LOW);
 
   // Slightly hacky fix, but doing this makes the registers actually output
   // the newly shifted data. Maybe that's how it's meant to work.
-  digitalWrite(PIN_LATCH, HIGH);
-  digitalWrite(PIN_LATCH, LOW);
+  digitalWrite(PIN_DISP_LATCH, HIGH);
+  digitalWrite(PIN_DISP_LATCH, LOW);
 }
 
 // Gets the two digit bytes representing a given number, for display
