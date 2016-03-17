@@ -38,16 +38,17 @@
 #define MIDIC_PAN        0b00001010
 
 // Addresses taken from LTC1660 datasheet
-#define DAC_ADDR_FREQ 0b0001 // DAC A
-#define DAC_ADDR_MOD1 0b0010 // DAC B, Modulation
-#define DAC_ADDR_MOD2 0b0011 // DAC C, Volume
-#define DAC_ADDR_MOD3 0b0100 // DAC D, Balance
-#define DAC_ADDR_MOD4 0b0101 // DAC E, Pitch Bend
+// The weird order of DACs assigned here is due ease of PCB routing.
+#define DAC_ADDR_FREQ 0b0100 // DAC D
+#define DAC_ADDR_MOD1 0b0011 // DAC C, Modulation
+#define DAC_ADDR_MOD2 0b0010 // DAC B, Volume
+#define DAC_ADDR_MOD3 0b0001 // DAC A, Balance
+#define DAC_ADDR_MOD4 0b1000 // DAC H, Pitch Bend
 // 5 - 7 currently unused, though to be available as output of the 
 // MIDI-in board.
-#define DAC_ADDR_MOD5 0b0110 // DAC F, Unassigned
-#define DAC_ADDR_MOD6 0b0111 // DAC G, Unassigned
-#define DAC_ADDR_MOD7 0b1000 // DAC H, Unassigned
+#define DAC_ADDR_MOD5 0b0111 // DAC G, Unassigned
+#define DAC_ADDR_MOD6 0b0110 // DAC F, Unassigned
+#define DAC_ADDR_MOD7 0b0101 // DAC E, Unassigned
 // Special address that loads the value into all DAC output
 #define DAC_ADDR_ALL  0b1111
 
