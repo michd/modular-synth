@@ -62,9 +62,9 @@
 #define PIN_DISP_DATA 18
 
 // DAC-related
-#define PIN_DAC_LATCH 6
-#define PIN_DAC_CLK 5
-#define PIN_DAC_DATA 3
+#define PIN_DAC_LATCH 9
+#define PIN_DAC_CLK 6
+#define PIN_DAC_DATA 5
 
 // Input pins
 // Channel select button
@@ -363,7 +363,7 @@ void outputControlChange(byte controllerNumber, byte value) {
 // Pitch bend messages have 14 bit precision, spread across the
 // the 2 data bytes. We re-map it to our available 10 bit precision.
 void outputPitchBend(byte data1, byte data2) {
-  unsigned int pitchValue = data2 << 7 + data1;
+  unsigned int pitchValue = (data2 << 7 | data1) & 0b11111111111111;
   dacWrite(DAC_ADDR_MOD4, pitchValue / 16);
 }
 
