@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="210mm"
+   height="297mm"
+   viewBox="0 0 744.09448819 1052.3622047"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.91 r13725"
+   sodipodi:docname="panel-design-helpers.svg">
+  <defs
+     id="defs4">
+    <pattern
+       y="0"
+       x="0"
+       height="6"
+       width="6"
+       patternUnits="userSpaceOnUse"
+       id="EMFhbasepattern" />
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.98994949"
+     inkscape:cx="361.5366"
+     inkscape:cy="758.4686"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:window-width="1920"
+     inkscape:window-height="1027"
+     inkscape:window-x="1912"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <circle
+       r="6.1830711"
+       cy="36.851883"
+       cx="71.98214"
+       id="circle5240"
+       style="display:inline;opacity:1;fill:#ff2424;fill-opacity:0.2857143;stroke:#0000ff;stroke-width:0.03543306;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+    <flowRoot
+       xml:space="preserve"
+       id="flowRoot4142"
+       style="font-style:normal;font-weight:normal;font-size:17.5px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       transform="translate(12.602584,-132.80465)"><flowRegion
+         id="flowRegion4144"><rect
+           id="rect4146"
+           width="129.28572"
+           height="48.92857"
+           x="125.17857"
+           y="158.07649" /></flowRegion><flowPara
+         id="flowPara4148">M3 screw hole</flowPara></flowRoot>    <g
+       style="display:inline"
+       id="g5524"
+       transform="matrix(1.25,0,0,1.25,14.164104,-452.65881)">
+      <circle
+         r="15.151181"
+         style="display:inline;opacity:1;fill:#919191;fill-opacity:0.2857143;stroke:#0000ff;stroke-width:0.02834645;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         id="circle5526"
+         cx="46.254429"
+         cy="425.01663" />
+      <circle
+         r="10.757481"
+         cy="425.01663"
+         cx="46.254429"
+         id="circle5528"
+         style="display:inline;opacity:1;fill:#ff2424;fill-opacity:0.2857143;stroke:#0000ff;stroke-width:0.02834645;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+    </g>
+    <flowRoot
+       transform="translate(12.602584,-91.044561)"
+       style="font-style:normal;font-weight:normal;font-size:17.5px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       id="flowRoot4160"
+       xml:space="preserve"><flowRegion
+         id="flowRegion4162"><rect
+           y="158.07649"
+           x="125.17857"
+           height="24.432375"
+           width="204.54208"
+           id="rect4164" /></flowRegion><flowPara
+         id="flowPara4166">Banana connector hole</flowPara></flowRoot>    <g
+       style="display:inline"
+       transform="matrix(1.25,0,0,1.25,-100.93912,-165.79997)"
+       id="g5436">
+      <rect
+         style="opacity:1;fill:#4b4b4b;fill-opacity:0.17777782;stroke:#0000ff;stroke-width:0.02834644;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         id="rect5438"
+         width="23.074017"
+         height="36.822048"
+         x="126.8"
+         y="224.39368" />
+      <circle
+         style="opacity:1;fill:#ff2424;fill-opacity:0.2857143;stroke:#0000ff;stroke-width:0.02834645;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         id="circle5440"
+         cx="138.33701"
+         cy="242.8047"
+         r="8.2062988" />
+    </g>
+    <flowRoot
+       xml:space="preserve"
+       id="flowRoot4178"
+       style="font-style:normal;font-weight:normal;font-size:17.5px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       transform="translate(13.166549,-31.933541)"><flowRegion
+         id="flowRegion4180"><rect
+           id="rect4182"
+           width="204.54208"
+           height="24.432375"
+           x="125.17857"
+           y="158.07649" /></flowRegion><flowPara
+         id="flowPara4184">SP switch</flowPara></flowRoot>    <g
+       transform="matrix(1.25,0,0,1.25,-239.82891,-161.45045)"
+       style="display:inline"
+       id="g5762">
+      <path
+         inkscape:connector-curvature="0"
+         id="path5361"
+         d="m 249.44806,270.72177 a 34.143306,34.143306 0 0 0 -34.14219,34.14375 34.143306,34.143306 0 0 0 5.52656,18.60625 l 0,33.67813 57.23126,0 0,-33.71719 a 34.143306,34.143306 0 0 0 5.52812,-18.56719 34.143306,34.143306 0 0 0 -34.14375,-34.14375 z"
+         style="opacity:1;fill:#000000;fill-opacity:0.17777782;stroke:#0000ff;stroke-width:0.02834645;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+      <g
+         id="g5756"
+         transform="translate(133.37008,290.42519)">
+        <circle
+           r="27.623623"
+           cy="14.438431"
+           cx="116.07877"
+           id="circle5758"
+           style="opacity:1;fill:#27ff23;fill-opacity:0.2857143;stroke:#0000ff;stroke-width:0.02834645;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+      </g>
+      <circle
+         r="13.450394"
+         cy="304.86362"
+         cx="249.44885"
+         id="circle5363"
+         style="opacity:1;fill:#fe0000;fill-opacity:0.17777782;stroke:#0000ff;stroke-width:0.02834645;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+    </g>
+    <flowRoot
+       xml:space="preserve"
+       id="flowRoot4178-0"
+       style="font-style:normal;font-weight:normal;font-size:17.5px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       transform="translate(12.602584,61.3128)"><flowRegion
+         id="flowRegion4180-5"><rect
+           id="rect4182-8"
+           width="222.72481"
+           height="25.947601"
+           x="125.17857"
+           y="158.07649" /></flowRegion><flowPara
+         id="flowPara4184-8">Potentiometer with knob</flowPara></flowRoot>    <flowRoot
+       xml:space="preserve"
+       id="flowRoot4243"
+       style="font-style:normal;font-weight:normal;font-size:17.5px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       transform="translate(-8.0812204,13.131983)"><flowRegion
+         id="flowRegion4245"><rect
+           id="rect4247"
+           width="602.0509"
+           height="315.1676"
+           x="91.923882"
+           y="315.961" /></flowRegion><flowPara
+         id="flowPara4249">This is a sheet of common panel-mount elements found in the synth. Only the red area is relevant, as that is the actual drill hole</flowPara><flowPara
+         id="flowPara4251">for the component. For laser cutting, all the fill area should be removed, and so should all non-hole elements (such as component outlines)</flowPara></flowRoot>  </g>
+</svg>
