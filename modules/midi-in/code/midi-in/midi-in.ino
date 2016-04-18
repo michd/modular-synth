@@ -99,6 +99,8 @@ volatile unsigned short notesOn = 0;
 // Note currently being played on frequency output
 volatile byte activeNote;
 
+volatile byte currentVelocity;
+
 void setup() {
   // Serial for display
   pinMode(PIN_DISP_LATCH, OUTPUT);
@@ -186,13 +188,17 @@ void processMIDIMessage() {
       
       // Set the new active note from the MIDI message
       activeNote = MIDI.getData1();
+      
+      // TODO: ideally this velocity uses the same system as the note,
+      // that is, with a note stack. Would be better to combine the two
+      // with a bit of a refactor.
+      currentVelocity = MIDI.getData2();
       notesOn++;
       
       sendTriggerPulse();
       updateGate();
       updateFreqOutput();
-      // TODO: use velocity (`MIDI.getData2()`) for something
-      // Maybe in a later version.
+      updateVelocityOutput();
       break;
 
     case midi::NoteOff:
@@ -339,6 +345,10 @@ void updateFreqOutput() {
   dacWrite(DAC_ADDR_FREQ, noteOutputValues[note]);
 }
 
+void updateVelocityOutput() {
+  dacWrite(DAC_ADDR_MOD3, currentVelocity << 3);
+}
+
 // Update a control voltage output for a given controller.
 // These map to the PIN_MODx pins.
 void outputControlChange(byte controllerNumber, byte value) {
@@ -347,7 +357,10 @@ void outputControlChange(byte controllerNumber, byte value) {
   switch (controllerNumber) {
     case MIDIC_MODULATION: outputAddress = DAC_ADDR_MOD1; break;
     case MIDIC_VOLUME: outputAddress = DAC_ADDR_MOD2; break;
-    case MIDIC_BALANCE: outputAddress = DAC_ADDR_MOD3; break;
+    
+    // Commented out because we're using DAC_ADDR_MOD3 for velocity
+    //case MIDIC_BALANCE: outputAddress = DAC_ADDR_MOD3; break;
+    
     // If the controller isn't listed above, we can do nothing
     default: return;
   }
