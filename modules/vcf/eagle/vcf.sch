@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="7.5.0">
+<eagle version="7.3.0">
 <drawing>
 <settings>
 <setting alwaysvectorfont="yes"/>
@@ -16620,10 +16620,10 @@ SPDT</text>
 <instance part="IC1" gate="B" x="195.58" y="109.22" rot="MR180"/>
 <instance part="IC1" gate="C" x="119.38" y="170.18" rot="MR180"/>
 <instance part="IC1" gate="D" x="76.2" y="233.68" rot="MR180"/>
-<instance part="IC3" gate="A" x="299.72" y="104.14" rot="MR180"/>
+<instance part="IC3" gate="A" x="325.12" y="53.34" rot="MR180"/>
 <instance part="IC3" gate="B" x="119.38" y="53.34" rot="MR180"/>
 <instance part="IC3" gate="C" x="220.98" y="53.34" rot="MR180"/>
-<instance part="IC3" gate="D" x="325.12" y="53.34" rot="MR180"/>
+<instance part="IC3" gate="D" x="299.72" y="104.14" rot="MR180"/>
 <instance part="LED1" gate="G$1" x="99.06" y="76.2" rot="R180"/>
 <instance part="LED2" gate="G$1" x="104.14" y="78.74"/>
 <instance part="R18" gate="G$1" x="104.14" y="93.98" rot="R90"/>
@@ -16808,6 +16808,7 @@ SPDT</text>
 <wire x1="40.64" y1="38.1" x2="40.64" y2="43.18" width="0.1524" layer="91"/>
 <wire x1="55.88" y1="38.1" x2="40.64" y2="38.1" width="0.1524" layer="91"/>
 <junction x="40.64" y="38.1"/>
+<junction x="55.88" y="38.1"/>
 </segment>
 </net>
 <net name="GND" class="0">
@@ -16894,10 +16895,10 @@ SPDT</text>
 <wire x1="63.5" y1="147.32" x2="63.5" y2="144.78" width="0.1524" layer="91"/>
 </segment>
 <segment>
-<pinref part="IC3" gate="A" pin="+IN"/>
-<wire x1="292.1" y1="101.6" x2="289.56" y2="101.6" width="0.1524" layer="91"/>
 <pinref part="SUPPLY24" gate="GND" pin="GND"/>
 <wire x1="289.56" y1="101.6" x2="289.56" y2="99.06" width="0.1524" layer="91"/>
+<pinref part="IC3" gate="D" pin="+IN"/>
+<wire x1="292.1" y1="101.6" x2="289.56" y2="101.6" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="SUPPLY16" gate="GND" pin="GND"/>
@@ -16936,8 +16937,8 @@ SPDT</text>
 <segment>
 <pinref part="SUPPLY26" gate="GND" pin="GND"/>
 <wire x1="314.96" y1="48.26" x2="314.96" y2="50.8" width="0.1524" layer="91"/>
-<wire x1="314.96" y1="50.8" x2="317.5" y2="50.8" width="0.1524" layer="91"/>
-<pinref part="IC3" gate="D" pin="+IN"/>
+<pinref part="IC3" gate="A" pin="+IN"/>
+<wire x1="317.5" y1="50.8" x2="314.96" y2="50.8" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="LED5" gate="G$1" pin="A"/>
@@ -17018,9 +17019,10 @@ SPDT</text>
 <wire x1="40.64" y1="12.7" x2="40.64" y2="7.62" width="0.1524" layer="91"/>
 <wire x1="55.88" y1="12.7" x2="40.64" y2="12.7" width="0.1524" layer="91"/>
 <junction x="40.64" y="12.7"/>
+<junction x="55.88" y="12.7"/>
 </segment>
 </net>
-<net name="N$1" class="0">
+<net name="N$1V-OCT" class="0">
 <segment>
 <pinref part="X2" gate="-1" pin="KL"/>
 <pinref part="R2" gate="G$1" pin="2"/>
@@ -17165,22 +17167,13 @@ SPDT</text>
 <wire x1="111.76" y1="172.72" x2="109.22" y2="172.72" width="0.1524" layer="91"/>
 </segment>
 </net>
-<net name="N$6" class="0">
-<segment>
-<wire x1="45.72" y1="68.58" x2="45.72" y2="119.38" width="0.1524" layer="91"/>
-<pinref part="X7" gate="-2" pin="S"/>
-<wire x1="45.72" y1="119.38" x2="38.1" y2="119.38" width="0.1524" layer="91"/>
-<pinref part="X10" gate="-2" pin="KL"/>
-<wire x1="38.1" y1="68.58" x2="45.72" y2="68.58" width="0.1524" layer="91"/>
-</segment>
-</net>
 <net name="N$16" class="0">
 <segment>
 <pinref part="X9" gate="-2" pin="S"/>
 <wire x1="43.18" y1="88.9" x2="38.1" y2="88.9" width="0.1524" layer="91"/>
-<pinref part="X10" gate="-1" pin="KL"/>
-<wire x1="38.1" y1="73.66" x2="43.18" y2="73.66" width="0.1524" layer="91"/>
-<wire x1="43.18" y1="73.66" x2="43.18" y2="88.9" width="0.1524" layer="91"/>
+<pinref part="X10" gate="-2" pin="KL"/>
+<wire x1="38.1" y1="68.58" x2="43.18" y2="68.58" width="0.1524" layer="91"/>
+<wire x1="43.18" y1="88.9" x2="43.18" y2="68.58" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$17" class="0">
@@ -17399,7 +17392,7 @@ SPDT</text>
 <pinref part="C15" gate="G$1" pin="1"/>
 <wire x1="297.18" y1="114.3" x2="289.56" y2="114.3" width="0.1524" layer="91"/>
 <wire x1="289.56" y1="114.3" x2="289.56" y2="106.68" width="0.1524" layer="91"/>
-<pinref part="IC3" gate="A" pin="-IN"/>
+<pinref part="IC3" gate="D" pin="-IN"/>
 <wire x1="292.1" y1="106.68" x2="289.56" y2="106.68" width="0.1524" layer="91"/>
 <junction x="289.56" y="106.68"/>
 </segment>
@@ -17525,7 +17518,6 @@ SPDT</text>
 <net name="N$47" class="0">
 <segment>
 <pinref part="R37" gate="G$1" pin="2"/>
-<wire x1="309.88" y1="104.14" x2="309.88" y2="99.06" width="0.1524" layer="91"/>
 <pinref part="C15" gate="G$1" pin="2"/>
 <wire x1="304.8" y1="114.3" x2="309.88" y2="114.3" width="0.1524" layer="91"/>
 <pinref part="R11" gate="G$1" pin="1"/>
@@ -17533,7 +17525,8 @@ SPDT</text>
 <wire x1="309.88" y1="139.7" x2="309.88" y2="114.3" width="0.1524" layer="91"/>
 <junction x="309.88" y="114.3"/>
 <wire x1="309.88" y1="114.3" x2="309.88" y2="104.14" width="0.1524" layer="91"/>
-<pinref part="IC3" gate="A" pin="OUT"/>
+<pinref part="IC3" gate="D" pin="OUT"/>
+<wire x1="309.88" y1="104.14" x2="309.88" y2="99.06" width="0.1524" layer="91"/>
 <wire x1="307.34" y1="104.14" x2="309.88" y2="104.14" width="0.1524" layer="91"/>
 <junction x="309.88" y="104.14"/>
 </segment>
@@ -17564,11 +17557,11 @@ SPDT</text>
 <wire x1="314.96" y1="60.96" x2="314.96" y2="55.88" width="0.1524" layer="91"/>
 <wire x1="312.42" y1="55.88" x2="314.96" y2="55.88" width="0.1524" layer="91"/>
 <pinref part="C16" gate="G$1" pin="1"/>
-<wire x1="314.96" y1="55.88" x2="317.5" y2="55.88" width="0.1524" layer="91"/>
 <wire x1="320.04" y1="60.96" x2="314.96" y2="60.96" width="0.1524" layer="91"/>
 <junction x="314.96" y="60.96"/>
+<pinref part="IC3" gate="A" pin="-IN"/>
+<wire x1="317.5" y1="55.88" x2="314.96" y2="55.88" width="0.1524" layer="91"/>
 <junction x="314.96" y="55.88"/>
-<pinref part="IC3" gate="D" pin="-IN"/>
 </segment>
 </net>
 <net name="N$50" class="0">
@@ -17577,17 +17570,17 @@ SPDT</text>
 <wire x1="327.66" y1="68.58" x2="335.28" y2="68.58" width="0.1524" layer="91"/>
 <wire x1="335.28" y1="68.58" x2="335.28" y2="60.96" width="0.1524" layer="91"/>
 <wire x1="335.28" y1="60.96" x2="335.28" y2="53.34" width="0.1524" layer="91"/>
-<wire x1="335.28" y1="53.34" x2="332.74" y2="53.34" width="0.1524" layer="91"/>
 <pinref part="C16" gate="G$1" pin="2"/>
+<wire x1="335.28" y1="53.34" x2="335.28" y2="50.8" width="0.1524" layer="91"/>
 <wire x1="327.66" y1="60.96" x2="335.28" y2="60.96" width="0.1524" layer="91"/>
 <pinref part="R39" gate="G$1" pin="2"/>
-<wire x1="335.28" y1="50.8" x2="335.28" y2="53.34" width="0.1524" layer="91"/>
 <junction x="335.28" y="60.96"/>
+<pinref part="IC3" gate="A" pin="OUT"/>
+<wire x1="332.74" y1="53.34" x2="335.28" y2="53.34" width="0.1524" layer="91"/>
 <junction x="335.28" y="53.34"/>
-<pinref part="IC3" gate="D" pin="OUT"/>
 </segment>
 </net>
-<net name="N$31" class="0">
+<net name="N$LP-OUT" class="0">
 <segment>
 <pinref part="R39" gate="G$1" pin="1"/>
 <wire x1="335.28" y1="40.64" x2="335.28" y2="35.56" width="0.1524" layer="91"/>
@@ -17595,7 +17588,7 @@ SPDT</text>
 <wire x1="335.28" y1="35.56" x2="342.9" y2="35.56" width="0.1524" layer="91"/>
 </segment>
 </net>
-<net name="N$40" class="0">
+<net name="N$BP-OUT" class="0">
 <segment>
 <pinref part="X12" gate="-2" pin="KL"/>
 <pinref part="R32" gate="G$1" pin="1"/>
@@ -17603,7 +17596,7 @@ SPDT</text>
 <wire x1="231.14" y1="30.48" x2="231.14" y2="40.64" width="0.1524" layer="91"/>
 </segment>
 </net>
-<net name="N$51" class="0">
+<net name="N$HP-OUT" class="0">
 <segment>
 <pinref part="X12" gate="-1" pin="KL"/>
 <pinref part="R23" gate="G$1" pin="1"/>
@@ -17618,19 +17611,18 @@ SPDT</text>
 <wire x1="38.1" y1="220.98" x2="48.26" y2="220.98" width="0.1524" layer="91"/>
 </segment>
 </net>
+<net name="N$1" class="0">
+<segment>
+<pinref part="X10" gate="-1" pin="KL"/>
+<wire x1="38.1" y1="73.66" x2="45.72" y2="73.66" width="0.1524" layer="91"/>
+<pinref part="X7" gate="-2" pin="S"/>
+<wire x1="45.72" y1="73.66" x2="45.72" y2="119.38" width="0.1524" layer="91"/>
+<wire x1="45.72" y1="119.38" x2="38.1" y2="119.38" width="0.1524" layer="91"/>
+</segment>
+</net>
 </nets>
 </sheet>
 </sheets>
-<errors>
-<approved hash="202,1,68.58,53.34,IC1A,BUFF/IN,,,,"/>
-<approved hash="202,1,170.18,48.26,IC1B,BUFF/IN,,,,"/>
-<approved hash="104,1,-33.02,-40.64,IC1P,V+,VCC,,,"/>
-<approved hash="104,1,-33.02,-55.88,IC1P,V-,VEE,,,"/>
-<approved hash="104,1,-15.24,-40.64,IC2P,V+,VCC,,,"/>
-<approved hash="104,1,-15.24,-55.88,IC2P,V-,VEE,,,"/>
-<approved hash="104,1,2.54,-40.64,IC3P,V+,VCC,,,"/>
-<approved hash="104,1,2.54,-55.88,IC3P,V-,VEE,,,"/>
-</errors>
 </schematic>
 </drawing>
 <compatibility>
