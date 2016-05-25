@@ -17683,19 +17683,11 @@ SPDT</text>
 </net>
 <net name="N$49" class="0">
 <segment>
-<pinref part="X10" gate="-2" pin="S"/>
-<wire x1="-12.7" y1="-132.08" x2="-10.16" y2="-132.08" width="0.1524" layer="91"/>
-<wire x1="-10.16" y1="-132.08" x2="-2.54" y2="-132.08" width="0.1524" layer="91"/>
-<wire x1="-2.54" y1="-132.08" x2="-2.54" y2="-71.12" width="0.1524" layer="91"/>
 <pinref part="X4" gate="-2" pin="KL"/>
+<wire x1="-2.54" y1="-129.54" x2="-2.54" y2="-71.12" width="0.1524" layer="91"/>
 <wire x1="-2.54" y1="-71.12" x2="-12.7" y2="-71.12" width="0.1524" layer="91"/>
-<pinref part="R53" gate="G$1" pin="1"/>
-<wire x1="0" y1="-132.08" x2="-2.54" y2="-132.08" width="0.1524" layer="91"/>
-<junction x="-2.54" y="-132.08"/>
 <pinref part="X10" gate="-3" pin="S"/>
-<wire x1="-12.7" y1="-129.54" x2="-10.16" y2="-129.54" width="0.1524" layer="91"/>
-<wire x1="-10.16" y1="-129.54" x2="-10.16" y2="-132.08" width="0.1524" layer="91"/>
-<junction x="-10.16" y="-132.08"/>
+<wire x1="-12.7" y1="-129.54" x2="-2.54" y2="-129.54" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$PW-CV1" class="0">
@@ -17879,6 +17871,13 @@ SPDT</text>
 <pinref part="X15" gate="-2" pin="S"/>
 <pinref part="R65" gate="G$1" pin="1"/>
 <wire x1="-12.7" y1="50.8" x2="20.32" y2="50.8" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="N$65" class="0">
+<segment>
+<pinref part="X10" gate="-2" pin="S"/>
+<wire x1="-12.7" y1="-132.08" x2="0" y2="-132.08" width="0.1524" layer="91"/>
+<pinref part="R53" gate="G$1" pin="1"/>
 </segment>
 </net>
 </nets>
