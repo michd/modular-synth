@@ -34,8 +34,8 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="0.98994949"
-     inkscape:cx="361.5366"
-     inkscape:cy="758.4686"
+     inkscape:cx="301.06976"
+     inkscape:cy="767.40935"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -134,37 +134,32 @@
            height="24.432375"
            x="125.17857"
            y="158.07649" /></flowRegion><flowPara
-         id="flowPara4184">SP switch</flowPara></flowRoot>    <g
-       transform="matrix(1.25,0,0,1.25,-239.82891,-161.45045)"
-       style="display:inline"
-       id="g5762">
-      <path
-         inkscape:connector-curvature="0"
-         id="path5361"
-         d="m 249.44806,270.72177 a 34.143306,34.143306 0 0 0 -34.14219,34.14375 34.143306,34.143306 0 0 0 5.52656,18.60625 l 0,33.67813 57.23126,0 0,-33.71719 a 34.143306,34.143306 0 0 0 5.52812,-18.56719 34.143306,34.143306 0 0 0 -34.14375,-34.14375 z"
-         style="opacity:1;fill:#000000;fill-opacity:0.17777782;stroke:#0000ff;stroke-width:0.02834645;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
-      <g
-         id="g5756"
-         transform="translate(133.37008,290.42519)">
-        <circle
-           r="27.623623"
-           cy="14.438431"
-           cx="116.07877"
-           id="circle5758"
-           style="opacity:1;fill:#27ff23;fill-opacity:0.2857143;stroke:#0000ff;stroke-width:0.02834645;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
-      </g>
+         id="flowPara4184">SP switch</flowPara></flowRoot>    <path
+       style="opacity:1;fill:#000000;fill-opacity:0.17777782;stroke:#0000ff;stroke-width:0.03543306;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 71.981165,176.95176 a 42.679133,42.679133 0 0 0 -42.677738,42.67969 42.679133,42.679133 0 0 0 6.9082,23.25781 l 0,42.09766 71.539073,0 0,-42.14648 a 42.679133,42.679133 0 0 0 6.91015,-23.20899 42.679133,42.679133 0 0 0 -42.679685,-42.67969 z"
+       id="path5361"
+       inkscape:connector-curvature="0" />
+    <g
+       transform="matrix(1.25,0,0,1.25,-73.11631,201.58104)"
+       id="g5756">
       <circle
-         r="13.450394"
-         cy="304.86362"
-         cx="249.44885"
-         id="circle5363"
-         style="opacity:1;fill:#fe0000;fill-opacity:0.17777782;stroke:#0000ff;stroke-width:0.02834645;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+         style="opacity:1;fill:#27ff23;fill-opacity:0.2857143;stroke:#0000ff;stroke-width:0.02834645;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         id="circle5758"
+         cx="116.07877"
+         cy="14.438431"
+         r="27.623623" />
     </g>
+    <circle
+       style="opacity:1;fill:#fe0000;fill-opacity:0.17777782;stroke:#0000ff;stroke-width:0.03543306;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="circle5363"
+       cx="71.982155"
+       cy="219.62907"
+       r="16.812992" />
     <flowRoot
        xml:space="preserve"
        id="flowRoot4178-0"
        style="font-style:normal;font-weight:normal;font-size:17.5px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       transform="translate(12.602584,61.3128)"><flowRegion
+       transform="translate(96.602584,61.3128)"><flowRegion
          id="flowRegion4180-5"><rect
            id="rect4182-8"
            width="222.72481"
@@ -183,5 +178,30 @@
            x="91.923882"
            y="315.961" /></flowRegion><flowPara
          id="flowPara4249">This is a sheet of common panel-mount elements found in the synth. Only the red area is relevant, as that is the actual drill hole</flowPara><flowPara
-         id="flowPara4251">for the component. For laser cutting, all the fill area should be removed, and so should all non-hole elements (such as component outlines)</flowPara></flowRoot>  </g>
+         id="flowPara4251">for the component. For laser cutting, all the fill area should be removed, and so should all non-hole elements (such as component outlines)</flowPara></flowRoot>    <g
+       id="g4209"
+       transform="translate(-288,0)">
+      <path
+         inkscape:connector-curvature="0"
+         id="path4193"
+         d="m 453.98216,189.33398 a 30.295275,30.295275 0 0 0 -30.29492,30.29493 30.295275,30.295275 0 0 0 3.18945,13.50195 l 0,42.78906 54.21289,0 0,-42.8418 a 30.295275,30.295275 0 0 0 3.1875,-13.44921 30.295275,30.295275 0 0 0 -30.29492,-30.29493 z"
+         style="opacity:1;fill:#000000;fill-opacity:0.17647059;stroke:none;stroke-width:0.35433072;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
+      <g
+         transform="matrix(1.25,0,0,1.25,308.88369,201.58104)"
+         id="g4181">
+        <circle
+           style="opacity:1;fill:#27ff23;fill-opacity:0.2857143;stroke:#0000ff;stroke-width:0.02834645;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+           id="circle4183"
+           cx="116.07877"
+           cy="14.438431"
+           r="27.623623" />
+      </g>
+      <circle
+         r="12.383859"
+         style="opacity:1;fill:#fe0000;fill-opacity:0.17777782;stroke:#0000ff;stroke-width:0.03543307;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         id="circle4185"
+         cx="453.98215"
+         cy="219.62907" />
+    </g>
+  </g>
 </svg>
