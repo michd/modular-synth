@@ -12778,7 +12778,7 @@ Grid 5.00 mm&lt;p&gt;
 </classes>
 <parts>
 <part name="IC1" library="linear" deviceset="TL074" device="P"/>
-<part name="IC2" library="national-semiconductor" deviceset="LM13600" device="N" technology="A"/>
+<part name="IC2" library="national-semiconductor" deviceset="LM13600" device="N" technology="A" value="LM13700N"/>
 <part name="R1" library="rcl" deviceset="R-EU_" device="0204/7" value="100K"/>
 <part name="R2" library="rcl" deviceset="R-EU_" device="0204/7" value="100K"/>
 <part name="R3" library="rcl" deviceset="R-EU_" device="0204/7" value="100K"/>
