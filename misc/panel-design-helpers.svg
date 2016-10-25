@@ -33,9 +33,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.98994949"
-     inkscape:cx="301.06976"
-     inkscape:cy="767.40935"
+     inkscape:zoom="1.28"
+     inkscape:cx="176.37405"
+     inkscape:cy="815.80949"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -52,7 +52,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -159,7 +159,7 @@
        xml:space="preserve"
        id="flowRoot4178-0"
        style="font-style:normal;font-weight:normal;font-size:17.5px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       transform="translate(96.602584,61.3128)"><flowRegion
+       transform="translate(190.22843,54.107372)"><flowRegion
          id="flowRegion4180-5"><rect
            id="rect4182-8"
            width="222.72481"
@@ -179,15 +179,14 @@
            y="315.961" /></flowRegion><flowPara
          id="flowPara4249">This is a sheet of common panel-mount elements found in the synth. Only the red area is relevant, as that is the actual drill hole</flowPara><flowPara
          id="flowPara4251">for the component. For laser cutting, all the fill area should be removed, and so should all non-hole elements (such as component outlines)</flowPara></flowRoot>    <g
-       id="g4209"
-       transform="translate(-288,0)">
+       id="g9860">
       <path
          inkscape:connector-curvature="0"
          id="path4193"
-         d="m 453.98216,189.33398 a 30.295275,30.295275 0 0 0 -30.29492,30.29493 30.295275,30.295275 0 0 0 3.18945,13.50195 l 0,42.78906 54.21289,0 0,-42.8418 a 30.295275,30.295275 0 0 0 3.1875,-13.44921 30.295275,30.295275 0 0 0 -30.29492,-30.29493 z"
+         d="m 165.98216,189.33398 a 30.295275,30.295275 0 0 0 -30.29492,30.29493 30.295275,30.295275 0 0 0 3.18945,13.50195 l 0,42.78906 54.21289,0 0,-42.8418 a 30.295275,30.295275 0 0 0 3.1875,-13.44921 30.295275,30.295275 0 0 0 -30.29492,-30.29493 z"
          style="opacity:1;fill:#000000;fill-opacity:0.17647059;stroke:none;stroke-width:0.35433072;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
       <g
-         transform="matrix(1.25,0,0,1.25,308.88369,201.58104)"
+         transform="matrix(1.25,0,0,1.25,20.88369,201.58104)"
          id="g4181">
         <circle
            style="opacity:1;fill:#27ff23;fill-opacity:0.2857143;stroke:#0000ff;stroke-width:0.02834645;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
@@ -200,8 +199,23 @@
          r="12.383859"
          style="opacity:1;fill:#fe0000;fill-opacity:0.17777782;stroke:#0000ff;stroke-width:0.03543307;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
          id="circle4185"
-         cx="453.98215"
+         cx="165.98215"
          cy="219.62907" />
+    </g>
+    <g
+       id="g9852"
+       transform="translate(-138.28125,38.51367)">
+      <path
+         id="path9842"
+         d="m 383.34375,150.82031 a 30.295275,30.295275 0 0 0 -30.29492,30.29492 30.295275,30.295275 0 0 0 3.18945,13.50586 l 0,30.60938 54.21094,0 0,-30.66602 a 30.295275,30.295275 0 0 0 3.18945,-13.44922 30.295275,30.295275 0 0 0 -30.29492,-30.29492 z"
+         style="opacity:1;fill:#000000;fill-opacity:0.17647059;stroke:none;stroke-width:0.35433072;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         inkscape:connector-curvature="0" />
+      <circle
+         cy="181.11493"
+         cx="383.3436"
+         id="circle9849"
+         style="opacity:1;fill:#fe0000;fill-opacity:0.17777782;stroke:#0000ff;stroke-width:0.03543307;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         r="12.383859" />
     </g>
   </g>
 </svg>
