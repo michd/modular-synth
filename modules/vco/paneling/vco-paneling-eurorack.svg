@@ -28,14 +28,14 @@
      inkscape:zoom="1.4"
      inkscape:cx="170.63492"
      inkscape:cy="762.47398"
-     inkscape:document-units="px"
+     inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
-     inkscape:window-width="958"
-     inkscape:window-height="1008"
-     inkscape:window-x="-7"
-     inkscape:window-y="0"
-     inkscape:window-maximized="0" />
+     inkscape:window-width="1920"
+     inkscape:window-height="1027"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1" />
   <metadata
      id="metadata4672">
     <rdf:RDF>
@@ -44,7 +44,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -1881,7 +1881,7 @@
            x="54.285713"
            y="248.07649"
            style="-inkscape-font-specification:'Segoe UI Semi-Bold';font-family:'Segoe UI';font-weight:600;font-style:normal;font-stretch:normal;font-variant:normal;font-size:15px;" /></flowRegion><flowPara
-         id="flowPara9399"></flowPara></flowRoot>    <g
+         id="flowPara9399" /></flowRoot>    <g
        id="g11287"
        transform="translate(12.999999,2.0000326)">
       <g
@@ -3001,22 +3001,19 @@
              y="180.93364" /></flowRegion><flowPara
            id="flowPara10182"
            style="font-style:normal;font-variant:normal;font-weight:600;font-stretch:normal;font-size:12.5px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI Semi-Bold'">PORTAMENTO</flowPara></flowRoot>    </g>
-    <g
-       transform="matrix(0.65802813,-1.0627788,1.0627788,0.65802813,0.3807852,229.27342)"
-       style="display:inline"
-       id="g12617">
-      <circle
-         style="display:inline;opacity:1;fill:#ff2424;fill-opacity:0.2857143;stroke:#0000ff;stroke-width:0.02834645;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-         id="circle5235"
-         cx="38.882545"
-         cy="243.90361"
-         r="4.9464569" />
-      <circle
-         r="4.9464569"
-         cy="38.975784"
-         cx="38.882557"
-         id="circle5238"
-         style="display:inline;opacity:1;fill:#ff2424;fill-opacity:0.2857143;stroke:#0000ff;stroke-width:0.02834645;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
-    </g>
+    <circle
+       r="6.1830707"
+       cy="440.88452"
+       cx="-212.12524"
+       id="circle5235"
+       style="display:inline;opacity:1;fill:#ff2424;fill-opacity:0.2857143;stroke:#0000ff;stroke-width:0.03543306;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       transform="matrix(0.52642254,-0.8502231,0.8502231,0.52642254,0,0)" />
+    <circle
+       style="display:inline;opacity:1;fill:#ff2424;fill-opacity:0.2857143;stroke:#0000ff;stroke-width:0.03543306;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="circle5238"
+       cx="-146.12991"
+       cy="169.73817"
+       r="6.1830707"
+       transform="matrix(0.52642254,-0.8502231,0.8502231,0.52642254,0,0)" />
   </g>
 </svg>
