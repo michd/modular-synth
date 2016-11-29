@@ -1,0 +1,3 @@
+Bourns PTL30-15O0-104B2
+30mm travel, 15mm lever length, orange LED, no center detent, 100K ohm, linear response
+
