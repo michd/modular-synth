@@ -4,4 +4,5 @@
   (lib (name Resistors_SMD)(type KiCad)(uri "$(KISYSMOD)Resistors_SMD.pretty")(options "")(descr ""))
   (lib (name SMD_Packages)(type KiCad)(uri "$(KISYSMOD)SMD_Packages.pretty")(options "")(descr ""))
   (lib (name "Bourns PTL")(type KiCad)(uri "$(KIPRJMOD)\\Bourns PTL.pretty")(options "")(descr ""))
+  (lib (name Diodes_SMD)(type KiCad)(uri "$(KISYSMOD)Diodes_SMD.pretty")(options "")(descr ""))
 )
