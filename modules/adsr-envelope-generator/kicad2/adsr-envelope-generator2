@@ -1,0 +1,101 @@
+Source,C:/Users/Mich/repos/modular-synth/modules/adsr-envelope-generator/kicad2/adsr-envelope-generator2.sch
+Kicad Rev,Eeschema 4.0.4-stable
+Generated Date,25/04/2017 08:12:47
+
+Title,ADSR Envelope Generator
+Company,Michael Duerincx
+Revision,2
+Date Issue,2017-04-01
+Comment,A switch selects between 3 possible time ranges.
+Comment,This version adds LED cycle stage indication, auto-retrigger, and trigger out.
+Comment,Original by Ray Wilson
+
+Reference,Value,Library,Library Ref
+R9,10K,device,R
+R5,1K,device,R
+C2,100n,device,C
+R10,10K,device,R
+R8,1K,device,R
+C3,100n,device,C
+U3,40106,cmos4000,40106
+U2,TL974,linear,TL074
+R12,1M,device,R
+C4,100p,device,C
+R13,1M,device,R
+C5,100p,device,C
+R11,22K,device,R
+R4,33K,device,R
+C1,100n,device,C
+R7,22K,device,R
+R6,22K,device,R
+R2,10K,device,R
+R3,10K,device,R
+D1,1N4148,device,D
+D2,1N4148,device,D
+D3,1N4148,device,D
+D4,1N4148,device,D
+R15,10K,device,R
+R16,10K,device,R
+C7,10n,device,C
+C8,10n,device,C
+R17,100K,device,R
+U4,4001,cmos4000,4001
+D5,1N4148,device,D
+R18,10K,device,R
+C11,1n,device,C
+R19,100K,device,R
+D6,1N4148,device,D
+U5,TL974,linear,TL074
+R21,10K,device,R
+R22,33K,device,R
+C14,100n,device,C
+R20,1M,device,R
+RV4,100K,led-pot,LED-POT
+U1,4066,cmos4000,4066
+RV3,100K,led-pot,LED-POT
+RV1,100K,led-pot,LED-POT
+RV2,100K,led-pot,LED-POT
+R1,100R,device,R
+R14,100R,device,R
+C6,3.3u,device,CP1
+C9,100u,device,CP1
+P3,CONN_01X03,conn,CONN_01X03
+C10,47u,device,CP1
+R23,100K,device,R
+RV5,10K,device,POT
+R24,1M,device,R
+Q2,MMBT3904,transistors,MMBT3904
+R31,220R,device,R
+Q3,MMBT3904,transistors,MMBT3904
+R32,220R,device,R
+Q4,MMBT3904,transistors,MMBT3904
+R33,220R,device,R
+Q5,MMBT3904,transistors,MMBT3904
+R34,220R,device,R
+R27,10K,device,R
+R28,10K,device,R
+R29,10K,device,R
+D8,1N4148,device,D
+D9,1N4148,device,D
+D7,1N4148,device,D
+R30,10K,device,R
+D10,1N4148,device,D
+D11,1N4148,device,D
+Q1,MMBT3904,transistors,MMBT3904
+R25,10K,device,R
+C21,10n,device,C
+R26,100K,device,R
+C12,470u,device,CP
+C13,470u,device,CP
+C15,10u,device,CP
+C16,10u,device,CP
+C17,10u,device,CP
+C18,10u,device,CP
+C19,100n,device,C
+C20,100n,device,C
+C22,100n,device,C
+P4,CONN_01X03,conn,CONN_01X03
+P2,CONN_01X02,conn,CONN_01X02
+P1,CONN_01X02,conn,CONN_01X02
+P5,CONN_01X03,conn,CONN_01X03
+P6,CONN_01X02,conn,CONN_01X02

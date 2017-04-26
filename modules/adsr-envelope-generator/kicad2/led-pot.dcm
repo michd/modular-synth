@@ -1,0 +1,8 @@
+EESchema-DOCLIB  Version 2.0
+#
+$CMP LED-POT
+D Potentiometer with LED
+K Potentiometer LED Slide
+$ENDCMP
+#
+#End Doc Library
