@@ -1,0 +1,3 @@
+(fp_lib_table
+  (lib (name "Bourns PTL")(type KiCad)(uri "$(KIPRJMOD)\\Bourns PTL.pretty")(options "")(descr ""))
+)
