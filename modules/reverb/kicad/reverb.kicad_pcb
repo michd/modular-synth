@@ -3,7 +3,7 @@
   (general
     (links 137)
     (no_connects 0)
-    (area 115.875999 45.787999 174.954001 135.076001)
+    (area 115.824 45.72 186.666 141.130001)
     (thickness 1.6)
     (drawings 20)
     (tracks 449)
@@ -13,6 +13,11 @@
   )
 
   (page A4)
+  (title_block
+    (title "MFOS Reverb")
+    (date 2017-06-11)
+  )
+
   (layers
     (0 F.Cu signal)
     (31 B.Cu signal)
@@ -64,7 +69,7 @@
     (aux_axis_origin 0 0)
     (visible_elements 7FFFFF7F)
     (pcbplotparams
-      (layerselection 0x00030_80000001)
+      (layerselection 0x010e0_80000001)
       (usegerberextensions false)
       (excludeedgelayer true)
       (linewidth 0.100000)
@@ -82,12 +87,12 @@
       (plotvalue true)
       (plotinvisibletext false)
       (padsonsilk false)
-      (subtractmaskfromsilk false)
+      (subtractmaskfromsilk true)
       (outputformat 1)
       (mirror false)
-      (drillshape 1)
+      (drillshape 0)
       (scaleselection 1)
-      (outputdirectory ""))
+      (outputdirectory gerber/))
   )
 
   (net 0 "")
