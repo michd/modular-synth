@@ -1,0 +1,11 @@
+Bourns PTV09 Series
+
+PTV09A-4020S-B104
+
+4 = Horizontal / Rear mount, bushingless
+0 = No detent
+20 = 20mm shaft length
+S = Insulated knurled knob
+B = linear
+104 = 100k resistance
+
