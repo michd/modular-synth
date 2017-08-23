@@ -27,13 +27,21 @@
 #define DAC_RESOLUTION_BIT 12
 
 #define BUILTIN_ADC_MAX 1024
+#define ADC_MAX 4096
 
 // Don't change this; rest of code is not set up for different value.
 // It is only here to clarify the meaning of the number 8 in the code.
 #define NUM_STEPS 8
 
-#define STEP_TIME_MS 2000
+#define STEP_TIME_MS 250
 #define STEP_SUB_DIVISIONS 8
+
+#define DAC_CENTER_VALUE 2048
+
+// Borrowing from Midi in code, as we're dealing with the same range
+#define MIN_NOTE_MIDI 24 // C2
+#define MAX_NOTE_MIDI 108 // C9
+#define NOTE_RANGE 84
 
 // Sequence modes
 #define SEQUENCE_MODE_FORWARD              0
@@ -53,8 +61,13 @@ volatile byte currentStep;
 volatile byte currentSubStep;
 volatile byte sequenceMode;
 
+volatile byte rangeMinNote = 12;
+volatile byte rangeMaxNote = 36;
+
 byte StepSelectButtonDivider;
 unsigned long int SubStepDelayUs;
+
+short int noteOutputValues[NOTE_RANGE + 1];
 
 void setup() {
   StepSelectButtonDivider = (byte)((float)BUILTIN_ADC_MAX / (float)(NUM_STEPS + 1));
@@ -106,9 +119,18 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(PIN_RUNSTOP), runStopOnPressed, RISING);
 
   // Start not running
-  running = false;  
+  running = false;
 
-  Serial.begin(9600);
+  // Precalculate all the note values so we don't have to
+  // during normal runtime.
+  float noteStep = (float)4096 / (float)(NOTE_RANGE - 1);
+
+  for (byte i = 0; i <= NOTE_RANGE; i++) {
+    noteOutputValues[i] = (short int)round(noteStep * (float)i);
+  }
+
+  pitchCvDac.setValue(2048); // 0V
+  //Serial.begin(9600);
 }
 
 void loop() {
@@ -128,8 +150,11 @@ void loop() {
       currentSubStep = 0;
       advanceSequence();
       unsigned short int reading = readAdc(ADC_CV_CHANNEL);
-      Serial.println(reading, DEC);  
-      pitchCvDac.setValue(reading);
+
+      unsigned short int note = mapToNote(reading);
+      Serial.println(note, DEC);
+      pitchCvDac.setValue(noteOutputValues[mapToNote(reading)]);  
+      //pitchCvDac.setValue(reading);
     }    
      
     delayMicroseconds(SubStepDelayUs);
@@ -180,6 +205,27 @@ short unsigned int readAdc(byte channel) {
   digitalWrite(PIN_ADC_SHUTDOWN, 1);
 
   return adcValue;
+}
+
+byte mapToNote(short int inputValue) {
+  byte note = (byte)(((float)inputValue / (float)ADC_MAX) * (rangeMaxNote - rangeMinNote + 1) + rangeMinNote);
+
+  byte baseNote = note % 12;
+  int blackKeys[] = {1, 3, 6, 8, 10};
+  
+  bool isBlackKey = false;
+  for (byte i = 0; i < 5; i++) {
+    if (baseNote == blackKeys[i]) {
+      isBlackKey = true;
+      break;
+    }
+  }
+
+  if (isBlackKey) {
+    return note + 1;
+  }
+
+  return note;
 }
 
 void sendPulse(int pin) {
