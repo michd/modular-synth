@@ -19,7 +19,7 @@
 #define PIN_STEP_ADDR_C 4
 #define PIN_STEP_ENABLE 5
 
-#define PIN_RANDOM_INPUT A1
+#define BUTTON_DEBOUNCE_TIME_MS 50
 
 #define ADC_CV_CHANNEL 0
 
@@ -53,24 +53,50 @@
 #define SEQUENCE_MODE_ALT_BACK_AND_FORTH_B 6
 #define SEQUENCE_MODE_RANDOM               7
 
-AH_MCP4921 pitchCvDac(PIN_DAC_DATA_IN, PIN_DAC_CLK, PIN_DAC_CHIP_SELECT);
+// Only set during setup(), not altered after
+// Divider constant used to map the ADC reading to 1 of 8 steps
+byte StepSelectButtonDivider;
 
+// Delay between sub steps in microseconds
+// Possibly obsolete soon?
+unsigned long int SubStepDelayUs;
+
+// Array of DAC output values mapped to note index
+short int NoteOutputValues[NOTE_RANGE + 1];
+
+// Set up DAC library for outputting Pitch control voltage
+AH_MCP4921 PitchCvDac(PIN_DAC_DATA_IN, PIN_DAC_CLK, PIN_DAC_CHIP_SELECT);
+
+// Wether we're currently advancing steps automatically
 volatile bool running;
-volatile byte previousStep; // Used for certain sequence modes
+
+// Used for certain sequence modes, the previous value of currentStep
+volatile byte previousStep;
+
+// Currently output step index
 volatile byte currentStep;
+
+// Steps are divided into smaller steps, once this reaches
+// STEP_SUB_DIVISIONS, we advance to next step
 volatile byte currentSubStep;
+
+// Determines the order we traverse steps in,
+// one of the SEQUENCE_MODE_x constants
 volatile byte sequenceMode;
 
+// Ranging of output notes
+// TODO write more helpful commentary here
 volatile byte rangeMinNote = 12;
 volatile byte rangeMaxNote = 36;
 
-byte StepSelectButtonDivider;
-unsigned long int SubStepDelayUs;
+volatile unsigned long debounceTimeRecorded = 0;
 
-short int noteOutputValues[NOTE_RANGE + 1];
+// Used for stabilizing the reading from selected step.
+// See getSelectedStep for more info
+byte lastSelectedStepReadings[] = { 0, 0, 0, 0 };
 
 void setup() {
-  StepSelectButtonDivider = (byte)((float)BUILTIN_ADC_MAX / (float)(NUM_STEPS + 1));
+  StepSelectButtonDivider = (byte)((float)BUILTIN_ADC_MAX / (float)(NUM_STEPS));
   SubStepDelayUs = (STEP_TIME_MS * 1000) / STEP_SUB_DIVISIONS;
   
   pinMode(PIN_MODE_SELECT, INPUT);
@@ -97,7 +123,6 @@ void setup() {
 
   // Other pins
   pinMode(PIN_SELECTED_STEP, INPUT);
-  pinMode(PIN_RANDOM_INPUT, INPUT);
   
   digitalWrite(PIN_RUNNING, 0);
 
@@ -126,21 +151,32 @@ void setup() {
   float noteStep = (float)4096 / (float)(NOTE_RANGE - 1);
 
   for (byte i = 0; i <= NOTE_RANGE; i++) {
-    noteOutputValues[i] = (short int)round(noteStep * (float)i);
+    NoteOutputValues[i] = (short int)round(noteStep * (float)i);
   }
 
-  pitchCvDac.setValue(2048); // 0V
+  PitchCvDac.setValue(2048); // 0V
   //Serial.begin(9600);
 }
 
 void loop() {
   // TODO: use a timer instead of delay to run this
-  // TODO: stabilise the ADC input from the sequence buttons
   // TODO: debounce buttons
 
-  // Mode select button held down
+  processStepButtonReading();
+
+  byte oneIndexedStep = getSelectedStep();
+  
   if (digitalRead(PIN_MODE_SELECT)) {
-    setSequenceMode(readSelectedStep());
+    // Mode select button held down
+    if (oneIndexedStep != 0) {
+      setSequenceMode(oneIndexedStep - 1);
+    }
+  } else if (!running) {
+    // Not running, and no other buttons pressed,
+    // make this step active
+    if (oneIndexedStep != 0) {
+      selectStep(oneIndexedStep - 1);
+    }
   }
   
   if (running) {    
@@ -152,22 +188,47 @@ void loop() {
       unsigned short int reading = readAdc(ADC_CV_CHANNEL);
 
       unsigned short int note = mapToNote(reading);
-      Serial.println(note, DEC);
-      pitchCvDac.setValue(noteOutputValues[mapToNote(reading)]);  
-      //pitchCvDac.setValue(reading);
+      //Serial.println(note, DEC);
+      PitchCvDac.setValue(NoteOutputValues[mapToNote(reading)]);  
     }    
      
     delayMicroseconds(SubStepDelayUs);
-    
-    //Serial.println(readSelectedStep(), DEC);
   }
 }
 
-// This is 1-indexed, 0 = no step pressed
-byte readSelectedStep() {
-  return (analogRead(PIN_SELECTED_STEP) + (StepSelectButtonDivider / 2) ) / StepSelectButtonDivider;
+// Processes the period ADC reading for which step button is pressed.
+// This is used for "debouncing" false non-0 readings when a button
+// has just been released.
+// Works by caching the last 4 readings.
+void processStepButtonReading() {
+  // This is 1-indexed, 0 = no step pressed
+  byte reading = (analogRead(PIN_SELECTED_STEP) + (StepSelectButtonDivider / 2) ) / StepSelectButtonDivider;
+  Serial.println(reading, DEC);
+  lastSelectedStepReadings[3] = lastSelectedStepReadings[2];
+  lastSelectedStepReadings[2] = lastSelectedStepReadings[1];
+  lastSelectedStepReadings[1] = lastSelectedStepReadings[0];
+  lastSelectedStepReadings[0] = reading;    
 }
 
+// Gets the currently pressed button index, corresponding to the step it's under.
+// The return value is 1-indexed, as the 0 value is reserved for when no button is pressed.
+byte getSelectedStep() {
+  byte *arr = lastSelectedStepReadings;
+
+  // The issue with this DAC input is only when letting go of the button,
+  // the read value will briefly be > 0; it doesn't happen the other way around
+  // therefore if the most recent value is the highest of the recent readings,
+  // we can safely determine that this is the button actually pressed.
+  // For values lower we want to let it stabilize for a few readings instead.
+  if (arr[0] >= arr[1] && arr[0] >= arr[2] && arr[0] >= arr[3]) {
+    return arr[0];
+  }
+
+  return 0;
+}
+
+// Read a value from the external ADC, given one of the two channels
+// Implements a bit of SPI manually
 short unsigned int readAdc(byte channel) {
   short int adcValue = 0;
   // Leftmost bit = start bit
@@ -207,6 +268,18 @@ short unsigned int readAdc(byte channel) {
   return adcValue;
 }
 
+// Sends a short "clock" pulse on a given pin.
+// Takes 20 us to complete.
+void sendPulse(int pin) {
+  digitalWrite(pin, 1);
+  delayMicroseconds(10);
+  digitalWrite(pin, 0);
+  delayMicroseconds(10);
+}
+
+// Maps an ADC reading to a note index, given the configured note range
+// and other scale settings.
+// Currently hardcoded to only return "white keys" - TODO update comment when that changes
 byte mapToNote(short int inputValue) {
   byte note = (byte)(((float)inputValue / (float)ADC_MAX) * (rangeMaxNote - rangeMinNote + 1) + rangeMinNote);
 
@@ -228,13 +301,8 @@ byte mapToNote(short int inputValue) {
   return note;
 }
 
-void sendPulse(int pin) {
-  digitalWrite(pin, 1);
-  delayMicroseconds(10);
-  digitalWrite(pin, 0);
-  delayMicroseconds(10);
-}
-
+// Advances to the next step, using getNextStepIndexInSequece to determine what that is.
+// Stores the old step in previousStep.
 void advanceSequence() {
   byte oldStep = currentStep;
   byte nextStep = getNextStepIndexInSequence();
@@ -243,27 +311,31 @@ void advanceSequence() {
   selectStep(nextStep);
 }
 
-void setSequenceMode(byte buttonIndex) {
-  if (buttonIndex == 0) {
-    return;
-  }
+void setSequenceMode(byte newSequenceMode) {
+  sequenceMode = newSequenceMode;
 
-  sequenceMode = buttonIndex - 1;
+  if (sequenceMode == SEQUENCE_MODE_RANDOM) {
+    randomSeed(millis());
+  }
 }
 
-// Based on mode and current step, figures out the next step
+// Based on mode and current step, figures out the next step index
 byte getNextStepIndexInSequence() {
   byte oldStep = currentStep;
   byte nextStep = 0;
 
   switch (sequenceMode) {
+    // Moving forward; simple 0..7, returning to 0 when past the last step
+    // 0,1,2,3,4,5,6,7
     case SEQUENCE_MODE_FORWARD:
       nextStep = oldStep + 1;
       if (nextStep >= NUM_STEPS) {
         nextStep = 0;
       }
       break;
-      
+
+    // Reverse: 7..0, back to 7 when past 0
+    // 7,6,5,4,3,2,1,0
     case SEQUENCE_MODE_REVERSE:
       if (oldStep > 0) {
         nextStep = oldStep - 1;
@@ -271,7 +343,9 @@ byte getNextStepIndexInSequence() {
         nextStep = NUM_STEPS - 1;
       }
       break;
-      
+
+    // Forward, then backward
+    // 0,1,2,3,4,5,6,7,6,5,4,3,2,1
     case SEQUENCE_MODE_BACK_AND_FORTH:
       if (previousStep < oldStep) {
         nextStep = oldStep + 1;
@@ -287,6 +361,8 @@ byte getNextStepIndexInSequence() {
       }
       break;
 
+    // Even steps, then odd steps:
+    // 0,2,4,6,1,3,5,7
     case SEQUENCE_MODE_ALT_FORWARD:
       nextStep = oldStep + 2;
       if (nextStep == NUM_STEPS) {
@@ -296,6 +372,8 @@ byte getNextStepIndexInSequence() {
       }
       break;
 
+    // The above, reversed
+    // 7,5,3,1,6,4,2,0
     case SEQUENCE_MODE_ALT_REVERSE:
       if (oldStep > 1) {
         nextStep = oldStep - 2;
@@ -306,6 +384,8 @@ byte getNextStepIndexInSequence() {
       }
       break;
 
+    // The above two in order
+    // 0,2,4,6,1,3,5,7,6,4,2,0,7,5,3,1
     case SEQUENCE_MODE_ALT_BACK_AND_FORTH_A:
       if (oldStep == 0) {
         if (previousStep > 1) {
@@ -337,7 +417,9 @@ byte getNextStepIndexInSequence() {
         nextStep = oldStep - 2;
       }      
       break;
-      
+
+    // Even forward, odd backward
+    // 0,2,4,6,7,5,3,1
     case SEQUENCE_MODE_ALT_BACK_AND_FORTH_B:
       if (oldStep == 0) {
         nextStep = oldStep + 2;
@@ -354,8 +436,8 @@ byte getNextStepIndexInSequence() {
       }
       break;
 
+    // Random step each time, but ensures not the same step is chosen twice in a row
     case SEQUENCE_MODE_RANDOM:
-      randomSeed(analogRead(PIN_RANDOM_INPUT));
       do {
         nextStep = random(NUM_STEPS);
       } while (nextStep == oldStep);
@@ -365,20 +447,46 @@ byte getNextStepIndexInSequence() {
   return nextStep;
 }
 
+// Activates the new step by index
+// Writes the index via 3 bit number,
+// hooked up to 3-to-8 decoder for LEDs, as well as multiplexer(s)
 void selectStep(byte step) {
   currentStep = step;
   byte a = currentStep & B001;
   byte b = currentStep & B010;
   byte c = currentStep & B100;
-  
+
+  // Disable 3-to-8 decoder while writing to all lines
+  // Prevents flickering of different values before the full number is written
   digitalWrite(PIN_STEP_ENABLE, 0);
+  
   digitalWrite(PIN_STEP_ADDR_A, a);
   digitalWrite(PIN_STEP_ADDR_B, b);
   digitalWrite(PIN_STEP_ADDR_C, c);
+
+  // Re-enable decoder
   digitalWrite(PIN_STEP_ENABLE, 1);
 }
 
+// Button handlers
+
+bool debounceButton() {
+  unsigned long currentTime = millis();
+
+  if (currentTime - debounceTimeRecorded < BUTTON_DEBOUNCE_TIME_MS) {
+    return true;
+  }
+
+  debounceTimeRecorded = currentTime;
+  return false;
+}
+
+// Run/stop pressed
 void runStopOnPressed() {
+  if (debounceButton()) {
+    return;
+  }
+  
   running = !running;
   currentSubStep = 0;
   digitalWrite(PIN_RUNNING, running);
