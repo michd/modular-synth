@@ -1,9 +1,13 @@
+#include <TimerOne.h>
 #include <AH_MCP4921.h>
 
-#define PIN_MODE_SELECT 16
+#define PIN_MODE_SELECT_BUTTON 16
+#define PIN_GATE_MODE_SELECT_BUTTON 3
 #define PIN_RUNNING 14
-#define PIN_RUNSTOP 7
+#define PIN_RUNSTOP_BUTTON 7
+
 #define PIN_SELECTED_STEP A0
+#define PIN_GATE_OUT 10
 
 #define PIN_ADC_CLK 8
 #define PIN_ADC_DATA_OUT 9
@@ -14,12 +18,12 @@
 #define PIN_DAC_DATA_IN 15 // Re-using
 #define PIN_DAC_CHIP_SELECT A2
 
-#define PIN_STEP_ADDR_A 2
-#define PIN_STEP_ADDR_B 3
+#define PIN_STEP_ADDR_A A1
+#define PIN_STEP_ADDR_B A3
 #define PIN_STEP_ADDR_C 4
 #define PIN_STEP_ENABLE 5
 
-#define BUTTON_DEBOUNCE_TIME_MS 50
+#define BUTTON_DEBOUNCE_TICKS 5000
 
 #define ADC_CV_CHANNEL 0
 
@@ -32,9 +36,6 @@
 // Don't change this; rest of code is not set up for different value.
 // It is only here to clarify the meaning of the number 8 in the code.
 #define NUM_STEPS 8
-
-#define STEP_TIME_MS 250
-#define STEP_SUB_DIVISIONS 8
 
 #define DAC_CENTER_VALUE 2048
 
@@ -53,6 +54,14 @@
 #define SEQUENCE_MODE_ALT_BACK_AND_FORTH_B 6
 #define SEQUENCE_MODE_RANDOM               7
 
+// Gate modes
+#define GATE_MODE_HALF_STEP 0
+#define GATE_MODE_FULL_STEP 1
+#define GATE_MODE_REPEAT_HALF 2
+#define GATE_MODE_REPEAT_FULL 3
+#define GATE_MODE_SILENT 4
+#define MAX_GATE_MODE_VALUE 4
+
 // Only set during setup(), not altered after
 // Divider constant used to map the ADC reading to 1 of 8 steps
 byte StepSelectButtonDivider;
@@ -68,7 +77,7 @@ short int NoteOutputValues[NOTE_RANGE + 1];
 AH_MCP4921 PitchCvDac(PIN_DAC_DATA_IN, PIN_DAC_CLK, PIN_DAC_CHIP_SELECT);
 
 // Wether we're currently advancing steps automatically
-volatile bool running;
+volatile bool isRunning;
 
 // Used for certain sequence modes, the previous value of currentStep
 volatile byte previousStep;
@@ -76,32 +85,62 @@ volatile byte previousStep;
 // Currently output step index
 volatile byte currentStep;
 
-// Steps are divided into smaller steps, once this reaches
-// STEP_SUB_DIVISIONS, we advance to next step
-volatile byte currentSubStep;
-
 // Determines the order we traverse steps in,
 // one of the SEQUENCE_MODE_x constants
 volatile byte sequenceMode;
+
+volatile byte gateMode[NUM_STEPS];
 
 // Ranging of output notes
 // TODO write more helpful commentary here
 volatile byte rangeMinNote = 12;
 volatile byte rangeMaxNote = 36;
 
+// Input stabilization
+// For debouncing buttons that trigger interrupts
 volatile unsigned long debounceTimeRecorded = 0;
+volatile unsigned long debounceTicksRecorded = 0;
 
 // Used for stabilizing the reading from selected step.
 // See getSelectedStep for more info
 byte lastSelectedStepReadings[] = { 0, 0, 0, 0 };
 
+
+// Timing
+// BPM
+volatile unsigned short tempo = 120;
+// If true, the 8 steps consitute 2 beats rather than 4,
+// This affects the speed, given the bpm
+volatile bool stepIs16th = false;
+// Number of internal ticks needed to get through half a step,
+// calculated based on tempo and stepIs16th
+volatile unsigned long ticksPerSubstep = 0;
+
+// Wether the current "substep" is the first half of said step
+// This will become important once we add the gate and want to have gate for half a step
+volatile bool firstHalfOfStep = true;
+
+// Ticks lapsed in this substep; once this reaches ticksPerSubstep it's reset to 0,
+// and we advance the step
+volatile unsigned long internalTicks = 0;
+
+// Alternative to micros() when running,
+// as we do too much work for micros to work reliably when running
+volatile unsigned long debounceTicks = 0;
+
 void setup() {
   StepSelectButtonDivider = (byte)((float)BUILTIN_ADC_MAX / (float)(NUM_STEPS));
-  SubStepDelayUs = (STEP_TIME_MS * 1000) / STEP_SUB_DIVISIONS;
+
+  calculateTicksPerSubstep();
   
-  pinMode(PIN_MODE_SELECT, INPUT);
+  Timer1.initialize(10);
+  Timer1.attachInterrupt(internalTimerTick, 10);
+  
+  pinMode(PIN_MODE_SELECT_BUTTON, INPUT);
+  pinMode(PIN_GATE_MODE_SELECT_BUTTON, INPUT);
   pinMode(PIN_RUNNING, OUTPUT);
-  pinMode(PIN_RUNSTOP, INPUT);
+  pinMode(PIN_RUNSTOP_BUTTON, INPUT);
+  pinMode(PIN_GATE_OUT, OUTPUT);
 
   // ADC pins
   pinMode(PIN_ADC_CLK, OUTPUT);
@@ -125,6 +164,7 @@ void setup() {
   pinMode(PIN_SELECTED_STEP, INPUT);
   
   digitalWrite(PIN_RUNNING, 0);
+  digitalWrite(PIN_GATE_OUT, 0);
 
   // ADC init
   digitalWrite(PIN_ADC_SHUTDOWN, 1);
@@ -136,15 +176,24 @@ void setup() {
   digitalWrite(PIN_DAC_CLK, 0);
   digitalWrite(PIN_DAC_DATA_IN, 0);
 
-  currentSubStep = 0;
   selectStep(0);
   sequenceMode = SEQUENCE_MODE_FORWARD;
 
   // Listen for button press on run/stop button
-  attachInterrupt(digitalPinToInterrupt(PIN_RUNSTOP), runStopOnPressed, RISING);
+  attachInterrupt(digitalPinToInterrupt(PIN_RUNSTOP_BUTTON), runStopOnPressed, RISING);
+
+  // Listen for button press on gate mode button
+  attachInterrupt(digitalPinToInterrupt(PIN_GATE_MODE_SELECT_BUTTON), gateModeOnPressed, RISING);
 
   // Start not running
-  running = false;
+  isRunning = false;
+
+  // Initialize gate mode for each step
+  for (byte i = 0; i < NUM_STEPS; i++) {
+    gateMode[i] = GATE_MODE_HALF_STEP;
+  }
+
+  // TODO: Step repetition init
 
   // Precalculate all the note values so we don't have to
   // during normal runtime.
@@ -155,46 +204,86 @@ void setup() {
   }
 
   PitchCvDac.setValue(2048); // 0V
-  //Serial.begin(9600);
+  Serial.begin(250000);
 }
 
 void loop() {
-  // TODO: use a timer instead of delay to run this
-  // TODO: debounce buttons
-
   processStepButtonReading();
 
   byte oneIndexedStep = getSelectedStep();
   
-  if (digitalRead(PIN_MODE_SELECT)) {
+  if (digitalRead(PIN_MODE_SELECT_BUTTON)) {
     // Mode select button held down
     if (oneIndexedStep != 0) {
       setSequenceMode(oneIndexedStep - 1);
     }
-  } else if (!running) {
+  } else if (!isRunning) {
     // Not running, and no other buttons pressed,
     // make this step active
     if (oneIndexedStep != 0) {
       selectStep(oneIndexedStep - 1);
     }
   }
-  
-  if (running) {    
-    currentSubStep++;
-    
-    if (currentSubStep == STEP_SUB_DIVISIONS) {
-      currentSubStep = 0;
-      advanceSequence();
-      unsigned short int reading = readAdc(ADC_CV_CHANNEL);
 
-      unsigned short int note = mapToNote(reading);
-      //Serial.println(note, DEC);
-      PitchCvDac.setValue(NoteOutputValues[mapToNote(reading)]);  
-    }    
-     
-    delayMicroseconds(SubStepDelayUs);
+  // TODO: if not running, continually update DAC
+
+  delayMicroseconds(100);
+}
+
+// [Begin Timing region]
+void internalTimerTick() {
+  debounceTicks++;
+  
+  if (!isRunning) {
+    return;    
+  }
+
+  internalTicks++;
+  if (internalTicks > ticksPerSubstep) {
+    internalTicks = 0;
+    advanceSubStep(); 
   }
 }
+
+void advanceSubStep() {
+  firstHalfOfStep = !firstHalfOfStep;
+
+  if (firstHalfOfStep) {
+    advanceSequence();
+    unsigned short int reading = readAdc(ADC_CV_CHANNEL);
+    unsigned short int note = mapToNote(reading);
+    //Serial.println(note, DEC);
+    PitchCvDac.setValue(NoteOutputValues[mapToNote(reading)]);
+  }
+  
+  switch (gateMode[currentStep]) {
+    case GATE_MODE_HALF_STEP:
+      toggleGate(firstHalfOfStep);
+      break;
+      
+    case GATE_MODE_FULL_STEP:
+      toggleGate(true);
+      break;
+
+    case GATE_MODE_REPEAT_HALF:
+      toggleGate(firstHalfOfStep);
+      break;
+
+    case GATE_MODE_REPEAT_FULL:
+      toggleGate(true);
+      break;
+
+    case GATE_MODE_SILENT:
+      toggleGate(false);
+      break;
+  }
+}
+
+void calculateTicksPerSubstep() {
+  byte multiplier = stepIs16th ? 1 : 2;
+  ticksPerSubstep = round(((double)1000 / (((double)tempo * (double)8) / (double)60)) * (double)(100 * multiplier));
+}
+// [End Timing region]
 
 // Processes the period ADC reading for which step button is pressed.
 // This is used for "debouncing" false non-0 readings when a button
@@ -203,7 +292,6 @@ void loop() {
 void processStepButtonReading() {
   // This is 1-indexed, 0 = no step pressed
   byte reading = (analogRead(PIN_SELECTED_STEP) + (StepSelectButtonDivider / 2) ) / StepSelectButtonDivider;
-  Serial.println(reading, DEC);
   lastSelectedStepReadings[3] = lastSelectedStepReadings[2];
   lastSelectedStepReadings[2] = lastSelectedStepReadings[1];
   lastSelectedStepReadings[1] = lastSelectedStepReadings[0];
@@ -447,6 +535,10 @@ byte getNextStepIndexInSequence() {
   return nextStep;
 }
 
+void toggleGate(bool on) {
+  digitalWrite(PIN_GATE_OUT, on);
+}
+
 // Activates the new step by index
 // Writes the index via 3 bit number,
 // hooked up to 3-to-8 decoder for LEDs, as well as multiplexer(s)
@@ -471,13 +563,13 @@ void selectStep(byte step) {
 // Button handlers
 
 bool debounceButton() {
-  unsigned long currentTime = millis();
+  unsigned long currentTicks = debounceTicks;
 
-  if (currentTime - debounceTimeRecorded < BUTTON_DEBOUNCE_TIME_MS) {
+  if (currentTicks - debounceTicksRecorded < BUTTON_DEBOUNCE_TICKS) {
     return true;
   }
 
-  debounceTimeRecorded = currentTime;
+  debounceTicksRecorded = currentTicks;
   return false;
 }
 
@@ -486,8 +578,45 @@ void runStopOnPressed() {
   if (debounceButton()) {
     return;
   }
-  
-  running = !running;
-  currentSubStep = 0;
-  digitalWrite(PIN_RUNNING, running);
+ 
+  isRunning = !isRunning;
+  digitalWrite(PIN_RUNNING, isRunning);
+
+  if (!isRunning) {
+    toggleGate(false);
+  }
 }
+
+void gateModeOnPressed() {
+  if (debounceButton()) {
+    return;
+  }
+
+  byte stepToAlter;
+  if (!isRunning) {
+    stepToAlter = currentStep;
+  } else {
+    byte stepToAlterOneIndexed = getSelectedStep();
+
+    // If none selected there's nothing we can do with that button press,
+    // abort.
+    if (stepToAlterOneIndexed == 0) {
+      return;
+    }
+
+    stepToAlter = stepToAlterOneIndexed -1;
+  }
+
+  if (gateMode[stepToAlter] == MAX_GATE_MODE_VALUE) {
+    gateMode[stepToAlter] = 0;
+  } else {
+    gateMode[stepToAlter]++;
+  }
+
+  Serial.print("Gate mode for step ");
+  Serial.print(stepToAlter, DEC);
+  Serial.print(": ");
+  Serial.print(gateMode[stepToAlter], DEC);
+  Serial.print("\n");
+}
+
