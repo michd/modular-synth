@@ -1,8 +1,12 @@
 #include <TimerOne.h>
 #include <AH_MCP4921.h>
 
+#define DEFAULT_TEMPO 130
+#define SIXTEENTHS false
+
 #define PIN_MODE_SELECT_BUTTON 16
 #define PIN_GATE_MODE_SELECT_BUTTON 3
+#define PIN_REPEAT_SELECT_BUTTON 2
 #define PIN_RUNNING 14
 #define PIN_RUNSTOP_BUTTON 7
 
@@ -62,6 +66,8 @@
 #define GATE_MODE_SILENT 4
 #define MAX_GATE_MODE_VALUE 4
 
+#define MAX_STEP_REPEAT 8
+
 // Only set during setup(), not altered after
 // Divider constant used to map the ADC reading to 1 of 8 steps
 byte StepSelectButtonDivider;
@@ -85,11 +91,14 @@ volatile byte previousStep;
 // Currently output step index
 volatile byte currentStep;
 
+volatile byte currentStepRepetition = 0;
+
 // Determines the order we traverse steps in,
 // one of the SEQUENCE_MODE_x constants
 volatile byte sequenceMode;
 
 volatile byte gateMode[NUM_STEPS];
+volatile byte stepRepeat[NUM_STEPS];
 
 // Ranging of output notes
 // TODO write more helpful commentary here
@@ -105,13 +114,12 @@ volatile unsigned long debounceTicksRecorded = 0;
 // See getSelectedStep for more info
 byte lastSelectedStepReadings[] = { 0, 0, 0, 0 };
 
-
 // Timing
 // BPM
-volatile unsigned short tempo = 120;
+volatile unsigned short tempo = DEFAULT_TEMPO;
 // If true, the 8 steps consitute 2 beats rather than 4,
 // This affects the speed, given the bpm
-volatile bool stepIs16th = false;
+volatile bool stepIs16th = SIXTEENTHS;
 // Number of internal ticks needed to get through half a step,
 // calculated based on tempo and stepIs16th
 volatile unsigned long ticksPerSubstep = 0;
@@ -138,6 +146,7 @@ void setup() {
   
   pinMode(PIN_MODE_SELECT_BUTTON, INPUT);
   pinMode(PIN_GATE_MODE_SELECT_BUTTON, INPUT);
+  pinMode(PIN_REPEAT_SELECT_BUTTON, INPUT);
   pinMode(PIN_RUNNING, OUTPUT);
   pinMode(PIN_RUNSTOP_BUTTON, INPUT);
   pinMode(PIN_GATE_OUT, OUTPUT);
@@ -185,15 +194,17 @@ void setup() {
   // Listen for button press on gate mode button
   attachInterrupt(digitalPinToInterrupt(PIN_GATE_MODE_SELECT_BUTTON), gateModeOnPressed, RISING);
 
+  // Listen for button press on repeat count button
+  attachInterrupt(digitalPinToInterrupt(PIN_REPEAT_SELECT_BUTTON), repeatOnPressed, RISING);
+
   // Start not running
   isRunning = false;
 
-  // Initialize gate mode for each step
+  // Initialize gate mode and step repeat for each step
   for (byte i = 0; i < NUM_STEPS; i++) {
     gateMode[i] = GATE_MODE_HALF_STEP;
+    stepRepeat[i] = 1;    
   }
-
-  // TODO: Step repetition init
 
   // Precalculate all the note values so we don't have to
   // during normal runtime.
@@ -222,6 +233,12 @@ void loop() {
     // make this step active
     if (oneIndexedStep != 0) {
       selectStep(oneIndexedStep - 1);
+      toggleGate(true);
+      unsigned short int reading = readAdc(ADC_CV_CHANNEL);
+      unsigned short int note = mapToNote(reading);
+      PitchCvDac.setValue(NoteOutputValues[mapToNote(reading)]);
+    } else {
+      toggleGate(false);
     }
   }
 
@@ -247,9 +264,22 @@ void internalTimerTick() {
 
 void advanceSubStep() {
   firstHalfOfStep = !firstHalfOfStep;
+  byte repeatsForThisStep = stepRepeat[currentStep];
 
   if (firstHalfOfStep) {
-    advanceSequence();
+    if (currentStepRepetition >= repeatsForThisStep) {
+      advanceSequence();
+      currentStepRepetition = 0;
+    }
+
+    // Skip steps with repeats set to 0
+    while (stepRepeat[currentStep] == 0) {
+      advanceSequence();
+      currentStepRepetition = 0;
+    }
+
+    currentStepRepetition++;
+    
     unsigned short int reading = readAdc(ADC_CV_CHANNEL);
     unsigned short int note = mapToNote(reading);
     //Serial.println(note, DEC);
@@ -258,11 +288,11 @@ void advanceSubStep() {
   
   switch (gateMode[currentStep]) {
     case GATE_MODE_HALF_STEP:
-      toggleGate(firstHalfOfStep);
+      toggleGate(firstHalfOfStep && currentStepRepetition == 1);
       break;
       
     case GATE_MODE_FULL_STEP:
-      toggleGate(true);
+      toggleGate(currentStepRepetition == 1);
       break;
 
     case GATE_MODE_REPEAT_HALF:
@@ -617,6 +647,39 @@ void gateModeOnPressed() {
   Serial.print(stepToAlter, DEC);
   Serial.print(": ");
   Serial.print(gateMode[stepToAlter], DEC);
+  Serial.print("\n");
+}
+
+void repeatOnPressed() {
+  if (debounceButton()) {
+    return;
+  }
+
+  byte stepToAlter;
+  if (!isRunning) {
+    stepToAlter = currentStep;
+  } else {
+    byte stepToAlterOneIndexed = getSelectedStep();
+
+    // If none selected there's nothing we can do with that button press,
+    // abort.
+    if (stepToAlterOneIndexed == 0) {
+      return;
+    }
+
+    stepToAlter = stepToAlterOneIndexed -1;
+  }
+
+  if (stepRepeat[stepToAlter] == MAX_STEP_REPEAT) {
+    stepRepeat[stepToAlter] = 0;
+  } else {
+    stepRepeat[stepToAlter]++;
+  }
+
+  Serial.print("Repeat count for step ");
+  Serial.print(stepToAlter, DEC);
+  Serial.print(": ");
+  Serial.print(stepRepeat[stepToAlter], DEC);
   Serial.print("\n");
 }
 
