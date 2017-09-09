@@ -21,7 +21,6 @@
  */
 
 #include <Arduino.h>
-#include "SPIManager.h"
 
 // Ensure we don't double-define the functionality
 #ifndef MCP492X_h

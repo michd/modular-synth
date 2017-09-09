@@ -74,6 +74,7 @@ MCP23S17::MCP23S17(uint8_t address, uint8_t ss) {
   _ss          = ss;
   _modeCache   = 0xFFFF;                // Default I/O mode is all input, 0xFFFF
   _outputCache = 0x0000;                // Default output state is all off, 0x0000
+  _inputCache  = 0x0000;                // Default all input pins to off
   _pullupCache = 0x0000;                // Default pull-up state is all off, 0x0000
   _invertCache = 0x0000;                // Default input inversion state is not inverted, 0x0000
 };
@@ -192,6 +193,7 @@ unsigned int MCP23S17::digitalRead(void) {       // This function will read all 
   value = SPI.transfer(0x00);               // Send any byte, the function will return the read value (register address pointer will auto-increment after write)
   value |= (SPI.transfer(0x00) << 8);       // Read in the "high byte" (portB) and shift it up to the high location and merge with the "low byte"
   _endTransmission();
+  _inputCache = value;                      // Cache what we just read
   return value;                             // Return the constructed word, the format is 0x(portB)(portA)
 }
 
@@ -202,12 +204,29 @@ uint8_t MCP23S17::byteRead(uint8_t reg) {        // This function will read a si
   SPI.transfer(reg);                        // Send the register we want to read
   value = SPI.transfer(0x00);               // Send any byte, the function will return the read value
   _endTransmission();
+
+  // If we're reading the GPIO registers, we want to cache the values read
+  if (reg == GPIOB) {
+    _inputCache |= value << 8;
+  } else if (reg == GPIOA) {
+    _inputCache |= value;
+  }
+
   return value;                             // Return the constructed word, the format is 0x(register value)
 }
 
 uint8_t MCP23S17::digitalRead(uint8_t pin) {                    // Return a single bit value, supply the necessary bit (1-16)
-    if (pin < 1 | pin > 16) return 0x0;                    // If the pin value is not valid (1-16) return, do nothing and return
-    return digitalRead() & (1 << (pin - 1)) ? HIGH : LOW;  // Call the word reading function, extract HIGH/LOW information from the requested pin
+  if (pin < 1 | pin > 16) return 0x0;                    // If the pin value is not valid (1-16) return, do nothing and return
+  return digitalRead() & (1 << (pin - 1)) ? HIGH : LOW;  // Call the word reading function, extract HIGH/LOW information from the requested pin
+}
+
+unsigned int MCP23S17::digitalReadCache(void) {
+  return _inputCache;
+}
+
+uint8_t MCP23S17::digitalReadCache(uint8_t pin) { // Return a single pin from last cache
+  if (pin < 1 | pin > 16) return 0x0;
+  return _inputCache & (1 << (pin - 1)) ? HIGH : LOW;
 }
 
 void MCP23S17::_beginTransmission() {

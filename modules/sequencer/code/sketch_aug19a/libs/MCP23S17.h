@@ -98,7 +98,9 @@ class MCP23S17 {
     void digitalWrite(unsigned int);         // Sets all output pins at once. If some pins are configured as input, those bits will be ignored on write
     uint8_t digitalRead(uint8_t);            // Reads an individual input pin
     uint8_t byteRead(uint8_t);               // Reads an individual register and returns the byte. Argument is the register address
-    unsigned int digitalRead(void);          // Reads all input  pins at once. Be sure it ignore the value of pins configured as output!
+    unsigned int digitalRead(void);          // Reads all input pins at once. Be sure it ignore the value of pins configured as output!
+    uint8_t digitalReadCache(uint8_t);       // Return an individual input pin from cached value - not using SPI to read up to date value
+    unsigned int digitalReadCache(void);     // Return all input pins at once from cache
   private:
     uint8_t _address;                        // Address of the MCP23S17 in use
 	  uint8_t _ss;                             // Slave-select pin
@@ -107,6 +109,7 @@ class MCP23S17 {
     unsigned int _pullupCache;               // Caches the internal pull-up configuration of input pins (values persist across mode changes)
     unsigned int _invertCache;               // Caches the input pin inversion selection (values persist across mode changes)
     unsigned int _outputCache;               // Caches the output pin state of pins
+    unsigned int _inputCache;                // Caches input pins whenever they are read, so they can be retrieved from cache directly
     void _beginTransmission();               // Internal helpers to start/end transmission
     void _endTransmission();
  };

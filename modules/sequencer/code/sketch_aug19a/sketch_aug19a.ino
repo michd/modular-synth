@@ -297,7 +297,9 @@ void changeTimeDivider(bool higher) {
 // [Begin Timing region]
 void internalTimerTick() {
   debounceTicks++;
-  
+
+  PortExp.digitalRead();
+
   if (!isRunning) {
     return;    
   }
@@ -359,9 +361,11 @@ void advanceSubStep() {
 // [End Timing region]
 
 // Gets the currently pressed button index, corresponding to the step it's under.
-// The return value is 1-index~ed, as the 0 value is reserved for when no button is pressed.
+// The return value is 1-indexed, as the 0 value is reserved for when no button is pressed.
 byte getSelectedStep() {
-  uint8_t wordA = (~PortExp.digitalRead()) & 0xFF;
+  // The pins are pull-up, so 1 = not pressed.
+  // Therefore, we're bitwise inverting first.
+  uint8_t wordA = ~(PortExp.digitalReadCache()) & 0xFF;
   //byte wordA = 0;
   if (wordA == 0) return 0;
   
