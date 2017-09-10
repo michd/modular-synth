@@ -65,11 +65,14 @@
 
 #define    OPCODEW       (0b01000000)  // Opcode for MCP23S17 with LSB (bit0) set to write (0), address OR'd in later, bits 1-3
 #define    OPCODER       (0b01000001)  // Opcode for MCP23S17 with LSB (bit0) set to read (1), address OR'd in later, bits 1-3
-#define    ADDR_ENABLE   (0b00001000)  // Configuration register for MCP23S17, the only thing we change is enabling hardware addressing
+// Configuration register for MCP23S17,
+// the only things we change are:
+// - enabling hardware addressing (bit 3)
+// - enabling interrupt pin mirroring (so you only need to use one on the MCU)
+#define    ADDR_ENABLE   (0b01001100)  
 
 // Constructor to instantiate an instance of MCP to a specific chip (address)
-
-MCP23S17::MCP23S17(uint8_t address, uint8_t ss) {
+MCP23S17::MCP23S17(byte address, byte ss) {
   _address     = constrain(address, 0, 7);
   _ss          = ss;
   _modeCache   = 0xFFFF;                // Default I/O mode is all input, 0xFFFF
@@ -77,6 +80,11 @@ MCP23S17::MCP23S17(uint8_t address, uint8_t ss) {
   _inputCache  = 0x0000;                // Default all input pins to off
   _pullupCache = 0x0000;                // Default pull-up state is all off, 0x0000
   _invertCache = 0x0000;                // Default input inversion state is not inverted, 0x0000
+  _interruptOnChangeCache = 0x0000;     // Default to no interrupts set up for any pin
+  _interruptCompareToDefaultCache = 0x0000;  // Default all pins to interrupt on change
+  _interruptCompareDefaultsCache = 0x0000;        // Default all defaults to compare to to 0
+  _interruptLocalCompareToDefault = 0x0000;
+  _interruptLocalCompareDefaults = 0x0000;
 };
 
 void MCP23S17::begin() {
@@ -85,11 +93,13 @@ void MCP23S17::begin() {
   SPI.begin();                          // Start up the SPI bus
   _spiSettings = SPISettings(10000000, MSBFIRST, SPI_MODE0); // Sets up SPI settings for later transmission use  
   byteWrite(IOCON, ADDR_ENABLE);
+  // Read initial values into input cache
+  digitalRead();
 }
 
 // GENERIC BYTE WRITE - will write a byte to a register, arguments are register address and the value to write
 
-void MCP23S17::byteWrite(uint8_t reg, uint8_t value) { // Accept the register and byte
+void MCP23S17::byteWrite(byte reg, byte value) { // Accept the register and byte
   _beginTransmission();
   SPI.transfer(OPCODEW | (_address << 1));             // Send the MCP23S17 opcode, chip address, and write bit
   SPI.transfer(reg);                                   // Send the register we want to write
@@ -99,28 +109,24 @@ void MCP23S17::byteWrite(uint8_t reg, uint8_t value) { // Accept the register an
 
 // GENERIC WORD WRITE - will write a word to a register pair, LSB to first register, MSB to next higher value register 
 
-void MCP23S17::wordWrite(uint8_t reg, unsigned int word) {  // Accept the start register and word 
+void MCP23S17::wordWrite(byte reg, word word) {  // Accept the start register and word 
   _beginTransmission();
   SPI.transfer(OPCODEW | (_address << 1));             // Send the MCP23S17 opcode, chip address, and write bit
   SPI.transfer(reg);                                   // Send the register we want to write 
-  SPI.transfer((uint8_t) (word));                      // Send the low byte (register address pointer will auto-increment after write)
-  SPI.transfer((uint8_t) (word >> 8));                 // Shift the high byte down to the low byte location and send
+  SPI.transfer((byte) (word));                      // Send the low byte (register address pointer will auto-increment after write)
+  SPI.transfer((byte) (word >> 8));                 // Shift the high byte down to the low byte location and send
   _endTransmission();
 }
 
 // MODE SETTING FUNCTIONS - BY PIN AND BY WORD
 
-void MCP23S17::pinMode(uint8_t pin, uint8_t mode) {  // Accept the pin # and I/O mode
-  if (pin < 1 | pin > 16) return;               // If the pin value is not valid (1-16) return, do nothing and return
-  if (mode == INPUT) {                          // Determine the mode before changing the bit state in the mode cache
-    _modeCache |= 1 << (pin - 1);               // Since input = "HIGH", OR in a 1 in the appropriate place
-  } else {
-    _modeCache &= ~(1 << (pin - 1));            // If not, the mode must be output, so and in a 0 in the appropriate place
-  }
+void MCP23S17::pinMode(byte pin, bool mode) {  // Accept the pin # and I/O mode
+  if (!_isValidPin(pin)) return;
+  _toggleBit(_modeCache, pin - 1, mode == INPUT);
   wordWrite(IODIRA, _modeCache);                // Call the generic word writer with start register and the mode cache
 }
 
-void MCP23S17::pinMode(unsigned int mode) {     // Accept the word…
+void MCP23S17::pinMode(word mode) {     // Accept the word…
   wordWrite(IODIRA, mode);                // Call the the generic word writer with start register and the mode cache
   _modeCache = mode;
 }
@@ -129,18 +135,14 @@ void MCP23S17::pinMode(unsigned int mode) {     // Accept the word…
 
 // WEAK PULL-UP SETTING FUNCTIONS - BY WORD AND BY PIN
 
-void MCP23S17::pullupMode(uint8_t pin, uint8_t mode) {
-  if (pin < 1 | pin > 16) return;
-  if (mode == ON) {
-    _pullupCache |= 1 << (pin - 1);
-  } else {
-    _pullupCache &= ~(1 << (pin -1));
-  }
+void MCP23S17::pullupMode(byte pin, bool pullUpEnabled) {
+  if (!_isValidPin(pin)) return;
+  _toggleBit(_pullupCache, pin, pullUpEnabled);
   wordWrite(GPPUA, _pullupCache);
 }
 
 
-void MCP23S17::pullupMode(unsigned int mode) { 
+void MCP23S17::pullupMode(word mode) { 
   wordWrite(GPPUA, mode);
   _pullupCache = mode;
 }
@@ -148,36 +150,62 @@ void MCP23S17::pullupMode(unsigned int mode) {
 
 // INPUT INVERSION SETTING FUNCTIONS - BY WORD AND BY PIN
 
-void MCP23S17::inputInvert(uint8_t pin, uint8_t mode) {
-  if (pin < 1 | pin > 16) return;
-  if (mode == ON) {
-    _invertCache |= 1 << (pin - 1);
-  } else {
-    _invertCache &= ~(1 << (pin - 1));
-  }
+void MCP23S17::inputInvert(byte pin, bool invertEnabled) {
+  if (!_isValidPin(pin)) return;
+  _toggleBit(_invertCache, pin, invertEnabled);
   wordWrite(IPOLA, _invertCache);
 }
 
-void MCP23S17::inputInvert(unsigned int mode) { 
+void MCP23S17::inputInvert(word mode) { 
   wordWrite(IPOLA, mode);
   _invertCache = mode;
+}
+
+// INTERRUPT CONFIGURATION SETTING FUNCTIONS
+
+void MCP23S17::interruptOnChange(byte pin, bool enabled) {
+  if (!_isValidPin(pin)) return;
+  _toggleBit(_interruptOnChangeCache, pin, enabled);
+  wordWrite(GPINTENA, _interruptOnChangeCache);
+}
+
+void MCP23S17::interruptOnChange(word enableds) {
+  wordWrite(GPINTENA, enableds);
+  _interruptOnChangeCache = enableds;
+}
+
+void MCP23S17::interruptCompareToDefault(byte pin, bool enabled) {
+  if (!_isValidPin(pin)) return;
+  _toggleBit(_interruptCompareToDefaultCache, pin, enabled);
+  wordWrite(INTCONA, _interruptCompareToDefaultCache);
+}
+
+void MCP23S17::interruptCompareToDefault(word enableds) {
+  wordWrite(INTCONA, enableds);
+  _interruptCompareToDefaultCache = enableds;
+}
+
+void MCP23S17::interruptSetDefault(byte pin, bool value) {
+  if (!_isValidPin(pin)) return;
+  _toggleBit(_interruptCompareDefaultsCache, pin, value);
+  wordWrite(DEFVALA, _interruptCompareDefaultsCache);
+}
+
+void MCP23S17::interruptSetDefault(word values) {
+  wordWrite(DEFVALA, values);
+  _interruptCompareDefaultsCache = values;
 }
 
 
 // WRITE FUNCTIONS - BY WORD AND BY PIN
 
-void MCP23S17::digitalWrite(uint8_t pin, uint8_t value) {
-  if (pin < 1 | pin > 16) return;
-  if (pin < 1 | pin > 16) return;
-  if (value) {
-    _outputCache |= 1 << (pin - 1);
-  } else {
-    _outputCache &= ~(1 << (pin - 1));
-  }
+void MCP23S17::digitalWrite(byte pin, bool value) {
+  if (!_isValidPin(pin)) return;
+  _toggleBit(_outputCache, pin, value);
   wordWrite(GPIOA, _outputCache);
 }
 
-void MCP23S17::digitalWrite(unsigned int value) { 
+void MCP23S17::digitalWrite(word value) { 
   wordWrite(GPIOA, value);
   _outputCache = value;
 }
@@ -185,8 +213,8 @@ void MCP23S17::digitalWrite(unsigned int value) {
 
 // READ FUNCTIONS - BY WORD, BYTE AND BY PIN
 
-unsigned int MCP23S17::digitalRead(void) {       // This function will read all 16 bits of I/O, and return them as a word in the format 0x(portB)(portA)
-  unsigned int value = 0;                   // Initialize a variable to hold the read values to be returned
+word MCP23S17::digitalRead(void) {       // This function will read all 16 bits of I/O, and return them as a word in the format 0x(portB)(portA)
+  word value = 0;                   // Initialize a variable to hold the read values to be returned
   _beginTransmission();
   SPI.transfer(OPCODER | (_address << 1));  // Send the MCP23S17 opcode, chip address, and read bit
   SPI.transfer(GPIOA);                      // Send the register we want to read
@@ -197,8 +225,8 @@ unsigned int MCP23S17::digitalRead(void) {       // This function will read all 
   return value;                             // Return the constructed word, the format is 0x(portB)(portA)
 }
 
-uint8_t MCP23S17::byteRead(uint8_t reg) {        // This function will read a single register, and return it
-  uint8_t value = 0;                        // Initialize a variable to hold the read values to be returned
+byte MCP23S17::byteRead(byte reg) {        // This function will read a single register, and return it
+  byte value = 0;                        // Initialize a variable to hold the read values to be returned
   _beginTransmission();
   SPI.transfer(OPCODER | (_address << 1));  // Send the MCP23S17 opcode, chip address, and read bit
   SPI.transfer(reg);                        // Send the register we want to read
@@ -215,19 +243,82 @@ uint8_t MCP23S17::byteRead(uint8_t reg) {        // This function will read a si
   return value;                             // Return the constructed word, the format is 0x(register value)
 }
 
-uint8_t MCP23S17::digitalRead(uint8_t pin) {                    // Return a single bit value, supply the necessary bit (1-16)
-  if (pin < 1 | pin > 16) return 0x0;                    // If the pin value is not valid (1-16) return, do nothing and return
-  return digitalRead() & (1 << (pin - 1)) ? HIGH : LOW;  // Call the word reading function, extract HIGH/LOW information from the requested pin
+bool MCP23S17::digitalRead(byte pin) {                    // Return a single bit value, supply the necessary bit (1-16)
+  if (!_isValidPin(pin)) return false;                    // If the pin value is not valid (1-16) return, do nothing and return
+  digitalRead();
+  return digitalReadCache(pin);
+
 }
 
-unsigned int MCP23S17::digitalReadCache(void) {
+word MCP23S17::digitalReadCache(void) {
   return _inputCache;
 }
 
-uint8_t MCP23S17::digitalReadCache(uint8_t pin) { // Return a single pin from last cache
-  if (pin < 1 | pin > 16) return 0x0;
-  return _inputCache & (1 << (pin - 1)) ? HIGH : LOW;
+ bool MCP23S17::digitalReadCache(byte pin) { // Return a single pin from last cache
+  if (!_isValidPin(pin)) return false;
+  return _getBit(_inputCache, pin);
 }
+
+// INTERRUPT PROCESSING
+
+void MCP23S17::processInterrupt() {
+  byte pin = _getInterruptCausingPin();
+
+  // Need to read the GPIO register to clear the interrupt
+  word oldValues = _inputCache;
+  word newValues = digitalRead();
+
+  bool interruptOnAnyFlank = !_getBit(_interruptLocalCompareToDefault, pin);
+
+  bool relevantOldBit = _getBit(oldValues, pin);
+  bool relevantNewBit = _getBit(newValues, pin);
+
+  if (relevantOldBit == relevantNewBit) {
+    // Don't trigger over and over
+    return;
+  }
+
+  if (interruptOnAnyFlank) {
+    (*_interruptHandlers[pin - 1])();
+    return;
+  }  
+
+  bool isFallingFlank = !relevantNewBit;
+
+  bool interruptOnFallingFlank = _getBit(_interruptLocalCompareDefaults, pin);
+
+  if (isFallingFlank == interruptOnFallingFlank) {
+    (*_interruptHandlers[pin - 1])();    
+  }
+}
+
+void MCP23S17::attachInterrupt(byte pin, InterruptHandler handler, int mode) {
+  // Toggle this pin on for interrupts
+  interruptOnChange(pin, true);
+
+  // Unless this bit is switched to 1, interrupt will be triggered on any change
+  // of this bit. So if we only care about either RISING or FALLING edges,
+  // we want to compare to a given default value.
+  // Hence: flip this bit to 1 if the mode is not "CHANGE".
+  _toggleBit(_interruptLocalCompareToDefault, pin, mode != CHANGE);
+
+  // If mode is CHANGE, the default value is not relevant so we don't bother
+  // to update it in the port expander (not wasting clock cycles on pointless SPI)
+  if (mode != CHANGE) {
+    // Compare to a default value; if we want to interrupt on falling edge,
+    // then we compare to 1, otherwise to 0
+    _toggleBit(_interruptLocalCompareDefaults, pin, mode == FALLING);
+  }
+
+  _interruptHandlers[pin - 1] = handler;
+}
+
+void MCP23S17::detachInterrupt(byte pin) {
+  interruptOnChange(pin, false);
+  _interruptHandlers[pin - 1] = 0; // probably illegal
+}
+
+// PRIVATE METHODS
 
 void MCP23S17::_beginTransmission() {
   ::digitalWrite(_ss, LOW);
@@ -237,4 +328,59 @@ void MCP23S17::_beginTransmission() {
 void MCP23S17::_endTransmission() {
   SPI.endTransaction();
   ::digitalWrite(_ss, HIGH);
+}
+
+bool MCP23S17::_isValidPin(byte pin) {
+  return pin > 0 && pin < 17;
+}
+
+void MCP23S17::_toggleBit(word &wordToEdit, byte pinIndex, bool on) {
+  if (on) {
+    wordToEdit |= 1 << (pinIndex - 1);
+  } else {
+    wordToEdit &= ~(1 << (pinIndex - 1));
+  }
+}
+
+bool MCP23S17::_getBit(word input, byte pinIndex) {
+  return (input & (0x1 << (pinIndex - 1)));
+}
+
+// Retrieves the 1-index pin that caused the last interrupt
+// If this value is 0, it means no pin did
+byte MCP23S17::_getInterruptCausingPin() {
+  word interruptFlags = 0;
+  byte interruptIndexOffset = 0;
+  byte interruptIndex = 0;
+
+  _beginTransmission();
+  
+  SPI.transfer(OPCODER | (_address << 1));  // Send the MCP23S17 opcode, chip address, and read bit
+  SPI.transfer(INTFA);                      // Send the register we want to read
+
+  interruptFlags = SPI.transfer(0x00);
+
+  if (interruptFlags == 0) { 
+    // interrupt did not original from port A, read another byte to get port B
+    interruptFlags = SPI.transfer(0x00); 
+
+    // Since we know it's in port B, we can set this offset here so we don't have
+    // to iterate more than 8 spots, slight optimization
+    interruptIndexOffset = 8;
+  }
+
+  _endTransmission();
+
+  if (interruptFlags == 0) {
+    return 0;
+  }
+
+  do {
+    if (interruptFlags & (1 << interruptIndex)) {
+      return interruptIndex + interruptIndexOffset + 1;
+    }
+  } while (++interruptIndex < 8);
+
+  // Well we should never get here but anyway
+  return 0;
 }

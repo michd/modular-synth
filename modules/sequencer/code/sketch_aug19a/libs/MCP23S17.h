@@ -35,6 +35,46 @@
          single argument to the function as 0x(portB)(portA). I/O mode Output is represented by 0.
          The wordWrite function was to be used internally, but was made public for advanced users to have
          direct and more efficient control by writing a value to a specific register pair.
+
+         Code:
+
+         Outside any method, instantiate the class:
+
+         ```
+         MCP23S17 PortExpander(address, chipSelectPin);
+         ```
+
+         in setup():
+
+         ```
+         PortExpander.begin();
+         // Set up your pin modes and any other config, see public methods for details
+         ```
+
+         Using attachInterrupt:
+
+         in your sketch's setup(), add the following:
+         `attachInterrupt(INTERRUPT_PIN, processPortExpanderInterrupt, FALLING);`
+
+         Add a fuction `processPortExpanderInterrupt` as follows:
+
+         ```
+         void processPortExpanderInterrup() {
+            PortExpander.processInterrupt();
+         }
+         ```
+
+         Then, also in setup(), you can attach interrupts to individual pins:
+         ```
+         PortExpander.attachInterrupt(pin, onSomeInputChange, RISING);
+         ```
+
+         and make sure to declare onSomeInputChange:
+         ```
+         void onSomeInputChange() {
+            Called on a rising flank from that pin
+         }
+         ```
 		 
   VERSION RELESE NOTES:
 	    V0.2
@@ -82,36 +122,167 @@
 
 #include <Arduino.h>
 
+
+
 class MCP23S17 {
+
+  typedef void (*InterruptHandler)();
+  
   public:
-    MCP23S17(uint8_t, uint8_t);                   // Constructor to instantiate a discrete IC as an object, address 0-7, chipSelect any valid pin
-    void begin();                            // Start the SPI Bus
-    void wordWrite(uint8_t, unsigned int);   // Typically only used internally, but allows the user to write any register pair if needed, so it's public
-    void byteWrite(uint8_t, uint8_t);        // Typically only used internally, but allows the user to write any register if needed, so it's public
-    void pinMode(uint8_t, uint8_t);          // Sets the mode (input or output) of a single I/O pin
-    void pinMode(unsigned int);              // Sets the mode (input or output) of all I/O pins at once 
-    void pullupMode(uint8_t, uint8_t);       // Selects internal 100k input pull-up of a single I/O pin
-    void pullupMode(unsigned int);           // Selects internal 100k input pull-up of all I/O pins at once
-    void inputInvert(uint8_t, uint8_t);      // Selects input state inversion of a single I/O pin (writing 1 turns on inversion) 
-    void inputInvert(unsigned int);          // Selects input state inversion of all I/O pins at once (writing a 1 turns on inversion)
-    void digitalWrite(uint8_t, uint8_t);     // Sets an individual output pin HIGH or LOW
-    void digitalWrite(unsigned int);         // Sets all output pins at once. If some pins are configured as input, those bits will be ignored on write
-    uint8_t digitalRead(uint8_t);            // Reads an individual input pin
-    uint8_t byteRead(uint8_t);               // Reads an individual register and returns the byte. Argument is the register address
-    unsigned int digitalRead(void);          // Reads all input pins at once. Be sure it ignore the value of pins configured as output!
-    uint8_t digitalReadCache(uint8_t);       // Return an individual input pin from cached value - not using SPI to read up to date value
-    unsigned int digitalReadCache(void);     // Return all input pins at once from cache
+    // Constructor to instantiate a discrete IC as an object:
+    // address 0-7
+    // chipSelect pin
+    MCP23S17(byte, byte);
+    
+    // Start the SPI Bus
+    void begin();
+
+    // Typically only used internally, but allows the user to write any register pair if needed, so it's public
+    void wordWrite(byte, word);
+    
+    // Typically only used internally, but allows the user to write any register if needed, so it's public
+    void byteWrite(byte, byte);
+    
+    // Sets the mode (input or output) of a single I/O pin
+    // Pin number, input (1) / output (0)
+    void pinMode(byte, bool);
+    
+    // Sets the mode (input or output) of all I/O pins at once 
+    void pinMode(word);
+    
+    // Selects internal 100k input pull-up of a single I/O pin
+    // Pin number, pull-up enabled (1) / disabled (0)
+    void pullupMode(byte, bool);
+    
+    // Selects internal 100k input pull-up of all I/O pins at once
+    void pullupMode(word);
+    
+    // Selects input state inversion of a single I/O pin (writing 1 turns on inversion) 
+    // Pin number, invert enabled (1) / disabled (0)
+    void inputInvert(byte, bool);
+    
+    // Selects input state inversion of all I/O pins at once (writing a 1 turns on inversion)
+    void inputInvert(word);
+    
+    // Sets a single pin to trigger interrupts when it changes
+    void interruptOnChange(byte, bool);
+
+    // Configures which pins should trigger an interrupt when changed
+    void interruptOnChange(word);
+
+    // Configures for a single pin whether to compare to default value or just change
+    // to trigger an interrupt
+    void interruptCompareToDefault(byte, bool);
+
+    // Configures which pins should compare to default value or just change
+    // to trigger an interrupt
+    void interruptCompareToDefault(word);
+
+    // Sets the default to compare to to trigger an interrupt, for a given pin
+    void interruptSetDefault(byte, bool);
+
+    // Sets all the defaults to compare to trigger interrupts in one fell swoop
+    void interruptSetDefault(word);
+    
+    // Sets an individual output pin HIGH or LOW
+    void digitalWrite(byte, bool);
+    
+    // Sets all output pins at once. If some pins are configured as input, those bits will be ignored on write
+    void digitalWrite(word);
+    
+    // Reads an individual input pin
+    bool digitalRead(byte);
+    
+    // Reads an individual register and returns the byte. Argument is the register address
+    byte byteRead(byte);
+    
+    // Reads all input pins at once. Be sure it ignore the value of pins configured as output!
+    word digitalRead(void);
+    
+    // Return an individual input pin from cached value - not using SPI to read up to date value
+    bool digitalReadCache(byte);
+    
+    // Return all input pins at once from cache
+    word digitalReadCache(void);
+
+    // Attach an interrupt handler to a pin, using same modes are on Arduino's version
+    // pin number, handler function, CHANGE / FALLING / RISING
+    void attachInterrupt(byte, InterruptHandler, int mode);
+
+    // Remove an interrupt handler from a pin
+    void detachInterrupt(byte);
+
+    // Handle interrupt from main program
+    void processInterrupt(void);
+  
   private:
-    uint8_t _address;                        // Address of the MCP23S17 in use
-	  uint8_t _ss;                             // Slave-select pin
-    SPISettings _spiSettings;                // Settings to use for SPI transmissions, initialized in begin()
-    unsigned int _modeCache;                 // Caches the mode (input/output) configuration of I/O pins
-    unsigned int _pullupCache;               // Caches the internal pull-up configuration of input pins (values persist across mode changes)
-    unsigned int _invertCache;               // Caches the input pin inversion selection (values persist across mode changes)
-    unsigned int _outputCache;               // Caches the output pin state of pins
-    unsigned int _inputCache;                // Caches input pins whenever they are read, so they can be retrieved from cache directly
-    void _beginTransmission();               // Internal helpers to start/end transmission
+    // 3-bit address of the MCP23S17 in use
+    byte _address;
+	
+    // Slave-select pin
+    byte _ss;
+  
+    // Settings to use for SPI transmissions, initialized in begin()
+    SPISettings _spiSettings;
+  
+    // Caches the mode (input/output) configuration of I/O pins
+    word _modeCache;
+  
+    // Caches the internal pull-up configuration of input pins (values persist across mode changes)
+    word _pullupCache;
+  
+    // Caches the input pin inversion selection (values persist across mode changes)
+    word _invertCache;
+
+    // Caches the interrupt-on-change selections
+    word _interruptOnChangeCache;
+
+    // Caches the interrupt comparison mode selections
+    // If a bit here is 1, it compares to the default values rather than on change
+    word _interruptCompareToDefaultCache;
+
+    // Caches the default values compared to for triggering interrupts
+    // These are only relevant for pins where we're comparing to default value
+    word _interruptCompareDefaultsCache;
+
+    // The MCP23S17 functionality for compare to default is a bit undesirable
+    // in that it keeps the interrupt active until conditions change, rather
+    // than just on change, so we're doing what it's meant to do, locally.
+    // Each bit here indicates whether to compare whether we've changed values,
+    // and whether that's a change from the default
+    word _interruptLocalCompareToDefault;
+
+    word _interruptLocalCompareDefaults;
+  
+    // Caches the output pin state of pins
+    word _outputCache;
+  
+    // Caches input pins whenever they are read, so they can be retrieved from cache directly
+    word _inputCache;
+
+    // Function pointers to interrupt handlers for each pin
+    InterruptHandler _interruptHandlers[16];
+  
+    // Internal helpers to start/end transmission
+    void _beginTransmission();               
     void _endTransmission();
+
+    // Helper to check whether pin is in range
+    bool _isValidPin(byte);
+
+    // Helper for common action of setting one bit in a word
+    // Input word, 1-indexed bit, new value for that bit
+    // variable is passed by reference, this will modify the given variable
+    void _toggleBit(word &, byte, bool);
+
+    // Returns the state of a single bit from a word
+    // bit is 1-indexed
+    bool _getBit(word, byte);
+
+    // Helper for _interruptHandler, determines 1-index pin number that caused interrupt
+    // With some nice optimizations, like not bothering to request the seconds
+    // (B) register if the A register was non-zero
+    byte _getInterruptCausingPin(void);
  };
 		
 #endif //MCP23S17
