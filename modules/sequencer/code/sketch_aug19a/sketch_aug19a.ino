@@ -16,9 +16,6 @@
 #define PIN_SPI_CS_DAC A2
 #define PIN_SPI_CS_PORTEXP A0
 
-#define PIN_MODE_SELECT_BUTTON 9
-#define PIN_GATE_MODE_SELECT_BUTTON 3
-#define PIN_REPEAT_SELECT_BUTTON 2
 #define PIN_RUNSTOP_BUTTON 7
 
 #define PIN_RUNNING 8
@@ -28,6 +25,12 @@
 #define PIN_STEP_ADDR_B A3
 #define PIN_STEP_ADDR_C 4
 #define PIN_STEP_ENABLE 5
+
+#define PIN_PORTEXP_INTERRUPT 3
+
+#define PORTEXP_PIN_GATE_MODE_SELECT_BUTTON 9
+#define PORTEXP_PIN_REPEAT_SELECT_BUTTON 10
+#define PORTEXP_PIN_MODE_SELECT_BUTTON 11
 
 #define BUTTON_DEBOUNCE_TICKS 10
 
@@ -91,6 +94,8 @@
  * SCK:  15
  */
 
+long lastTriggered = 0;
+
 // Array of DAC output values mapped to note index
 short int NoteOutputValues[NOTE_RANGE + 1];
 
@@ -131,9 +136,6 @@ volatile byte rangeMaxNote = 36;
 volatile unsigned long debounceTimeRecorded = 0;
 volatile unsigned long debounceTicksRecorded = 0;
 
-
-
-
 // Timing
 // BPM
 // TODO: external tempo source
@@ -164,11 +166,11 @@ void setup() {
   // Summarized, the period of the timer is calculated to generate MIDI_PPQ pulses per beat for the given bpm  
   Timer1.initialize(round((double)1000000 / (double)((DEFAULT_TEMPO * MIDI_PPQ) / (double)60)));
   Timer1.attachInterrupt(internalTimerTick);
-  
-  pinMode(PIN_MODE_SELECT_BUTTON, INPUT_PULLUP);
-  pinMode(PIN_GATE_MODE_SELECT_BUTTON, INPUT_PULLUP);
-  pinMode(PIN_REPEAT_SELECT_BUTTON, INPUT_PULLUP);
+
+  pinMode(PIN_PORTEXP_INTERRUPT, INPUT_PULLUP);
   pinMode(PIN_RUNNING, OUTPUT);
+
+  // Todo: move to port expander
   pinMode(PIN_RUNSTOP_BUTTON, INPUT_PULLUP);
   pinMode(PIN_GATE_OUT, OUTPUT);
 
@@ -185,9 +187,15 @@ void setup() {
   // Configure pins on port expander
   // Port A = buttons per step
   uint8_t portAmodes = 0xFF; // All pins on port A are input
-  // Port B: to be assigned to stuff, nothing atm - TODO
-  uint8_t portBmodes = 0b00000000; // Change as needed
-  unsigned int combinedModes = (portBmodes << 8) | portAmodes;
+  
+  // Port B = various buttons
+  uint8_t portBmodes = 0b00000111; // Change as needed
+  //                          |||- PORTEXP_PIN_GATE_MODE_SELECT_BUTTON [*]
+  //                          ||- PORTEXP_PIN_REPEAT_SELECT_BUTTON     [*]  
+  //                          |- PORTEXP_PIN_MODE_SELECT_BUTTON
+  // [*] - interrupt attached
+                            
+  word combinedModes = (portBmodes << 8) | portAmodes;
   
   PortExp.pinMode(combinedModes);
   
@@ -195,9 +203,11 @@ void setup() {
   // This means we can re-use the portmodes word
   PortExp.pullupMode(combinedModes);
 
-  // Inverts all inputs so we don't have to do conversion (mental overhead)
-  // Can re-use portmodes again. A 1 value will mean "button pressed".
-  PortExp.inputInvert(0);
+  // Listen for button press on gate mode button
+  PortExp.attachInterrupt(PORTEXP_PIN_GATE_MODE_SELECT_BUTTON, &gateModeOnPressed, FALLING);
+
+  // Listen for button press on repeat count button
+  PortExp.attachInterrupt(PORTEXP_PIN_REPEAT_SELECT_BUTTON, &repeatOnPressed, FALLING);
 
   // Init pitch adc lib
   PitchAdc.begin();
@@ -208,14 +218,12 @@ void setup() {
   selectStep(0);
   sequenceMode = SEQUENCE_MODE_FORWARD;
 
+  // Set up interrupts with the port expander
+  attachInterrupt(digitalPinToInterrupt(PIN_PORTEXP_INTERRUPT), processPortexpandedInterrupt, FALLING);
+
+  // TODO: set up through port expander
   // Listen for button press on run/stop button
   attachInterrupt(digitalPinToInterrupt(PIN_RUNSTOP_BUTTON), runStopOnPressed, FALLING);
-
-  // Listen for button press on gate mode button
-  attachInterrupt(digitalPinToInterrupt(PIN_GATE_MODE_SELECT_BUTTON), gateModeOnPressed, FALLING);
-
-  // Listen for button press on repeat count button
-  attachInterrupt(digitalPinToInterrupt(PIN_REPEAT_SELECT_BUTTON), repeatOnPressed, FALLING);
 
   // Start not running
   isRunning = false;
@@ -241,7 +249,8 @@ void setup() {
 void loop() {
   byte oneIndexedStep = getSelectedStep();
   
-  if (digitalRead(PIN_MODE_SELECT_BUTTON) == 0) {
+  if (PortExp.digitalReadCache(PORTEXP_PIN_MODE_SELECT_BUTTON) == 0) {
+  //if (digitalRead(9) == 0) {
     // Mode select button held down
     if (oneIndexedStep != 0) {
       Serial.print("Setting sequence mode to ");
@@ -365,8 +374,8 @@ void advanceSubStep() {
 byte getSelectedStep() {
   // The pins are pull-up, so 1 = not pressed.
   // Therefore, we're bitwise inverting first.
-  uint8_t wordA = ~(PortExp.digitalReadCache()) & 0xFF;
-  //byte wordA = 0;
+  uint8_t wordA = ~(PortExp.digitalReadCache() & 0xFF);
+
   if (wordA == 0) return 0;
   
   // I don't know if this would be less efficient in a for loop.
@@ -604,6 +613,7 @@ void runStopOnPressed() {
 }
 
 void gateModeOnPressed() {
+  // TODO: evaluate if still needed
   if (debounceButton()) {
     return;
   }
@@ -637,6 +647,7 @@ void gateModeOnPressed() {
 }
 
 void repeatOnPressed() {
+  // TODO: evaluate if still needed
   if (debounceButton()) {
     return;
   }
@@ -662,10 +673,13 @@ void repeatOnPressed() {
     stepRepeat[stepToAlter]++;
   }
 
-  //Serial.print("Repeat count for step ");
-  //Serial.print(stepToAlter, DEC);
-  //Serial.print(": ");
-  //Serial.print(stepRepeat[stepToAlter], DEC);
-  //Serial.print("\n");
+  Serial.print("Repeat count for step ");
+  Serial.print(stepToAlter, DEC);
+  Serial.print(": ");
+  Serial.print(stepRepeat[stepToAlter], DEC);
+  Serial.print("\n");
 }
 
+void processPortexpandedInterrupt() {  
+  PortExp.processInterrupt();
+}
