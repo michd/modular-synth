@@ -158,6 +158,9 @@ volatile unsigned long internalTicks = 0;
 // as we do too much work for micros to work reliably when running
 volatile unsigned long debounceTicks = 0;
 
+volatile bool spiBusyMain = false;
+volatile bool spiBusyInterrupt = false;
+
 void setup() {
   // Tempo is in beats per minute
   // MIDI PPQ is pulses per beat
@@ -264,9 +267,19 @@ void loop() {
     if (oneIndexedStep != 0) {
       selectStep(oneIndexedStep - 1);
       toggleGate(true);
+
+      if (spiBusyInterrupt) {
+        delay(1);
+        return;
+      }
+
+      spiBusyMain = true;
       unsigned short int reading = PitchAdc.analogRead(ADC_CV_CHANNEL);
+
       unsigned short int note = mapToNote(reading);
+
       PitchCvDac.analogWrite(NoteOutputValues[mapToNote(reading)]);
+      spiBusyMain = false;
     } else {
       toggleGate(false);
     }
@@ -307,7 +320,11 @@ void changeTimeDivider(bool higher) {
 void internalTimerTick() {
   debounceTicks++;
 
-  PortExp.digitalRead();
+  if (!spiBusyMain) {
+    spiBusyInterrupt = true;
+    PortExp.digitalRead();
+    spiBusyInterrupt = false;
+  }
 
   if (!isRunning) {
     return;    
