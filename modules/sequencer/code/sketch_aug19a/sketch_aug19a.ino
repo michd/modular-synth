@@ -3,6 +3,7 @@
 #include "libs/MCP492X.h"
 #include "libs/MCP23S17.h"
 #include "libs/MCP3202.h"
+#include "libs/MAX72S19.h"
 
 #define MIDI_PPQ 24 // 24 pulses per quarter note
 #define DEFAULT_TEMPO 130
@@ -15,6 +16,7 @@
 #define PIN_SPI_CS_ADC 6
 #define PIN_SPI_CS_DAC A2
 #define PIN_SPI_CS_PORTEXP A0
+#define PIN_SPI_CS_DISP 9
 
 #define PIN_RUNSTOP_BUTTON 7
 
@@ -107,6 +109,11 @@ MCP3202 PitchAdc(PIN_SPI_CS_ADC);
 
 // Set up DAC library for outputting Pitch control voltage
 MCP492X PitchCvDac(PIN_SPI_CS_DAC);
+
+// Set up display driver
+MAX72S19 Display(PIN_SPI_CS_DISP);
+
+volatile bool initialized = false;
 
 // Wether we're currently advancing steps automatically
 volatile bool isRunning;
@@ -218,6 +225,8 @@ void setup() {
   // Init Pitch DAC lib
   PitchCvDac.begin();
 
+  Display.begin();
+  
   selectStep(0);
   sequenceMode = SEQUENCE_MODE_FORWARD;
 
@@ -246,14 +255,31 @@ void setup() {
   }
 
   PitchCvDac.analogWrite(2048); // 0V
-  Serial.begin(250000);
+  //Serial.begin(250000);
+
+   delay(5);
+  Display.setDecodeMode(0x00);
+  Display.setIntensity(0xF);
+  Display.setScanLimit(3);
+  Display.clear();
+  Display.activate();
+  Display.startDisplayTest();
+  delay(100);
+  Display.stopDisplayTest();
+
+  delay(100);
+  Display.print(0, " SUP");
+
+  delay(500);
+  Display.clear();
+  
+  initialized = true;
 }
 
 void loop() {
   byte oneIndexedStep = getSelectedStep();
   
   if (PortExp.digitalReadCache(PORTEXP_PIN_MODE_SELECT_BUTTON) == 0) {
-  //if (digitalRead(9) == 0) {
     // Mode select button held down
     if (oneIndexedStep != 0) {
       Serial.print("Setting sequence mode to ");
@@ -318,6 +344,8 @@ void changeTimeDivider(bool higher) {
 
 // [Begin Timing region]
 void internalTimerTick() {
+  if (!initialized) return;
+
   debounceTicks++;
 
   if (!spiBusyMain) {
@@ -600,6 +628,8 @@ void selectStep(byte step) {
 
   // Re-enable decoder
   digitalWrite(PIN_STEP_ENABLE, 1);
+
+  Display.writeNumber(3, currentStep + 1);
 }
 
 // Button handlers
