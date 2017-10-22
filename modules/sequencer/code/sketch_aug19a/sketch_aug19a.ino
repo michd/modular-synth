@@ -213,6 +213,8 @@ void setup() {
   // This means we can re-use the portmodes word
   PortExp.pullupMode(combinedModes);
 
+  PortExp.digitalRead();
+
   // Listen for button press on gate mode button
   PortExp.attachInterrupt(PORTEXP_PIN_GATE_MODE_SELECT_BUTTON, &gateModeOnPressed, FALLING);
 
@@ -255,7 +257,7 @@ void setup() {
   }
 
   PitchCvDac.analogWrite(2048); // 0V
-  //Serial.begin(250000);
+  Serial.begin(250000);
 
    delay(5);
   Display.setDecodeMode(0x00);
@@ -266,12 +268,8 @@ void setup() {
   Display.startDisplayTest();
   delay(100);
   Display.stopDisplayTest();
-
   delay(100);
-  Display.print(0, " SUP");
-
-  delay(500);
-  Display.clear();
+  Display.print(0, "Init");
   
   initialized = true;
 }
@@ -282,9 +280,6 @@ void loop() {
   if (PortExp.digitalReadCache(PORTEXP_PIN_MODE_SELECT_BUTTON) == 0) {
     // Mode select button held down
     if (oneIndexedStep != 0) {
-      Serial.print("Setting sequence mode to ");
-      Serial.print(oneIndexedStep - 1, DEC);
-      Serial.print("\n");
       setSequenceMode(oneIndexedStep - 1);
     }
   } else if (!isRunning) {
@@ -351,6 +346,7 @@ void internalTimerTick() {
   if (!spiBusyMain) {
     spiBusyInterrupt = true;
     PortExp.digitalRead();
+    Serial.println(PortExp.digitalReadCache(), BIN);
     spiBusyInterrupt = false;
   }
 
@@ -470,10 +466,23 @@ void advanceSequence() {
 }
 
 void setSequenceMode(byte newSequenceMode) {
-  sequenceMode = newSequenceMode;
+  if (sequenceMode == newSequenceMode) {
+    return;
+  }
 
+  sequenceMode = newSequenceMode;
+  
   if (sequenceMode == SEQUENCE_MODE_RANDOM) {
     randomSeed(millis());
+  }
+  
+  if (!spiBusyInterrupt) {
+    spiBusyMain = true;
+    Display.clear();
+    Display.print(0, "SE");
+    Display.writeChar(2, 'Q', true);
+    Display.writeNumber(3, sequenceMode + 1);
+    spiBusyMain = false;
   }
 }
 
@@ -627,9 +636,7 @@ void selectStep(byte step) {
   digitalWrite(PIN_STEP_ADDR_C, c);
 
   // Re-enable decoder
-  digitalWrite(PIN_STEP_ENABLE, 1);
-
-  Display.writeNumber(3, currentStep + 1);
+  digitalWrite(PIN_STEP_ENABLE, 1);  
 }
 
 // Button handlers
@@ -685,12 +692,6 @@ void gateModeOnPressed() {
   } else {
     gateMode[stepToAlter]++;
   }
-
-  Serial.print("Gate mode for step ");
-  Serial.print(stepToAlter, DEC);
-  Serial.print(": ");
-  Serial.print(gateMode[stepToAlter], DEC);
-  Serial.print("\n");
 }
 
 void repeatOnPressed() {
@@ -719,14 +720,15 @@ void repeatOnPressed() {
   } else {
     stepRepeat[stepToAlter]++;
   }
-
-  Serial.print("Repeat count for step ");
-  Serial.print(stepToAlter, DEC);
-  Serial.print(": ");
-  Serial.print(stepRepeat[stepToAlter], DEC);
-  Serial.print("\n");
 }
 
-void processPortexpandedInterrupt() {  
+void processPortexpandedInterrupt() {
+  if (spiBusyMain || !initialized) {
+    return;
+  }
+
+
+  spiBusyInterrupt = true;
   PortExp.processInterrupt();
+  spiBusyInterrupt = false;
 }
