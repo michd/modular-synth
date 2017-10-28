@@ -1,4 +1,3 @@
-#include <SPI.h>
 #include "MAX72S19.h"
 
 MAX72S19::MAX72S19(uint8_t pinChipSelect) {
@@ -54,7 +53,7 @@ void MAX72S19::writeNumber(uint8_t digitIndex, uint8_t number) {
   writeChar(digitIndex, '0' + number);
 }
 
-void MAX72S19::print(uint8_t startDigitIndex, const char characters[]) {
+void MAX72S19::print(uint8_t startDigitIndex, char characters[]) {
   uint8_t curDigit = constrain(startDigitIndex, 0, 7);
   uint8_t charIndex = 0;
   char curChar = characters[charIndex];

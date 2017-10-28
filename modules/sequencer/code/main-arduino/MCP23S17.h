@@ -75,13 +75,13 @@
             Called on a rising flank from that pin
          }
          ```
-		 
+
   VERSION RELESE NOTES:
 	    V0.2
 	   	Changed direct manipulation of pin 10 on ATMega168/328 via "PORTB" to use digitalWrite on an arbitrary
         SlaveSelect pin passed to the object through the constructor
 */
- 
+
 #ifndef MCP23S17_h
 #define MCP23S17_h
 
@@ -106,7 +106,7 @@
 //                   (0x0B)      //     Also Configuration Register
 
 #define    GPPUA     (0x0C)      // MCP23x17 Weak Pull-Up Resistor Register
-#define    GPPUB     (0x0D)      // INPUT ONLY: 0 = No Internal 100k Pull-Up (default) 1 = Internal 100k Pull-Up 
+#define    GPPUB     (0x0D)      // INPUT ONLY: 0 = No Internal 100k Pull-Up (default) 1 = Internal 100k Pull-Up
 
 #define    INTFA     (0x0E)      // MCP23x17 Interrupt Flag Register
 #define    INTFB     (0x0F)      // READ ONLY: 1 = This Pin Triggered the Interrupt
@@ -127,43 +127,43 @@
 class MCP23S17 {
 
   typedef void (*InterruptHandler)();
-  
+
   public:
     // Constructor to instantiate a discrete IC as an object:
     // address 0-7
     // chipSelect pin
     MCP23S17(byte, byte);
-    
+
     // Start the SPI Bus
     void begin();
 
     // Typically only used internally, but allows the user to write any register pair if needed, so it's public
     void wordWrite(byte, word);
-    
+
     // Typically only used internally, but allows the user to write any register if needed, so it's public
     void byteWrite(byte, byte);
-    
+
     // Sets the mode (input or output) of a single I/O pin
     // Pin number, input (1) / output (0)
     void pinMode(byte, bool);
-    
-    // Sets the mode (input or output) of all I/O pins at once 
+
+    // Sets the mode (input or output) of all I/O pins at once
     void pinMode(word);
-    
+
     // Selects internal 100k input pull-up of a single I/O pin
     // Pin number, pull-up enabled (1) / disabled (0)
     void pullupMode(byte, bool);
-    
+
     // Selects internal 100k input pull-up of all I/O pins at once
     void pullupMode(word);
-    
-    // Selects input state inversion of a single I/O pin (writing 1 turns on inversion) 
+
+    // Selects input state inversion of a single I/O pin (writing 1 turns on inversion)
     // Pin number, invert enabled (1) / disabled (0)
     void inputInvert(byte, bool);
-    
+
     // Selects input state inversion of all I/O pins at once (writing a 1 turns on inversion)
     void inputInvert(word);
-    
+
     // Sets a single pin to trigger interrupts when it changes
     void interruptOnChange(byte, bool);
 
@@ -183,25 +183,25 @@ class MCP23S17 {
 
     // Sets all the defaults to compare to trigger interrupts in one fell swoop
     void interruptSetDefault(word);
-    
+
     // Sets an individual output pin HIGH or LOW
     void digitalWrite(byte, bool);
-    
+
     // Sets all output pins at once. If some pins are configured as input, those bits will be ignored on write
     void digitalWrite(word);
-    
+
     // Reads an individual input pin
     bool digitalRead(byte);
-    
+
     // Reads an individual register and returns the byte. Argument is the register address
     byte byteRead(byte);
-    
+
     // Reads all input pins at once. Be sure it ignore the value of pins configured as output!
     word digitalRead(void);
-    
+
     // Return an individual input pin from cached value - not using SPI to read up to date value
     bool digitalReadCache(byte);
-    
+
     // Return all input pins at once from cache
     word digitalReadCache(void);
 
@@ -214,23 +214,23 @@ class MCP23S17 {
 
     // Handle interrupt from main program
     void processInterrupt(void);
-  
+
   private:
     // 3-bit address of the MCP23S17 in use
     byte _address;
-	
+
     // Slave-select pin
     byte _ss;
-  
+
     // Settings to use for SPI transmissions, initialized in begin()
     SPISettings _spiSettings;
-  
+
     // Caches the mode (input/output) configuration of I/O pins
     word _modeCache;
-  
+
     // Caches the internal pull-up configuration of input pins (values persist across mode changes)
     word _pullupCache;
-  
+
     // Caches the input pin inversion selection (values persist across mode changes)
     word _invertCache;
 
@@ -253,18 +253,18 @@ class MCP23S17 {
     word _interruptLocalCompareToDefault;
 
     word _interruptLocalCompareDefaults;
-  
+
     // Caches the output pin state of pins
     word _outputCache;
-  
+
     // Caches input pins whenever they are read, so they can be retrieved from cache directly
     word _inputCache;
 
     // Function pointers to interrupt handlers for each pin
     InterruptHandler _interruptHandlers[16];
-  
+
     // Internal helpers to start/end transmission
-    void _beginTransmission();               
+    void _beginTransmission();
     void _endTransmission();
 
     // Helper to check whether pin is in range
@@ -284,5 +284,5 @@ class MCP23S17 {
     // (B) register if the A register was non-zero
     byte _getInterruptCausingPin(void);
  };
-		
+
 #endif //MCP23S17

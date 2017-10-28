@@ -4,6 +4,7 @@
  */
 
 #include <Arduino.h>
+#include <SPI.h>
 
 #ifndef MAX72S19_h // Ensure we're not double-defining the library if it was already included
 #define MAX72S19_h
@@ -73,7 +74,7 @@ class MAX72S19 {
     // or when we run of out digits, whichever comes first
     // Note: not all characters in the latin alphabet can be
     // properly displayed on a 7 segment display.
-    void print(uint8_t, const char[]);
+    void print(uint8_t, char[]);
 
     // Sets whether to use the builtin decoder for each digit
     void setDecodeMode(uint8_t);
