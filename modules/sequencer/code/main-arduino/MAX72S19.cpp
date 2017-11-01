@@ -58,10 +58,12 @@ void MAX72S19::print(uint8_t startDigitIndex, char characters[]) {
   uint8_t charIndex = 0;
   char curChar = characters[charIndex];
 
-  while (curDigit < MAX_DIGITS) {
-    writeChar(curDigit++, curChar);
-    curChar = characters[++charIndex];
+  while (curDigit < MAX_DIGITS * 2) {
     if (curChar == '\0') break;
+    bool curCharDot = characters[charIndex + 1] == '.';
+    writeChar(curDigit++, curChar, curCharDot);
+    if (curCharDot) ++charIndex;
+    curChar = characters[++charIndex];
   }
 }
 
@@ -93,10 +95,20 @@ void MAX72S19::activate() {
   _setRegister(REG_SHUTDOWN, 1);
 }
 
-// Private methods
+// Private method
 
 uint8_t MAX72S19::_mapChar(char inputChar) {
   switch (inputChar) {
+    //  Segments legend:
+    //          _______
+    //        /   A   / 
+    //     F /       / B
+    //      /_______/ 
+    //     /   G   /
+    //  E /       / C
+    //   /_______/ * dp
+    //       D
+    
     //               dpABCDEFG
     case '0': return B01111110;
     case '1': return B00110000;
@@ -142,8 +154,8 @@ uint8_t MAX72S19::_mapChar(char inputChar) {
     case 'P': return B01100111;
     case 'q':
     case 'Q': return B01110011;
-    case 'r':
-    case 'R': return B00000101;
+    case 'r': return B00000101;
+    case 'R': return B10000110;
     case 's':
     case 'S': return B01011011;
     case 't':
