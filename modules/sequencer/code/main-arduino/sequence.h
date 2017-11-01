@@ -4,7 +4,7 @@
 #define PPQ 24 // Pulses per quarter note, like in MIDI
 #define MIN_TIME_DIVIDER 1
 #define MAX_TIME_DIVIDER 32
-#define DEFAULT_TIME_DIVIDER 8
+#define DEFAULT_TIME_DIVIDER 16
 
 // Don't change this; rest of code is not set up for different value.
 // It is only here to clarify the meaning of the number 8 in the code.

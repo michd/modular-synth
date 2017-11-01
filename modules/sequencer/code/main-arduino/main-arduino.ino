@@ -2,27 +2,17 @@
 
 #include "sequence.h"
 #include "io.h"
+#include "notemapper.h"
 
-#define DEFAULT_TEMPO 130
+#define DEFAULT_TEMPO 80
 
 #define BUTTON_DEBOUNCE_TICKS 10
 
-// Borrowing from Midi in code, as we're dealing with the same range
-#define MIN_NOTE_MIDI 24 // C2
-#define MAX_NOTE_MIDI 108 // C9
-#define NOTE_RANGE 84
-
 long lastTriggered = 0;
-
-// Array of DAC output values mapped to note index
-unsigned int NoteOutputValues[NOTE_RANGE + 1];
 
 volatile bool initialized = false;
 
-// Ranging of output notes
-// TODO write more helpful commentary here
-volatile byte rangeMinNote = 12;
-volatile byte rangeMaxNote = 36;
+volatile byte lastNoteRead;
 
 // Input stabilization
 // For debouncing buttons that trigger interrupts
@@ -54,15 +44,9 @@ void setup() {
   Sequence::onTriggerChange(sequenceOnTriggerChanged);
   Sequence::onSelectedStepChange(sequenceOnSelectedStepChanged);
 
+  NoteMapper::init();
+
   IO::setStep(0);
-
-  // Precalculate all the note values so we don't have to
-  // during normal runtime.
-  float noteStep = (float)4096 / (float)(NOTE_RANGE - 1);
-
-  for (byte i = 0; i <= NOTE_RANGE; i++) {
-    NoteOutputValues[i] = (unsigned int)round(noteStep * (float)i);
-  }
 
   char initText[] = "Init";
   IO::writeDisplay(initText);
@@ -95,8 +79,15 @@ void loop() {
 }
 
 void mapNoteAndWriteDac(unsigned int adcReading) {
-  unsigned short int note = mapToNote(adcReading);
-  IO::setPitch(NoteOutputValues[note]);
+  byte oldNote = lastNoteRead;
+  unsigned short int note = NoteMapper::mapToNote(adcReading);
+
+  lastNoteRead = note;
+  IO::setPitch(NoteMapper::getNoteOutput(note));
+
+  if (!Sequence::isRunning() && oldNote != note) {
+    IO::writeDisplay(NoteMapper::getNoteText(note));
+  }
 }
 
 void internalTimerTick() {
@@ -112,7 +103,7 @@ void internalTimerTick() {
 byte getSelectedStep() {
   // The pins are pull-up, so 1 = not pressed.
   // Therefore, we're bitwise inverting first.
-  uint8_t wordA = ~(IO::readPortExpCache() & 0xFF);
+  uint8_t wordA = (IO::readPortExpCache() & 0xFF);
 
   if (wordA == 0) return 0;
 
@@ -126,30 +117,6 @@ byte getSelectedStep() {
   if (wordA & 0b00000100) return 3;
   if (wordA & 0b00000010) return 2;
   if (wordA & 0b00000001) return 1;
-}
-
-// Maps an ADC reading to a note index, given the configured note range
-// and other scale settings.
-// Currently hardcoded to only return "white keys" - TODO update comment when that changes
-byte mapToNote(short int inputValue) {
-  byte note = (byte)(((float)inputValue / (float)ADC_MAX) * (rangeMaxNote - rangeMinNote + 1) + rangeMinNote);
-
-  byte baseNote = note % 12;
-  int blackKeys[] = {1, 3, 6, 8, 10};
-
-  bool isBlackKey = false;
-  for (byte i = 0; i < 5; i++) {
-    if (baseNote == blackKeys[i]) {
-      isBlackKey = true;
-      break;
-    }
-  }
-
-  if (isBlackKey) {
-    return note + 1;
-  }
-
-  return note;
 }
 
 // Button handlers
@@ -180,7 +147,11 @@ void gateModeOnPressed() {
   stepToAlter--;
 
   byte newGateMode = Sequence::cycleGateModeForStep(stepToAlter);
-  // TODO: display new gate mode
+
+  char text[] = "GM.0.0";
+  text[3] = '1' + stepToAlter;
+  text[5] = '1' + newGateMode;
+  IO::writeDisplay(text);
 }
 
 void repeatOnPressed() {
@@ -190,8 +161,11 @@ void repeatOnPressed() {
   byte stepToAlter = getRelevantOneIndexedStep();
   if (stepToAlter == 0) return;
   stepToAlter--;
-  Sequence::cycleStepRepeatForStep(stepToAlter);
-  //TODO: display new step repeat
+  byte newStepRepeat = Sequence::cycleStepRepeatForStep(stepToAlter);
+  char text[] = "SR.0.0";
+  text[3] = '1' + stepToAlter;
+  text[5] = '0' + newStepRepeat;
+  IO::writeDisplay(text);
 }
 
 // Retrieves the step to alter some property of, based on whether we're running
@@ -221,8 +195,8 @@ void sequenceOnSelectedStepChanged(byte selectedStep) {
 }
 
 void sequenceOnSequenceModeChanged(byte sequenceMode) {
-  char text[] = "SEQ0";
-  text[3] = '0' + sequenceMode;
+  char text[] = "SEQ.0";
+  text[4] = '0' + sequenceMode + 1;
   IO::writeDisplay(text);
 }
 

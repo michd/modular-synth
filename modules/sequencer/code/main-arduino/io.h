@@ -11,7 +11,7 @@
 
 #define PIN_RUNNING 8
 #define PIN_GATE_OUT 10
-// TODO: PIN_TRIGGER_OUT
+#define PIN_TRIGGER_OUT 2
 
 #define PIN_STEP_ADDR_A A1
 #define PIN_STEP_ADDR_B A3
@@ -33,6 +33,7 @@
 
 #define DAC_CENTER_VALUE 2048
 #define ADC_MAX 4096
+#define DAC_MAX 4096
 
 // There are only 5 possible tasks, and none may be duplicated in the queue
 #define MAX_TASK_QUEUE_LENGTH 5

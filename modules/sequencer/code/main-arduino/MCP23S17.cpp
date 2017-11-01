@@ -283,7 +283,7 @@ void MCP23S17::processInterrupt() {
     return;
   }  
 
-  bool isFallingFlank = !relevantNewBit;
+  bool isFallingFlank = relevantNewBit;
 
   bool interruptOnFallingFlank = _getBit(_interruptLocalCompareDefaults, pin);
 

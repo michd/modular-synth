@@ -21,6 +21,7 @@ void IO::init() {
   ::pinMode(PIN_RUNSTOP_BUTTON, INPUT_PULLUP);
   ::pinMode(PIN_RUNNING, OUTPUT);
   ::pinMode(PIN_GATE_OUT, OUTPUT);
+  ::pinMode(PIN_TRIGGER_OUT, OUTPUT);
   ::pinMode(PIN_STEP_ADDR_A, OUTPUT);
   ::pinMode(PIN_STEP_ADDR_B, OUTPUT);
   ::pinMode(PIN_STEP_ADDR_C, OUTPUT);
@@ -47,6 +48,8 @@ void IO::init() {
   // Set all inputs to pull-up (buttons normal-open to gnd)
   // This means we can re-use the portmodes word
   _portExp.pullupMode(combinedModes);
+  
+  _portExp.inputInvert(0xFF);
   // Cache initial values
   _portExp.digitalRead();
 
@@ -75,10 +78,16 @@ void IO::init() {
   _display.activate();
 
   _dac.analogWrite(DAC_CENTER_VALUE); // 0V
+  Serial.begin(250000);
 }
 
-void IO::setGate(bool on) { ::digitalWrite(PIN_GATE_OUT, on); }
-void IO::setTrigger(bool on) {} // TODO
+void IO::setGate(bool on) {
+  ::digitalWrite(PIN_GATE_OUT, on);
+  // Trigger should never remain on when gate is off
+  if (!on) ::digitalWrite(PIN_TRIGGER_OUT, false);
+}
+
+void IO::setTrigger(bool on) { ::digitalWrite(PIN_TRIGGER_OUT, on); }
 void IO::setRunning(bool on) { ::digitalWrite(PIN_RUNNING, on); }
 
 void IO::setStep(byte step) {

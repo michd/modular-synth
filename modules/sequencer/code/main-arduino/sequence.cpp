@@ -55,14 +55,15 @@ void Sequence::stop() {
   _running = false;
   (*_onRunningChangedHandler)(false);
 
-  Sequence::setGate(false);
+  setGate(false);
+  _setTrigger(false);
 }
 
 void Sequence::toggleRunning() {
   if (_running) {
-    Sequence::stop();
+    stop();
   } else {
-    Sequence::start();
+    start();
   }
 }
 
@@ -71,7 +72,12 @@ bool Sequence::isRunning() {
 }
 
 void Sequence::setSequenceMode(byte newSequenceMode) {
-  if (_sequenceMode == newSequenceMode) return;
+  if (_sequenceMode == newSequenceMode) {
+    // Trigger change handler anyway to update display
+    (*_onSequenceModeChangedHandler)(newSequenceMode);
+    return;
+  }
+
   _sequenceMode = newSequenceMode;
 
   if (_sequenceMode == SEQUENCE_MODE_RANDOM) {
@@ -314,6 +320,7 @@ void Sequence::_setTrigger(bool on) {
 void Sequence::_advanceSubStep() {
   _firstHalfOfStep = !_firstHalfOfStep;
   bool firstHalf = _firstHalfOfStep;
+  bool gateWasOn = _gate;
   byte repeatsForThisStep = _stepRepeat[Sequence::_currentStep];
 
   if (firstHalf) {
@@ -337,25 +344,31 @@ void Sequence::_advanceSubStep() {
   //       - gate was low before
   switch (_gateMode[_currentStep]) {
     case GATE_MODE_HALF_STEP:
-      Sequence::setGate(
+      setGate(
         _firstHalfOfStep && _currentStepRepetition == 1);
       break;
 
     case GATE_MODE_FULL_STEP:
-      Sequence::setGate(_currentStepRepetition == 1);
+      setGate(_currentStepRepetition == 1);
       break;
 
     case GATE_MODE_REPEAT_HALF:
-      Sequence::setGate(_firstHalfOfStep);
+      setGate(_firstHalfOfStep);
       break;
 
     case GATE_MODE_REPEAT_FULL:
-      Sequence::setGate(true);
+      setGate(true);
       break;
 
     case GATE_MODE_SILENT:
-      Sequence::setGate(false);
+      setGate(false);
       break;
+  }
+
+  if ((_gate && firstHalf && _currentStepRepetition == 1) || (_gate && !gateWasOn && firstHalf)) {
+    _setTrigger(true);
+  } else if (!firstHalf) {
+    _setTrigger(false);
   }
 }
 
@@ -384,5 +397,5 @@ void Sequence::_adjustTimeDivider(bool higher) {
     }
   }
 
-  Sequence::setTimeDivider(newTimeDivider);
+  setTimeDivider(newTimeDivider);
 }
