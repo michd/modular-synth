@@ -1,0 +1,7 @@
+hardware choices:
+
+Clock divider:
+CD40103 seems like a good counter for dividing the clock up for extra outputs
+
+ISP connecter:
+http://uk.rs-online.com/web/p/pcb-headers/8323705/
