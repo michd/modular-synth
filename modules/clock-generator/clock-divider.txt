@@ -1,0 +1,1 @@
+CD40103 seems like a good counter for dividing the clock up for extra outputs

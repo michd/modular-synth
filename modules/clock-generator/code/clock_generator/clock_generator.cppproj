@@ -1,0 +1,835 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="14.0">
+  <PropertyGroup>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectVersion>7.0</ProjectVersion>
+    <ToolchainName>com.Atmel.AVRGCC8.CPP</ToolchainName>
+    <ProjectGuid>{ea38f2f8-45f9-4587-8a70-a0828699211a}</ProjectGuid>
+    <avrdevice>ATtiny84</avrdevice>
+    <avrdeviceseries>none</avrdeviceseries>
+    <OutputType>Executable</OutputType>
+    <Language>CPP</Language>
+    <OutputFileName>$(MSBuildProjectName)</OutputFileName>
+    <OutputFileExtension>.elf</OutputFileExtension>
+    <OutputDirectory>$(MSBuildProjectDirectory)\$(Configuration)</OutputDirectory>
+    <AssemblyName>clock_generator</AssemblyName>
+    <Name>clock_generator</Name>
+    <RootNamespace>clock_generator</RootNamespace>
+    <ToolchainFlavour>Native</ToolchainFlavour>
+    <KeepTimersRunning>true</KeepTimersRunning>
+    <OverrideVtor>false</OverrideVtor>
+    <OverrideVtorValue>exception_table</OverrideVtorValue>
+    <eraseonlaunchrule>0</eraseonlaunchrule>
+    <ProgFlashFromRam>true</ProgFlashFromRam>
+    <RamSnippetAddress>0x20000000</RamSnippetAddress>
+    <CacheFlash>true</CacheFlash>
+    <UncachedRange />
+    <BootSegment>0</BootSegment>
+    <AsfFrameworkConfig>
+      <framework-data>
+        <options />
+        <configurations />
+        <files />
+        <documentation help="" />
+        <offline-documentation help="" />
+        <dependencies>
+          <content-extension eid="atmel.asf" uuidref="Atmel.ASF" version="3.26.0" />
+        </dependencies>
+      </framework-data>
+    </AsfFrameworkConfig>
+    <preserveEEPROM>true</preserveEEPROM>
+    <ResetRule>0</ResetRule>
+    <EraseKey />
+    <avrtool>
+    </avrtool>
+    <avrtoolserialnumber>0000B0822857</avrtoolserialnumber>
+    <avrdeviceexpectedsignature>0x1E930C</avrdeviceexpectedsignature>
+    <avrtoolinterface>ISP</avrtoolinterface>
+    <avrtoolinterfaceclock>125000</avrtoolinterfaceclock>
+    <com_atmel_avrdbg_tool_ispmk2>
+      <ToolOptions>
+        <InterfaceProperties>
+          <IspClock>125000</IspClock>
+        </InterfaceProperties>
+        <InterfaceName>ISP</InterfaceName>
+      </ToolOptions>
+      <ToolType>com.atmel.avrdbg.tool.ispmk2</ToolType>
+      <ToolNumber>0000B0822857</ToolNumber>
+      <ToolName>AVRISP mkII</ToolName>
+    </com_atmel_avrdbg_tool_ispmk2>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <ToolchainSettings>
+      <AvrGccCpp>
+  <avrgcc.common.outputfiles.hex>True</avrgcc.common.outputfiles.hex>
+  <avrgcc.common.outputfiles.lss>True</avrgcc.common.outputfiles.lss>
+  <avrgcc.common.outputfiles.eep>True</avrgcc.common.outputfiles.eep>
+  <avrgcc.common.outputfiles.srec>True</avrgcc.common.outputfiles.srec>
+  <avrgcc.common.outputfiles.usersignatures>False</avrgcc.common.outputfiles.usersignatures>
+  <avrgcc.compiler.general.ChangeDefaultCharTypeUnsigned>True</avrgcc.compiler.general.ChangeDefaultCharTypeUnsigned>
+  <avrgcc.compiler.general.ChangeDefaultBitFieldUnsigned>True</avrgcc.compiler.general.ChangeDefaultBitFieldUnsigned>
+  <avrgcc.compiler.symbols.DefSymbols>
+    <ListValues>
+      <Value>__AVR_ATtiny84__</Value>
+      <Value>__AVR_ATTINY84__</Value>
+      <Value>ARDUINO=10801</Value>
+      <Value>ARDUINO_MAIN</Value>
+      <Value>__AVR__</Value>
+      <Value>F_CPU={build.f_cpu}</Value>
+      <Value>ARDUINO_attiny</Value>
+      <Value>ARDUINO_ARCH_AVR</Value>
+    </ListValues>
+  </avrgcc.compiler.symbols.DefSymbols>
+  <avrgcc.compiler.directories.IncludePaths>
+    <ListValues>
+      <Value>../../../clock_generator</Value>
+      <Value>C:/Program Files (x86)/Atmel/Studio/7.0/Extensions/axqdo0k5.ftl/Micro Platforms/visualmicro/ide-atmel/libraries</Value>
+      <Value>C:/Users/Mich/AppData/Local/arduino15/packages/arduino/hardware/avr/1.6.20/libraries</Value>
+      <Value>C:/Users/Mich/AppData/Local/arduino15/packages/attiny/hardware/avr/1.0.2/libraries</Value>
+      <Value>C:/Users/Mich/Documents/Arduino/libraries</Value>
+      <Value>C:/Users/Mich/AppData/Local/arduino15/packages/arduino/hardware/avr/1.6.20/cores/arduino</Value>
+      <Value>C:/Users/Mich/AppData/Local/arduino15/packages/attiny/hardware/avr/1.0.2/variants/tiny14</Value>
+      <Value>C:/Users/Mich/AppData/Local/arduino15/packages/arduino/tools/avr-gcc/4.9.2-atmel3.5.4-arduino2/avr/include/</Value>
+      <Value>C:/Users/Mich/AppData/Local/arduino15/packages/arduino/tools/avr-gcc/4.9.2-atmel3.5.4-arduino2/avr/include/avr/</Value>
+      <Value>C:/Users/Mich/AppData/Local/arduino15/packages/arduino/tools/avr-gcc/4.9.2-atmel3.5.4-arduino2/lib/gcc/avr/4.8.1/include</Value>
+      <Value>C:/Users/Mich/AppData/Local/arduino15/packages/arduino/tools/avr-gcc/4.9.2-atmel3.5.4-arduino2/lib/gcc/avr/4.9.2/include</Value>
+      <Value>C:/Users/Mich/AppData/Local/arduino15/packages/arduino/tools/avr-gcc/4.9.2-atmel3.5.4-arduino2/lib/gcc/avr/4.9.3/include</Value>
+    </ListValues>
+  </avrgcc.compiler.directories.IncludePaths>
+  <avrgcc.compiler.optimization.level>Optimize (-O1)</avrgcc.compiler.optimization.level>
+  <avrgcc.compiler.optimization.PackStructureMembers>True</avrgcc.compiler.optimization.PackStructureMembers>
+  <avrgcc.compiler.optimization.AllocateBytesNeededForEnum>True</avrgcc.compiler.optimization.AllocateBytesNeededForEnum>
+  <avrgcc.compiler.optimization.DebugLevel>Default (-g2)</avrgcc.compiler.optimization.DebugLevel>
+  <avrgcc.compiler.warnings.AllWarnings>True</avrgcc.compiler.warnings.AllWarnings>
+  <avrgcccpp.compiler.general.ChangeDefaultCharTypeUnsigned>True</avrgcccpp.compiler.general.ChangeDefaultCharTypeUnsigned>
+  <avrgcccpp.compiler.general.ChangeDefaultBitFieldUnsigned>True</avrgcccpp.compiler.general.ChangeDefaultBitFieldUnsigned>
+  <avrgcccpp.compiler.symbols.DefSymbols>
+    <ListValues>
+      <Value>__AVR_ATtiny84__</Value>
+      <Value>__AVR_ATTINY84__</Value>
+      <Value>ARDUINO=10801</Value>
+      <Value>ARDUINO_MAIN</Value>
+      <Value>__AVR__</Value>
+      <Value>F_CPU={build.f_cpu}</Value>
+      <Value>ARDUINO_attiny</Value>
+      <Value>ARDUINO_ARCH_AVR</Value>
+    </ListValues>
+  </avrgcccpp.compiler.symbols.DefSymbols>
+  <avrgcccpp.compiler.directories.IncludePaths>
+    <ListValues>
+      <Value>../../../clock_generator</Value>
+      <Value>C:/Program Files (x86)/Atmel/Studio/7.0/Extensions/axqdo0k5.ftl/Micro Platforms/visualmicro/ide-atmel/libraries</Value>
+      <Value>C:/Users/Mich/AppData/Local/arduino15/packages/arduino/hardware/avr/1.6.20/libraries</Value>
+      <Value>C:/Users/Mich/AppData/Local/arduino15/packages/attiny/hardware/avr/1.0.2/libraries</Value>
+      <Value>C:/Users/Mich/Documents/Arduino/libraries</Value>
+      <Value>C:/Users/Mich/AppData/Local/arduino15/packages/arduino/hardware/avr/1.6.20/cores/arduino</Value>
+      <Value>C:/Users/Mich/AppData/Local/arduino15/packages/attiny/hardware/avr/1.0.2/variants/tiny14</Value>
+      <Value>C:/Users/Mich/AppData/Local/arduino15/packages/arduino/tools/avr-gcc/4.9.2-atmel3.5.4-arduino2/avr/include/</Value>
+      <Value>C:/Users/Mich/AppData/Local/arduino15/packages/arduino/tools/avr-gcc/4.9.2-atmel3.5.4-arduino2/avr/include/avr/</Value>
+      <Value>C:/Users/Mich/AppData/Local/arduino15/packages/arduino/tools/avr-gcc/4.9.2-atmel3.5.4-arduino2/lib/gcc/avr/4.8.1/include</Value>
+      <Value>C:/Users/Mich/AppData/Local/arduino15/packages/arduino/tools/avr-gcc/4.9.2-atmel3.5.4-arduino2/lib/gcc/avr/4.9.2/include</Value>
+      <Value>C:/Users/Mich/AppData/Local/arduino15/packages/arduino/tools/avr-gcc/4.9.2-atmel3.5.4-arduino2/lib/gcc/avr/4.9.3/include</Value>
+    </ListValues>
+  </avrgcccpp.compiler.directories.IncludePaths>
+  <avrgcccpp.compiler.optimization.level>Optimize (-O1)</avrgcccpp.compiler.optimization.level>
+  <avrgcccpp.compiler.optimization.PackStructureMembers>True</avrgcccpp.compiler.optimization.PackStructureMembers>
+  <avrgcccpp.compiler.optimization.AllocateBytesNeededForEnum>True</avrgcccpp.compiler.optimization.AllocateBytesNeededForEnum>
+  <avrgcccpp.compiler.optimization.DebugLevel>Default (-g2)</avrgcccpp.compiler.optimization.DebugLevel>
+  <avrgcccpp.compiler.warnings.AllWarnings>True</avrgcccpp.compiler.warnings.AllWarnings>
+  <avrgcccpp.assembler.debugging.DebugLevel>Default (-Wa,-g)</avrgcccpp.assembler.debugging.DebugLevel>
+</AvrGccCpp>
+    </ToolchainSettings>
+    <VMSETTING_IncludePaths>../../../Blink;C:/Program Files (x86)/Arduino/libraries;C:/Users/Mich/AppData/Local/arduino15/packages/arduino/hardware/avr/1.6.20/libraries;C:/Users/Mich/Documents/Arduino/libraries;C:/Users/Mich/AppData/Local/arduino15/packages/arduino/hardware/avr/1.6.20/cores/arduino;C:/Users/Mich/AppData/Local/arduino15/packages/arduino/hardware/avr/1.6.20/variants/yun;C:/Users/Mich/AppData/Local/arduino15/packages/arduino/tools/avr-gcc/4.9.2-atmel3.5.4-arduino2/avr/include/;C:/Users/Mich/AppData/Local/arduino15/packages/arduino/tools/avr-gcc/4.9.2-atmel3.5.4-arduino2/avr/include/avr/;C:/Users/Mich/AppData/Local/arduino15/packages/arduino/tools/avr-gcc/4.9.2-atmel3.5.4-arduino2/lib/gcc/avr/4.8.1/include;C:/Users/Mich/AppData/Local/arduino15/packages/arduino/tools/avr-gcc/4.9.2-atmel3.5.4-arduino2/lib/gcc/avr/4.9.2/include;C:/Users/Mich/AppData/Local/arduino15/packages/arduino/tools/avr-gcc/4.9.2-atmel3.5.4-arduino2/lib/gcc/avr/4.9.3/include;C:/Users/Mich/AppData/Local/arduino15/packages/attiny/hardware/avr/1.0.2/libraries;C:/Users/Mich/AppData/Local/arduino15/packages/attiny/hardware/avr/1.0.2/variants/tiny14;C:/Program Files (x86)/Atmel/Studio/7.0/Extensions/axqdo0k5.ftl/Micro Platforms/visualmicro/ide-atmel/libraries;../../../clock_generator;</VMSETTING_IncludePaths>
+    <VisualMicroSettings>
+      <VisualMicroSettings>
+        <arduino.board.name>attiny_ATtinyX4_attiny84</arduino.board.name>
+        <arduino.board.desc>ATtiny24/44/84 w/ ATtiny84</arduino.board.desc>
+        <arduino.board.property_bag>name=ATtiny24/44/84 w/ ATtiny84
+bootloader.tool=arduino:avrdude
+bootloader.unlock_bits=0xff
+bootloader.lock_bits=0xff
+build.core=arduino:arduino
+build.board=attiny
+upload.tool=arduino:avrdude
+menu.cpu.attiny24=ATtiny24
+menu.cpu.attiny24.upload.maximum_size=2048
+menu.cpu.attiny24.upload.maximum_data_size=128
+menu.cpu.attiny24.build.mcu=attiny24
+menu.cpu.attiny24.build.variant=tiny14
+menu.cpu.attiny44=ATtiny44
+menu.cpu.attiny44.upload.maximum_size=4096
+menu.cpu.attiny44.upload.maximum_data_size=256
+menu.cpu.attiny44.build.mcu=attiny44
+menu.cpu.attiny44.build.variant=tiny14
+menu.cpu.attiny84=ATtiny84
+menu.cpu.attiny84.upload.maximum_size=8192
+menu.cpu.attiny84.upload.maximum_data_size=512
+menu.cpu.attiny84.build.mcu=attiny84
+menu.cpu.attiny84.build.variant=tiny14
+menu.clock.internal1=Internal 1 MHz
+menu.clock.internal1.bootloader.low_fuses=0x62
+menu.clock.internal1.bootloader.high_fuses=0xdf
+menu.clock.internal1.bootloader.extended_fuses=0xff
+menu.clock.internal1.build.f_cpu=1000000L
+menu.clock.internal8=Internal 8 MHz
+menu.clock.internal8.bootloader.low_fuses=0xe2
+menu.clock.internal8.bootloader.high_fuses=0xdf
+menu.clock.internal8.bootloader.extended_fuses=0xff
+menu.clock.internal8.build.f_cpu=8000000L
+menu.clock.external8=External 8 MHz
+menu.clock.external8.bootloader.low_fuses=0xfe
+menu.clock.external8.bootloader.high_fuses=0xdf
+menu.clock.external8.bootloader.extended_fuses=0xff
+menu.clock.external8.build.f_cpu=8000000L
+menu.clock.external16=External 16 MHz
+menu.clock.external16.bootloader.low_fuses=0xfe
+menu.clock.external16.bootloader.high_fuses=0xdf
+menu.clock.external16.bootloader.extended_fuses=0xff
+menu.clock.external16.build.f_cpu=16000000L
+menu.clock.external20=External 20 MHz
+menu.clock.external20.bootloader.low_fuses=0xfe
+menu.clock.external20.bootloader.high_fuses=0xdf
+menu.clock.external20.bootloader.extended_fuses=0xff
+menu.clock.external20.build.f_cpu=20000000L
+runtime.ide.path=C:\Program Files (x86)\Atmel\Studio\7.0\Extensions\axqdo0k5.ftl\Micro Platforms\visualmicro\ide-atmel
+runtime.os=windows
+build.system.path=C:\Users\Mich\AppData\Local\arduino15\packages\attiny\hardware\avr\1.0.2\system
+runtime.ide.version=10801
+target_package=attiny
+target_platform=avr
+runtime.hardware.path=C:\Users\Mich\AppData\Local\arduino15\packages\attiny\hardware\avr
+originalid=ATtinyX4
+intellisense.tools.path={runtime.tools.avr-gcc.path}\
+intellisense.include.paths={intellisense.tools.path}avr\include\;{intellisense.tools.path}avr\include\avr\;{intellisense.tools.path}lib\gcc\avr\4.8.1\include;{intellisense.tools.path}lib\gcc\avr\4.9.2\include;{intellisense.tools.path}lib\gcc\avr\4.9.3\include
+tools.atprogram.cmd.path=%AVRSTUDIO_EXE_PATH%\atbackend\atprogram
+tools.atprogram.cmd.setwinpath=true
+tools.atprogram.program.params.verbose=-v
+tools.atprogram.program.params.quiet=-q
+tools.atprogram.program.pattern="{cmd.path}" -d {build.mcu} {program.verbose} {program.extra_params} program -c -f "{build.path}\{build.project_name}.hex"
+tools.atprogram.program.xpattern="{cmd.path}" {AVRSTUDIO_BACKEND_CONNECTION} -d {build.mcu} {program.verbose} {program.extra_params} program -c -f "{build.path}\{build.project_name}.hex"
+tools.atprogram.erase.params.verbose=-v
+tools.atprogram.erase.params.quiet=-q
+tools.atprogram.bootloader.params.verbose=-v
+tools.atprogram.bootloader.params.quiet=-q
+tools.atprogram.bootloader.pattern="{cmd.path}" -d {build.mcu} {bootloader.verbose}  program -c -f "{runtime.ide.path}\hardware\arduino\avr\bootloaders\{bootloader.file}"
+tools.avrdude.path={runtime.tools.avrdude.path}
+tools.avrdude.erase.params.verbose=-v -v -v -v
+tools.avrdude.erase.params.quiet=-q -q
+tools.avrdude.erase.pattern="{cmd.path}" "-C{config.path}" {erase.verbose} -p{build.mcu} -c{protocol} {program.extra_params} -e -Uefuse:w:{bootloader.extended_fuses}:m -Uhfuse:w:{bootloader.high_fuses}:m -Ulfuse:w:{bootloader.low_fuses}:m
+tools.avrdude.bootloader.params.verbose=-v -v -v -v
+tools.avrdude.bootloader.params.quiet=-q -q
+tools.avrdude.bootloader.pattern="{cmd.path}" "-C{config.path}" {bootloader.verbose} -p{build.mcu} -c{protocol} {program.extra_params}
+version=1.6.20
+compiler.warning_flags=-w
+compiler.warning_flags.none=-w
+compiler.warning_flags.default=
+compiler.warning_flags.more=-Wall
+compiler.warning_flags.all=-Wall -Wextra
+compiler.path={runtime.tools.avr-gcc.path}/bin/
+compiler.c.cmd=avr-gcc
+compiler.c.flags=-c -g -Os {compiler.warning_flags} -std=gnu11 -ffunction-sections -fdata-sections -MMD -flto -fno-fat-lto-objects
+compiler.c.elf.flags={compiler.warning_flags} -Os -g -flto -fuse-linker-plugin -Wl,--gc-sections
+compiler.c.elf.cmd=avr-gcc
+compiler.S.flags=-c -g -x assembler-with-cpp -flto -MMD
+compiler.cpp.cmd=avr-g++
+compiler.cpp.flags=-c -g -Os {compiler.warning_flags} -std=gnu++11 -fpermissive -fno-exceptions -ffunction-sections -fdata-sections -fno-threadsafe-statics -MMD -flto
+compiler.ar.cmd=avr-gcc-ar
+compiler.ar.flags=rcs
+compiler.objcopy.cmd=avr-objcopy
+compiler.objcopy.eep.flags=-O ihex -j .eeprom --set-section-flags=.eeprom=alloc,load --no-change-warnings --change-section-lma .eeprom=0
+compiler.elf2hex.flags=-O ihex -R .eeprom
+compiler.elf2hex.cmd=avr-objcopy
+compiler.ldflags=
+compiler.size.cmd=avr-size
+build.extra_flags=
+compiler.c.extra_flags=
+compiler.c.elf.extra_flags=
+compiler.S.extra_flags=
+compiler.cpp.extra_flags=
+compiler.ar.extra_flags=
+compiler.objcopy.eep.extra_flags=
+compiler.elf2hex.extra_flags=
+recipe.c.o.pattern="{compiler.path}{compiler.c.cmd}" {compiler.c.flags} -mmcu={build.mcu} -DF_CPU={build.f_cpu} -DARDUINO={runtime.ide.version} -DARDUINO_{build.board} -DARDUINO_ARCH_{build.arch} {compiler.c.extra_flags} {build.extra_flags} {includes} "{source_file}" -o "{object_file}"
+recipe.cpp.o.pattern="{compiler.path}{compiler.cpp.cmd}" {compiler.cpp.flags} -mmcu={build.mcu} -DF_CPU={build.f_cpu} -DARDUINO={runtime.ide.version} -DARDUINO_{build.board} -DARDUINO_ARCH_{build.arch} {compiler.cpp.extra_flags} {build.extra_flags} {includes} "{source_file}" -o "{object_file}"
+recipe.S.o.pattern="{compiler.path}{compiler.c.cmd}" {compiler.S.flags} -mmcu={build.mcu} -DF_CPU={build.f_cpu} -DARDUINO={runtime.ide.version} -DARDUINO_{build.board} -DARDUINO_ARCH_{build.arch} {compiler.S.extra_flags} {build.extra_flags} {includes} "{source_file}" -o "{object_file}"
+archive_file_path={build.path}/{archive_file}
+recipe.ar.pattern="{compiler.path}{compiler.ar.cmd}" {compiler.ar.flags} {compiler.ar.extra_flags} "{archive_file_path}" "{object_file}"
+recipe.c.combine.pattern="{compiler.path}{compiler.c.elf.cmd}" {compiler.c.elf.flags} -mmcu={build.mcu} {compiler.c.elf.extra_flags} -o "{build.path}/{build.project_name}.elf" {object_files} "{build.path}/{archive_file}" "-L{build.path}" -lm
+recipe.objcopy.eep.pattern="{compiler.path}{compiler.objcopy.cmd}" {compiler.objcopy.eep.flags} {compiler.objcopy.eep.extra_flags} "{build.path}/{build.project_name}.elf" "{build.path}/{build.project_name}.eep"
+recipe.objcopy.hex.pattern="{compiler.path}{compiler.elf2hex.cmd}" {compiler.elf2hex.flags} {compiler.elf2hex.extra_flags} "{build.path}/{build.project_name}.elf" "{build.path}/{build.project_name}.hex"
+recipe.output.tmp_file={build.project_name}.hex
+recipe.output.save_file={build.project_name}.{build.variant}.hex
+recipe.size.pattern="{compiler.path}{compiler.size.cmd}" -A "{build.path}/{build.project_name}.elf"
+recipe.size.regex=^(?:\.text|\.data|\.bootloader)\s+([0-9]+).*
+recipe.size.regex.data=^(?:\.data|\.bss|\.noinit)\s+([0-9]+).*
+recipe.size.regex.eeprom=^(?:\.eeprom)\s+([0-9]+).*
+preproc.includes.flags=-w -x c++ -M -MG -MP
+recipe.preproc.includes="{compiler.path}{compiler.cpp.cmd}" {compiler.cpp.flags} {preproc.includes.flags} -mmcu={build.mcu} -DF_CPU={build.f_cpu} -DARDUINO={runtime.ide.version} -DARDUINO_{build.board} -DARDUINO_ARCH_{build.arch} {compiler.cpp.extra_flags} {build.extra_flags} {includes} "{source_file}"
+preproc.macros.flags=-w -x c++ -E -CC
+recipe.preproc.macros="{compiler.path}{compiler.cpp.cmd}" {compiler.cpp.flags} {preproc.macros.flags} -mmcu={build.mcu} -DF_CPU={build.f_cpu} -DARDUINO={runtime.ide.version} -DARDUINO_{build.board} -DARDUINO_ARCH_{build.arch} {compiler.cpp.extra_flags} {build.extra_flags} {includes} "{source_file}" -o "{preprocessed_file_path}"
+tools.avrdude.cmd.path={path}/bin/avrdude
+tools.avrdude.config.path={path}/etc/avrdude.conf
+tools.avrdude.network_cmd={runtime.tools.arduinoOTA.path}/bin/arduinoOTA
+tools.avrdude.upload.params.verbose=-v
+tools.avrdude.upload.params.quiet=-q -q
+tools.avrdude.upload.verify=
+tools.avrdude.upload.params.noverify=-V
+tools.avrdude.upload.pattern="{cmd.path}" "-C{config.path}" {upload.verbose} {upload.verify} -p{build.mcu} -c{upload.protocol} "-P{serial.port}" -b{upload.speed} -D "-Uflash:w:{build.path}/{build.project_name}.hex:i"
+tools.avrdude.program.params.verbose=-v
+tools.avrdude.program.params.quiet=-q -q
+tools.avrdude.program.verify=
+tools.avrdude.program.params.noverify=-V
+tools.avrdude.program.pattern="{cmd.path}" "-C{config.path}" {program.verbose} {program.verify} -p{build.mcu} -c{protocol} {program.extra_params} "-Uflash:w:{build.path}/{build.project_name}.hex:i"
+tools.avrdude_remote.upload.pattern=/usr/bin/run-avrdude /tmp/sketch.hex {upload.verbose} -p{build.mcu}
+tools.avrdude.upload.network_pattern="{network_cmd}" -address {serial.port} -port {upload.network.port} -sketch "{build.path}/{build.project_name}.hex" -upload {upload.network.endpoint_upload} -sync {upload.network.endpoint_sync} -reset {upload.network.endpoint_reset} -sync_exp {upload.network.sync_return}
+build.usb_manufacturer="Unknown"
+build.usb_flags=-DUSB_VID={build.vid} -DUSB_PID={build.pid} '-DUSB_MANUFACTURER={build.usb_manufacturer}' '-DUSB_PRODUCT={build.usb_product}'
+vm.platform.root.path=C:\Program Files (x86)\Atmel\Studio\7.0\Extensions\axqdo0k5.ftl\Micro Platforms\arduino16x
+avrisp.name=AVR ISP
+avrisp.communication=serial
+avrisp.protocol=stk500v1
+avrisp.program.protocol=stk500v1
+avrisp.program.tool=avrdude
+avrisp.program.extra_params=-P{serial.port}
+avrispmkii.name=AVRISP mkII
+avrispmkii.communication=usb
+avrispmkii.protocol=stk500v2
+avrispmkii.program.protocol=stk500v2
+avrispmkii.program.tool=avrdude
+avrispmkii.program.extra_params=-Pusb
+usbtinyisp.name=USBtinyISP
+usbtinyisp.protocol=usbtiny
+usbtinyisp.program.tool=avrdude
+usbtinyisp.program.extra_params=
+arduinoisp.name=ArduinoISP
+arduinoisp.protocol=arduinoisp
+arduinoisp.program.tool=avrdude
+arduinoisp.program.extra_params=
+arduinoisporg.name=ArduinoISP.org
+arduinoisporg.protocol=arduinoisporg
+arduinoisporg.program.tool=avrdude
+arduinoisporg.program.extra_params=
+usbasp.name=USBasp
+usbasp.communication=usb
+usbasp.protocol=usbasp
+usbasp.program.protocol=usbasp
+usbasp.program.tool=avrdude
+usbasp.program.extra_params=-Pusb
+parallel.name=Parallel Programmer
+parallel.protocol=dapa
+parallel.force=true
+parallel.program.tool=avrdude
+parallel.program.extra_params=-F
+arduinoasisp.name=Arduino as ISP
+arduinoasisp.communication=serial
+arduinoasisp.protocol=stk500v1
+arduinoasisp.speed=19200
+arduinoasisp.program.protocol=stk500v1
+arduinoasisp.program.speed=19200
+arduinoasisp.program.tool=avrdude
+arduinoasisp.program.extra_params=-P{serial.port} -b{program.speed}
+usbGemma.name=Arduino Gemma
+usbGemma.protocol=arduinogemma
+usbGemma.program.tool=avrdude
+usbGemma.program.extra_params=
+usbGemma.config.path={runtime.platform.path}/bootloaders/gemma/avrdude.conf
+buspirate.name=BusPirate as ISP
+buspirate.communication=serial
+buspirate.protocol=buspirate
+buspirate.program.protocol=buspirate
+buspirate.program.tool=avrdude
+buspirate.program.extra_params=-P{serial.port}
+stk500.name=Atmel STK500 development board
+stk500.communication=serial
+stk500.protocol=stk500
+stk500.program.protocol=stk500
+stk500.program.tool=avrdude
+stk500.program.extra_params=-P{serial.port}
+jtag3isp.name=Atmel JTAGICE3 (ISP mode)
+jtag3isp.communication=usb
+jtag3isp.protocol=jtag3isp
+jtag3isp.program.protocol=jtag3isp
+jtag3isp.program.tool=avrdude
+jtag3isp.program.extra_params=
+jtag3.name=Atmel JTAGICE3 (JTAG mode)
+jtag3.communication=usb
+jtag3.protocol=jtag3
+jtag3.program.protocol=jtag3
+jtag3.program.tool=avrdude
+jtag3.program.extra_params=-B0.1
+atmel_ice.name=Atmel-ICE (AVR)
+atmel_ice.communication=usb
+atmel_ice.protocol=atmelice_isp
+atmel_ice.program.protocol=atmelice_isp
+atmel_ice.program.tool=avrdude
+atmel_ice.program.extra_params=-Pusb
+runtime.tools.avr-gcc.path=C:\Users\Mich\AppData\Local\arduino15\packages\arduino\tools\avr-gcc\4.9.2-atmel3.5.4-arduino2
+runtime.tools.avr-gcc-4.9.2-atmel3.5.4-arduino2.path=C:\Users\Mich\AppData\Local\arduino15\packages\arduino\tools\avr-gcc\4.9.2-atmel3.5.4-arduino2
+runtime.tools.avrdude.path=C:\Users\Mich\AppData\Local\arduino15\packages\arduino\tools\avrdude\6.3.0-arduino9
+runtime.tools.avrdude-6.3.0-arduino9.path=C:\Users\Mich\AppData\Local\arduino15\packages\arduino\tools\avrdude\6.3.0-arduino9
+runtime.tools.arduinoOTA.path=C:\Users\Mich\AppData\Local\arduino15\packages\arduino\tools\arduinoOTA\1.1.1
+runtime.tools.arduinoOTA-1.1.1.path=C:\Users\Mich\AppData\Local\arduino15\packages\arduino\tools\arduinoOTA\1.1.1
+upload.maximum_size=8192
+upload.maximum_data_size=512
+build.mcu=attiny84
+build.variant=tiny14
+runtime.vm.boardinfo.id=attiny_ATtinyX4_attiny84
+runtime.vm.boardinfo.name=attiny_ATtinyX4_attiny84
+runtime.vm.boardinfo.desc=ATtiny24/44/84 w/ ATtiny84
+runtime.vm.boardinfo.src_location=C:\Users\Mich\AppData\Local\arduino15\packages\attiny\hardware\avr\1.0.2
+ide.hint=Ready-To-Go IDE: Use the Board and Library managers to install.
+ide.location.key=visualmicro
+ide.location.ide.auto=true
+ide.location.ide.winreg=Arduino Default Application
+ide.location.sketchbook.winreg=Arduino Default Sketchbook
+ide.location.sketchbook.preferences=sketchbook.path
+ide.default.revision_name=1.8.2
+ide.default.version=10802
+ide.platforms.basedon=arduino16x
+ide.default.package=arduino
+ide.default.platform=avr
+ide.multiplatform=true
+ide.includes=Arduino.h
+ide.exe_name=arduino
+ide.platformswithoutpackage=false
+ide.includes.fallback=wprogram.h
+ide.extension=ino
+ide.extension.fallback=pde
+ide.versionGTEQ=160
+ide.hosts=atmel
+vm.debug=true
+software=ARDUINO
+ssh.user.name=root
+ssh.user.default.password=arduino
+ssh.host.wwwfiles.path=/www/sd
+ide.location.preferences.arduinoData={runtime.sketchbook.path}\ArduinoData
+ide.location.preferences=%VM_APPDATA_LOCAL%\arduino15\preferences.txt
+ide.location.preferences_fallback=%VM_APPDATA_ROAMING%\arduino15\preferences.txt
+ide.location.contributions=%VM_APPDATA_LOCAL%\arduino15
+ide.location.contributions_fallback=%VM_APPDATA_ROAMING%\arduino15
+ide.contributions.boards.allow=true
+ide.contributions.boards.ignore_unless_rewrite_found=true
+ide.contributions.libraries.allow=true
+ide.contributions.boards.support.urls.wiki=https://github.com/arduino/Arduino/wiki/Unofficial-list-of-3rd-party-boards-support-urls
+ide.create_platforms_from_boardsTXT.teensy=build.core
+ide.appid=visualmicro
+location.sketchbook=C:\Users\Mich\Documents\Arduino
+build.core.path=C:\Users\Mich\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.20\cores\arduino
+vm.core.include=Arduino.h
+vm.boardsource.path=C:\Users\Mich\AppData\Local\arduino15\packages\attiny\hardware\avr\1.0.2
+runtime.platform.path=C:\Users\Mich\AppData\Local\arduino15\packages\attiny\hardware\avr\1.0.2
+vm.platformname.name=avr
+build.arch=AVR
+</arduino.board.property_bag>
+        <arduino.build.mcu>attiny84</arduino.build.mcu>
+        <arduino.build.core>arduino</arduino.build.core>
+        <arduino.upload.maximum_size>8192</arduino.upload.maximum_size>
+        <visualmicro.application.name>visualmicro</visualmicro.application.name>
+        <visualmicro.package.name>attiny</visualmicro.package.name>
+        <visualmicro.platform.name>avr</visualmicro.platform.name>
+        <vm.upload.useprogrammer>1</vm.upload.useprogrammer>
+        <vm.programmer_name>atprogram_avrispmkii_isp</vm.programmer_name>
+      </VisualMicroSettings>
+    </VisualMicroSettings>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <ToolchainSettings>
+      <AvrGccCpp>
+  <avrgcc.common.outputfiles.hex>True</avrgcc.common.outputfiles.hex>
+  <avrgcc.common.outputfiles.lss>True</avrgcc.common.outputfiles.lss>
+  <avrgcc.common.outputfiles.eep>True</avrgcc.common.outputfiles.eep>
+  <avrgcc.common.outputfiles.srec>True</avrgcc.common.outputfiles.srec>
+  <avrgcc.common.outputfiles.usersignatures>False</avrgcc.common.outputfiles.usersignatures>
+  <avrgcc.compiler.general.ChangeDefaultCharTypeUnsigned>True</avrgcc.compiler.general.ChangeDefaultCharTypeUnsigned>
+  <avrgcc.compiler.general.ChangeDefaultBitFieldUnsigned>True</avrgcc.compiler.general.ChangeDefaultBitFieldUnsigned>
+  <avrgcc.compiler.symbols.DefSymbols>
+    <ListValues>
+      <Value>__AVR_ATtiny84__</Value>
+      <Value>__AVR_ATTINY84__</Value>
+      <Value>ARDUINO=10801</Value>
+      <Value>ARDUINO_MAIN</Value>
+      <Value>__AVR__</Value>
+      <Value>F_CPU={build.f_cpu}</Value>
+      <Value>ARDUINO_attiny</Value>
+      <Value>ARDUINO_ARCH_AVR</Value>
+    </ListValues>
+  </avrgcc.compiler.symbols.DefSymbols>
+  <avrgcc.compiler.directories.IncludePaths>
+    <ListValues>
+      <Value>../../../clock_generator</Value>
+      <Value>C:/Program Files (x86)/Atmel/Studio/7.0/Extensions/axqdo0k5.ftl/Micro Platforms/visualmicro/ide-atmel/libraries</Value>
+      <Value>C:/Users/Mich/AppData/Local/arduino15/packages/arduino/hardware/avr/1.6.20/libraries</Value>
+      <Value>C:/Users/Mich/AppData/Local/arduino15/packages/attiny/hardware/avr/1.0.2/libraries</Value>
+      <Value>C:/Users/Mich/Documents/Arduino/libraries</Value>
+      <Value>C:/Users/Mich/AppData/Local/arduino15/packages/arduino/hardware/avr/1.6.20/cores/arduino</Value>
+      <Value>C:/Users/Mich/AppData/Local/arduino15/packages/attiny/hardware/avr/1.0.2/variants/tiny14</Value>
+      <Value>C:/Users/Mich/AppData/Local/arduino15/packages/arduino/tools/avr-gcc/4.9.2-atmel3.5.4-arduino2/avr/include/</Value>
+      <Value>C:/Users/Mich/AppData/Local/arduino15/packages/arduino/tools/avr-gcc/4.9.2-atmel3.5.4-arduino2/avr/include/avr/</Value>
+      <Value>C:/Users/Mich/AppData/Local/arduino15/packages/arduino/tools/avr-gcc/4.9.2-atmel3.5.4-arduino2/lib/gcc/avr/4.8.1/include</Value>
+      <Value>C:/Users/Mich/AppData/Local/arduino15/packages/arduino/tools/avr-gcc/4.9.2-atmel3.5.4-arduino2/lib/gcc/avr/4.9.2/include</Value>
+      <Value>C:/Users/Mich/AppData/Local/arduino15/packages/arduino/tools/avr-gcc/4.9.2-atmel3.5.4-arduino2/lib/gcc/avr/4.9.3/include</Value>
+    </ListValues>
+  </avrgcc.compiler.directories.IncludePaths>
+  <avrgcc.compiler.optimization.level>Optimize (-O1)</avrgcc.compiler.optimization.level>
+  <avrgcc.compiler.optimization.PackStructureMembers>True</avrgcc.compiler.optimization.PackStructureMembers>
+  <avrgcc.compiler.optimization.AllocateBytesNeededForEnum>True</avrgcc.compiler.optimization.AllocateBytesNeededForEnum>
+  <avrgcc.compiler.optimization.DebugLevel>Default (-g2)</avrgcc.compiler.optimization.DebugLevel>
+  <avrgcc.compiler.warnings.AllWarnings>True</avrgcc.compiler.warnings.AllWarnings>
+  <avrgcccpp.compiler.general.ChangeDefaultCharTypeUnsigned>True</avrgcccpp.compiler.general.ChangeDefaultCharTypeUnsigned>
+  <avrgcccpp.compiler.general.ChangeDefaultBitFieldUnsigned>True</avrgcccpp.compiler.general.ChangeDefaultBitFieldUnsigned>
+  <avrgcccpp.compiler.symbols.DefSymbols>
+    <ListValues>
+      <Value>__AVR_ATtiny84__</Value>
+      <Value>__AVR_ATTINY84__</Value>
+      <Value>ARDUINO=10801</Value>
+      <Value>ARDUINO_MAIN</Value>
+      <Value>__AVR__</Value>
+      <Value>F_CPU={build.f_cpu}</Value>
+      <Value>ARDUINO_attiny</Value>
+      <Value>ARDUINO_ARCH_AVR</Value>
+    </ListValues>
+  </avrgcccpp.compiler.symbols.DefSymbols>
+  <avrgcccpp.compiler.directories.IncludePaths>
+    <ListValues>
+      <Value>../../../clock_generator</Value>
+      <Value>C:/Program Files (x86)/Atmel/Studio/7.0/Extensions/axqdo0k5.ftl/Micro Platforms/visualmicro/ide-atmel/libraries</Value>
+      <Value>C:/Users/Mich/AppData/Local/arduino15/packages/arduino/hardware/avr/1.6.20/libraries</Value>
+      <Value>C:/Users/Mich/AppData/Local/arduino15/packages/attiny/hardware/avr/1.0.2/libraries</Value>
+      <Value>C:/Users/Mich/Documents/Arduino/libraries</Value>
+      <Value>C:/Users/Mich/AppData/Local/arduino15/packages/arduino/hardware/avr/1.6.20/cores/arduino</Value>
+      <Value>C:/Users/Mich/AppData/Local/arduino15/packages/attiny/hardware/avr/1.0.2/variants/tiny14</Value>
+      <Value>C:/Users/Mich/AppData/Local/arduino15/packages/arduino/tools/avr-gcc/4.9.2-atmel3.5.4-arduino2/avr/include/</Value>
+      <Value>C:/Users/Mich/AppData/Local/arduino15/packages/arduino/tools/avr-gcc/4.9.2-atmel3.5.4-arduino2/avr/include/avr/</Value>
+      <Value>C:/Users/Mich/AppData/Local/arduino15/packages/arduino/tools/avr-gcc/4.9.2-atmel3.5.4-arduino2/lib/gcc/avr/4.8.1/include</Value>
+      <Value>C:/Users/Mich/AppData/Local/arduino15/packages/arduino/tools/avr-gcc/4.9.2-atmel3.5.4-arduino2/lib/gcc/avr/4.9.2/include</Value>
+      <Value>C:/Users/Mich/AppData/Local/arduino15/packages/arduino/tools/avr-gcc/4.9.2-atmel3.5.4-arduino2/lib/gcc/avr/4.9.3/include</Value>
+    </ListValues>
+  </avrgcccpp.compiler.directories.IncludePaths>
+  <avrgcccpp.compiler.optimization.level>Optimize (-O1)</avrgcccpp.compiler.optimization.level>
+  <avrgcccpp.compiler.optimization.PackStructureMembers>True</avrgcccpp.compiler.optimization.PackStructureMembers>
+  <avrgcccpp.compiler.optimization.AllocateBytesNeededForEnum>True</avrgcccpp.compiler.optimization.AllocateBytesNeededForEnum>
+  <avrgcccpp.compiler.optimization.DebugLevel>Default (-g2)</avrgcccpp.compiler.optimization.DebugLevel>
+  <avrgcccpp.compiler.warnings.AllWarnings>True</avrgcccpp.compiler.warnings.AllWarnings>
+  <avrgcccpp.assembler.debugging.DebugLevel>Default (-Wa,-g)</avrgcccpp.assembler.debugging.DebugLevel>
+</AvrGccCpp>
+    </ToolchainSettings>
+    <VMSETTING_IncludePaths>../../../Blink;C:/Program Files (x86)/Arduino/libraries;C:/Users/Mich/AppData/Local/arduino15/packages/arduino/hardware/avr/1.6.20/libraries;C:/Users/Mich/Documents/Arduino/libraries;C:/Users/Mich/AppData/Local/arduino15/packages/arduino/hardware/avr/1.6.20/cores/arduino;C:/Users/Mich/AppData/Local/arduino15/packages/arduino/hardware/avr/1.6.20/variants/yun;C:/Users/Mich/AppData/Local/arduino15/packages/arduino/tools/avr-gcc/4.9.2-atmel3.5.4-arduino2/avr/include/;C:/Users/Mich/AppData/Local/arduino15/packages/arduino/tools/avr-gcc/4.9.2-atmel3.5.4-arduino2/avr/include/avr/;C:/Users/Mich/AppData/Local/arduino15/packages/arduino/tools/avr-gcc/4.9.2-atmel3.5.4-arduino2/lib/gcc/avr/4.8.1/include;C:/Users/Mich/AppData/Local/arduino15/packages/arduino/tools/avr-gcc/4.9.2-atmel3.5.4-arduino2/lib/gcc/avr/4.9.2/include;C:/Users/Mich/AppData/Local/arduino15/packages/arduino/tools/avr-gcc/4.9.2-atmel3.5.4-arduino2/lib/gcc/avr/4.9.3/include;C:/Users/Mich/AppData/Local/arduino15/packages/attiny/hardware/avr/1.0.2/libraries;C:/Users/Mich/AppData/Local/arduino15/packages/attiny/hardware/avr/1.0.2/variants/tiny14;C:/Program Files (x86)/Atmel/Studio/7.0/Extensions/axqdo0k5.ftl/Micro Platforms/visualmicro/ide-atmel/libraries;../../../clock_generator;</VMSETTING_IncludePaths>
+    <VisualMicroSettings>
+      <VisualMicroSettings>
+        <arduino.board.name>attiny_ATtinyX4_attiny84</arduino.board.name>
+        <arduino.board.desc>ATtiny24/44/84 w/ ATtiny84</arduino.board.desc>
+        <arduino.board.property_bag>name=ATtiny24/44/84 w/ ATtiny84
+bootloader.tool=arduino:avrdude
+bootloader.unlock_bits=0xff
+bootloader.lock_bits=0xff
+build.core=arduino:arduino
+build.board=attiny
+upload.tool=arduino:avrdude
+menu.cpu.attiny24=ATtiny24
+menu.cpu.attiny24.upload.maximum_size=2048
+menu.cpu.attiny24.upload.maximum_data_size=128
+menu.cpu.attiny24.build.mcu=attiny24
+menu.cpu.attiny24.build.variant=tiny14
+menu.cpu.attiny44=ATtiny44
+menu.cpu.attiny44.upload.maximum_size=4096
+menu.cpu.attiny44.upload.maximum_data_size=256
+menu.cpu.attiny44.build.mcu=attiny44
+menu.cpu.attiny44.build.variant=tiny14
+menu.cpu.attiny84=ATtiny84
+menu.cpu.attiny84.upload.maximum_size=8192
+menu.cpu.attiny84.upload.maximum_data_size=512
+menu.cpu.attiny84.build.mcu=attiny84
+menu.cpu.attiny84.build.variant=tiny14
+menu.clock.internal1=Internal 1 MHz
+menu.clock.internal1.bootloader.low_fuses=0x62
+menu.clock.internal1.bootloader.high_fuses=0xdf
+menu.clock.internal1.bootloader.extended_fuses=0xff
+menu.clock.internal1.build.f_cpu=1000000L
+menu.clock.internal8=Internal 8 MHz
+menu.clock.internal8.bootloader.low_fuses=0xe2
+menu.clock.internal8.bootloader.high_fuses=0xdf
+menu.clock.internal8.bootloader.extended_fuses=0xff
+menu.clock.internal8.build.f_cpu=8000000L
+menu.clock.external8=External 8 MHz
+menu.clock.external8.bootloader.low_fuses=0xfe
+menu.clock.external8.bootloader.high_fuses=0xdf
+menu.clock.external8.bootloader.extended_fuses=0xff
+menu.clock.external8.build.f_cpu=8000000L
+menu.clock.external16=External 16 MHz
+menu.clock.external16.bootloader.low_fuses=0xfe
+menu.clock.external16.bootloader.high_fuses=0xdf
+menu.clock.external16.bootloader.extended_fuses=0xff
+menu.clock.external16.build.f_cpu=16000000L
+menu.clock.external20=External 20 MHz
+menu.clock.external20.bootloader.low_fuses=0xfe
+menu.clock.external20.bootloader.high_fuses=0xdf
+menu.clock.external20.bootloader.extended_fuses=0xff
+menu.clock.external20.build.f_cpu=20000000L
+runtime.ide.path=C:\Program Files (x86)\Atmel\Studio\7.0\Extensions\axqdo0k5.ftl\Micro Platforms\visualmicro\ide-atmel
+runtime.os=windows
+build.system.path=C:\Users\Mich\AppData\Local\arduino15\packages\attiny\hardware\avr\1.0.2\system
+runtime.ide.version=10801
+target_package=attiny
+target_platform=avr
+runtime.hardware.path=C:\Users\Mich\AppData\Local\arduino15\packages\attiny\hardware\avr
+originalid=ATtinyX4
+intellisense.tools.path={runtime.tools.avr-gcc.path}\
+intellisense.include.paths={intellisense.tools.path}avr\include\;{intellisense.tools.path}avr\include\avr\;{intellisense.tools.path}lib\gcc\avr\4.8.1\include;{intellisense.tools.path}lib\gcc\avr\4.9.2\include;{intellisense.tools.path}lib\gcc\avr\4.9.3\include
+tools.atprogram.cmd.path=%AVRSTUDIO_EXE_PATH%\atbackend\atprogram
+tools.atprogram.cmd.setwinpath=true
+tools.atprogram.program.params.verbose=-v
+tools.atprogram.program.params.quiet=-q
+tools.atprogram.program.pattern="{cmd.path}" -d {build.mcu} {program.verbose} {program.extra_params} program -c -f "{build.path}\{build.project_name}.hex"
+tools.atprogram.program.xpattern="{cmd.path}" {AVRSTUDIO_BACKEND_CONNECTION} -d {build.mcu} {program.verbose} {program.extra_params} program -c -f "{build.path}\{build.project_name}.hex"
+tools.atprogram.erase.params.verbose=-v
+tools.atprogram.erase.params.quiet=-q
+tools.atprogram.bootloader.params.verbose=-v
+tools.atprogram.bootloader.params.quiet=-q
+tools.atprogram.bootloader.pattern="{cmd.path}" -d {build.mcu} {bootloader.verbose}  program -c -f "{runtime.ide.path}\hardware\arduino\avr\bootloaders\{bootloader.file}"
+tools.avrdude.path={runtime.tools.avrdude.path}
+tools.avrdude.erase.params.verbose=-v -v -v -v
+tools.avrdude.erase.params.quiet=-q -q
+tools.avrdude.erase.pattern="{cmd.path}" "-C{config.path}" {erase.verbose} -p{build.mcu} -c{protocol} {program.extra_params} -e -Uefuse:w:{bootloader.extended_fuses}:m -Uhfuse:w:{bootloader.high_fuses}:m -Ulfuse:w:{bootloader.low_fuses}:m
+tools.avrdude.bootloader.params.verbose=-v -v -v -v
+tools.avrdude.bootloader.params.quiet=-q -q
+tools.avrdude.bootloader.pattern="{cmd.path}" "-C{config.path}" {bootloader.verbose} -p{build.mcu} -c{protocol} {program.extra_params}
+version=1.6.20
+compiler.warning_flags=-w
+compiler.warning_flags.none=-w
+compiler.warning_flags.default=
+compiler.warning_flags.more=-Wall
+compiler.warning_flags.all=-Wall -Wextra
+compiler.path={runtime.tools.avr-gcc.path}/bin/
+compiler.c.cmd=avr-gcc
+compiler.c.flags=-c -g -Os {compiler.warning_flags} -std=gnu11 -ffunction-sections -fdata-sections -MMD -flto -fno-fat-lto-objects
+compiler.c.elf.flags={compiler.warning_flags} -Os -g -flto -fuse-linker-plugin -Wl,--gc-sections
+compiler.c.elf.cmd=avr-gcc
+compiler.S.flags=-c -g -x assembler-with-cpp -flto -MMD
+compiler.cpp.cmd=avr-g++
+compiler.cpp.flags=-c -g -Os {compiler.warning_flags} -std=gnu++11 -fpermissive -fno-exceptions -ffunction-sections -fdata-sections -fno-threadsafe-statics -MMD -flto
+compiler.ar.cmd=avr-gcc-ar
+compiler.ar.flags=rcs
+compiler.objcopy.cmd=avr-objcopy
+compiler.objcopy.eep.flags=-O ihex -j .eeprom --set-section-flags=.eeprom=alloc,load --no-change-warnings --change-section-lma .eeprom=0
+compiler.elf2hex.flags=-O ihex -R .eeprom
+compiler.elf2hex.cmd=avr-objcopy
+compiler.ldflags=
+compiler.size.cmd=avr-size
+build.extra_flags=
+compiler.c.extra_flags=
+compiler.c.elf.extra_flags=
+compiler.S.extra_flags=
+compiler.cpp.extra_flags=
+compiler.ar.extra_flags=
+compiler.objcopy.eep.extra_flags=
+compiler.elf2hex.extra_flags=
+recipe.c.o.pattern="{compiler.path}{compiler.c.cmd}" {compiler.c.flags} -mmcu={build.mcu} -DF_CPU={build.f_cpu} -DARDUINO={runtime.ide.version} -DARDUINO_{build.board} -DARDUINO_ARCH_{build.arch} {compiler.c.extra_flags} {build.extra_flags} {includes} "{source_file}" -o "{object_file}"
+recipe.cpp.o.pattern="{compiler.path}{compiler.cpp.cmd}" {compiler.cpp.flags} -mmcu={build.mcu} -DF_CPU={build.f_cpu} -DARDUINO={runtime.ide.version} -DARDUINO_{build.board} -DARDUINO_ARCH_{build.arch} {compiler.cpp.extra_flags} {build.extra_flags} {includes} "{source_file}" -o "{object_file}"
+recipe.S.o.pattern="{compiler.path}{compiler.c.cmd}" {compiler.S.flags} -mmcu={build.mcu} -DF_CPU={build.f_cpu} -DARDUINO={runtime.ide.version} -DARDUINO_{build.board} -DARDUINO_ARCH_{build.arch} {compiler.S.extra_flags} {build.extra_flags} {includes} "{source_file}" -o "{object_file}"
+archive_file_path={build.path}/{archive_file}
+recipe.ar.pattern="{compiler.path}{compiler.ar.cmd}" {compiler.ar.flags} {compiler.ar.extra_flags} "{archive_file_path}" "{object_file}"
+recipe.c.combine.pattern="{compiler.path}{compiler.c.elf.cmd}" {compiler.c.elf.flags} -mmcu={build.mcu} {compiler.c.elf.extra_flags} -o "{build.path}/{build.project_name}.elf" {object_files} "{build.path}/{archive_file}" "-L{build.path}" -lm
+recipe.objcopy.eep.pattern="{compiler.path}{compiler.objcopy.cmd}" {compiler.objcopy.eep.flags} {compiler.objcopy.eep.extra_flags} "{build.path}/{build.project_name}.elf" "{build.path}/{build.project_name}.eep"
+recipe.objcopy.hex.pattern="{compiler.path}{compiler.elf2hex.cmd}" {compiler.elf2hex.flags} {compiler.elf2hex.extra_flags} "{build.path}/{build.project_name}.elf" "{build.path}/{build.project_name}.hex"
+recipe.output.tmp_file={build.project_name}.hex
+recipe.output.save_file={build.project_name}.{build.variant}.hex
+recipe.size.pattern="{compiler.path}{compiler.size.cmd}" -A "{build.path}/{build.project_name}.elf"
+recipe.size.regex=^(?:\.text|\.data|\.bootloader)\s+([0-9]+).*
+recipe.size.regex.data=^(?:\.data|\.bss|\.noinit)\s+([0-9]+).*
+recipe.size.regex.eeprom=^(?:\.eeprom)\s+([0-9]+).*
+preproc.includes.flags=-w -x c++ -M -MG -MP
+recipe.preproc.includes="{compiler.path}{compiler.cpp.cmd}" {compiler.cpp.flags} {preproc.includes.flags} -mmcu={build.mcu} -DF_CPU={build.f_cpu} -DARDUINO={runtime.ide.version} -DARDUINO_{build.board} -DARDUINO_ARCH_{build.arch} {compiler.cpp.extra_flags} {build.extra_flags} {includes} "{source_file}"
+preproc.macros.flags=-w -x c++ -E -CC
+recipe.preproc.macros="{compiler.path}{compiler.cpp.cmd}" {compiler.cpp.flags} {preproc.macros.flags} -mmcu={build.mcu} -DF_CPU={build.f_cpu} -DARDUINO={runtime.ide.version} -DARDUINO_{build.board} -DARDUINO_ARCH_{build.arch} {compiler.cpp.extra_flags} {build.extra_flags} {includes} "{source_file}" -o "{preprocessed_file_path}"
+tools.avrdude.cmd.path={path}/bin/avrdude
+tools.avrdude.config.path={path}/etc/avrdude.conf
+tools.avrdude.network_cmd={runtime.tools.arduinoOTA.path}/bin/arduinoOTA
+tools.avrdude.upload.params.verbose=-v
+tools.avrdude.upload.params.quiet=-q -q
+tools.avrdude.upload.verify=
+tools.avrdude.upload.params.noverify=-V
+tools.avrdude.upload.pattern="{cmd.path}" "-C{config.path}" {upload.verbose} {upload.verify} -p{build.mcu} -c{upload.protocol} "-P{serial.port}" -b{upload.speed} -D "-Uflash:w:{build.path}/{build.project_name}.hex:i"
+tools.avrdude.program.params.verbose=-v
+tools.avrdude.program.params.quiet=-q -q
+tools.avrdude.program.verify=
+tools.avrdude.program.params.noverify=-V
+tools.avrdude.program.pattern="{cmd.path}" "-C{config.path}" {program.verbose} {program.verify} -p{build.mcu} -c{protocol} {program.extra_params} "-Uflash:w:{build.path}/{build.project_name}.hex:i"
+tools.avrdude_remote.upload.pattern=/usr/bin/run-avrdude /tmp/sketch.hex {upload.verbose} -p{build.mcu}
+tools.avrdude.upload.network_pattern="{network_cmd}" -address {serial.port} -port {upload.network.port} -sketch "{build.path}/{build.project_name}.hex" -upload {upload.network.endpoint_upload} -sync {upload.network.endpoint_sync} -reset {upload.network.endpoint_reset} -sync_exp {upload.network.sync_return}
+build.usb_manufacturer="Unknown"
+build.usb_flags=-DUSB_VID={build.vid} -DUSB_PID={build.pid} '-DUSB_MANUFACTURER={build.usb_manufacturer}' '-DUSB_PRODUCT={build.usb_product}'
+vm.platform.root.path=C:\Program Files (x86)\Atmel\Studio\7.0\Extensions\axqdo0k5.ftl\Micro Platforms\arduino16x
+avrisp.name=AVR ISP
+avrisp.communication=serial
+avrisp.protocol=stk500v1
+avrisp.program.protocol=stk500v1
+avrisp.program.tool=avrdude
+avrisp.program.extra_params=-P{serial.port}
+avrispmkii.name=AVRISP mkII
+avrispmkii.communication=usb
+avrispmkii.protocol=stk500v2
+avrispmkii.program.protocol=stk500v2
+avrispmkii.program.tool=avrdude
+avrispmkii.program.extra_params=-Pusb
+usbtinyisp.name=USBtinyISP
+usbtinyisp.protocol=usbtiny
+usbtinyisp.program.tool=avrdude
+usbtinyisp.program.extra_params=
+arduinoisp.name=ArduinoISP
+arduinoisp.protocol=arduinoisp
+arduinoisp.program.tool=avrdude
+arduinoisp.program.extra_params=
+arduinoisporg.name=ArduinoISP.org
+arduinoisporg.protocol=arduinoisporg
+arduinoisporg.program.tool=avrdude
+arduinoisporg.program.extra_params=
+usbasp.name=USBasp
+usbasp.communication=usb
+usbasp.protocol=usbasp
+usbasp.program.protocol=usbasp
+usbasp.program.tool=avrdude
+usbasp.program.extra_params=-Pusb
+parallel.name=Parallel Programmer
+parallel.protocol=dapa
+parallel.force=true
+parallel.program.tool=avrdude
+parallel.program.extra_params=-F
+arduinoasisp.name=Arduino as ISP
+arduinoasisp.communication=serial
+arduinoasisp.protocol=stk500v1
+arduinoasisp.speed=19200
+arduinoasisp.program.protocol=stk500v1
+arduinoasisp.program.speed=19200
+arduinoasisp.program.tool=avrdude
+arduinoasisp.program.extra_params=-P{serial.port} -b{program.speed}
+usbGemma.name=Arduino Gemma
+usbGemma.protocol=arduinogemma
+usbGemma.program.tool=avrdude
+usbGemma.program.extra_params=
+usbGemma.config.path={runtime.platform.path}/bootloaders/gemma/avrdude.conf
+buspirate.name=BusPirate as ISP
+buspirate.communication=serial
+buspirate.protocol=buspirate
+buspirate.program.protocol=buspirate
+buspirate.program.tool=avrdude
+buspirate.program.extra_params=-P{serial.port}
+stk500.name=Atmel STK500 development board
+stk500.communication=serial
+stk500.protocol=stk500
+stk500.program.protocol=stk500
+stk500.program.tool=avrdude
+stk500.program.extra_params=-P{serial.port}
+jtag3isp.name=Atmel JTAGICE3 (ISP mode)
+jtag3isp.communication=usb
+jtag3isp.protocol=jtag3isp
+jtag3isp.program.protocol=jtag3isp
+jtag3isp.program.tool=avrdude
+jtag3isp.program.extra_params=
+jtag3.name=Atmel JTAGICE3 (JTAG mode)
+jtag3.communication=usb
+jtag3.protocol=jtag3
+jtag3.program.protocol=jtag3
+jtag3.program.tool=avrdude
+jtag3.program.extra_params=-B0.1
+atmel_ice.name=Atmel-ICE (AVR)
+atmel_ice.communication=usb
+atmel_ice.protocol=atmelice_isp
+atmel_ice.program.protocol=atmelice_isp
+atmel_ice.program.tool=avrdude
+atmel_ice.program.extra_params=-Pusb
+runtime.tools.avr-gcc.path=C:\Users\Mich\AppData\Local\arduino15\packages\arduino\tools\avr-gcc\4.9.2-atmel3.5.4-arduino2
+runtime.tools.avr-gcc-4.9.2-atmel3.5.4-arduino2.path=C:\Users\Mich\AppData\Local\arduino15\packages\arduino\tools\avr-gcc\4.9.2-atmel3.5.4-arduino2
+runtime.tools.avrdude.path=C:\Users\Mich\AppData\Local\arduino15\packages\arduino\tools\avrdude\6.3.0-arduino9
+runtime.tools.avrdude-6.3.0-arduino9.path=C:\Users\Mich\AppData\Local\arduino15\packages\arduino\tools\avrdude\6.3.0-arduino9
+runtime.tools.arduinoOTA.path=C:\Users\Mich\AppData\Local\arduino15\packages\arduino\tools\arduinoOTA\1.1.1
+runtime.tools.arduinoOTA-1.1.1.path=C:\Users\Mich\AppData\Local\arduino15\packages\arduino\tools\arduinoOTA\1.1.1
+upload.maximum_size=8192
+upload.maximum_data_size=512
+build.mcu=attiny84
+build.variant=tiny14
+runtime.vm.boardinfo.id=attiny_ATtinyX4_attiny84
+runtime.vm.boardinfo.name=attiny_ATtinyX4_attiny84
+runtime.vm.boardinfo.desc=ATtiny24/44/84 w/ ATtiny84
+runtime.vm.boardinfo.src_location=C:\Users\Mich\AppData\Local\arduino15\packages\attiny\hardware\avr\1.0.2
+ide.hint=Ready-To-Go IDE: Use the Board and Library managers to install.
+ide.location.key=visualmicro
+ide.location.ide.auto=true
+ide.location.ide.winreg=Arduino Default Application
+ide.location.sketchbook.winreg=Arduino Default Sketchbook
+ide.location.sketchbook.preferences=sketchbook.path
+ide.default.revision_name=1.8.2
+ide.default.version=10802
+ide.platforms.basedon=arduino16x
+ide.default.package=arduino
+ide.default.platform=avr
+ide.multiplatform=true
+ide.includes=Arduino.h
+ide.exe_name=arduino
+ide.platformswithoutpackage=false
+ide.includes.fallback=wprogram.h
+ide.extension=ino
+ide.extension.fallback=pde
+ide.versionGTEQ=160
+ide.hosts=atmel
+vm.debug=true
+software=ARDUINO
+ssh.user.name=root
+ssh.user.default.password=arduino
+ssh.host.wwwfiles.path=/www/sd
+ide.location.preferences.arduinoData={runtime.sketchbook.path}\ArduinoData
+ide.location.preferences=%VM_APPDATA_LOCAL%\arduino15\preferences.txt
+ide.location.preferences_fallback=%VM_APPDATA_ROAMING%\arduino15\preferences.txt
+ide.location.contributions=%VM_APPDATA_LOCAL%\arduino15
+ide.location.contributions_fallback=%VM_APPDATA_ROAMING%\arduino15
+ide.contributions.boards.allow=true
+ide.contributions.boards.ignore_unless_rewrite_found=true
+ide.contributions.libraries.allow=true
+ide.contributions.boards.support.urls.wiki=https://github.com/arduino/Arduino/wiki/Unofficial-list-of-3rd-party-boards-support-urls
+ide.create_platforms_from_boardsTXT.teensy=build.core
+ide.appid=visualmicro
+location.sketchbook=C:\Users\Mich\Documents\Arduino
+build.core.path=C:\Users\Mich\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.20\cores\arduino
+vm.core.include=Arduino.h
+vm.boardsource.path=C:\Users\Mich\AppData\Local\arduino15\packages\attiny\hardware\avr\1.0.2
+runtime.platform.path=C:\Users\Mich\AppData\Local\arduino15\packages\attiny\hardware\avr\1.0.2
+vm.platformname.name=avr
+build.arch=AVR
+</arduino.board.property_bag>
+        <arduino.build.mcu>attiny84</arduino.build.mcu>
+        <arduino.build.core>arduino</arduino.build.core>
+        <arduino.upload.maximum_size>8192</arduino.upload.maximum_size>
+        <visualmicro.application.name>visualmicro</visualmicro.application.name>
+        <visualmicro.package.name>attiny</visualmicro.package.name>
+        <visualmicro.platform.name>avr</visualmicro.platform.name>
+        <vm.upload.useprogrammer>1</vm.upload.useprogrammer>
+        <vm.programmer_name>atprogram_avrispmkii_isp</vm.programmer_name>
+      </VisualMicroSettings>
+    </VisualMicroSettings>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="clock_generator.ino">
+      <SubType>compile</SubType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="__vm\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="MAX72S19.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="MAX72S19.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="tinySPI.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="tinySPI.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="__vm\.clock_generator.vsarduino.h">
+      <SubType>compile</SubType>
+    </Compile>
+  </ItemGroup>
+  <Import Project="$(AVRSTUDIO_EXE_PATH)\\Vs\\Compiler.targets" />
+</Project>
