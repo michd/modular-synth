@@ -16,7 +16,7 @@
 #define PPQ 24 // pulses per quarter note, from MIDI
 
 #define PIN_LED_OUT PINA0
-#define PIN_PPQ_OUT PINA5
+#define PIN_PPQ_OUT PINA7
 
 // Serial interface to MAX72S19
 #define PIN_DISPLAY_CLK PINA4
