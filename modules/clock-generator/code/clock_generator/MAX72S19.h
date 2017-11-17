@@ -1,22 +1,15 @@
-// MAX7219.h
-
-#ifndef _MAX7219_h
-#define _MAX7219_h
-
-#if defined(ARDUINO) && ARDUINO >= 100
-	#include "Arduino.h"
-#else
-	#include "WProgram.h"
-#endif
-
-
-
 /*
- * MAX72S19 8x8 matrix / 8 digit 7 segment display driver library
- * By MichD
- */
+ * MAX72S19.h
+ *
+ * Created: 17/11/2017 13:03:14
+ *  Author: Mich
+ */ 
 
-// Register addresses as defined in datasheet
+#include <stdbool.h>
+#include <avr/io.h>
+
+#ifndef MAX72S19_H_
+#define MAX72S19_H_
 
 #define REG_NOOP        0x00
 #define REG_DIGIT0      0x01
@@ -35,89 +28,22 @@
 
 #define MAX_DIGITS      8
 
-class MAX72S19 {
-  public:
-    MAX72S19(uint8_t, uint8_t, uint8_t); // Constructor, takes chip select pin, data out pin, clock pin
-    void begin();      // Start the SPI bug
+void displaySetup(uint8_t pinChipSelect, uint8_t pinDataOut, uint8_t pinClock);
+void displaySetLED(uint8_t row, uint8_t column, bool on);
+void displaySetRow(uint8_t row, uint8_t states);
+void displaySetColumn(uint8_t column, uint8_t states);
+void displayClear();
+void displayWrite(uint8_t reg, uint8_t value);
+void displayWriteChar(uint8_t digitIndex, char character, bool dotOn);
+void displayWriteNumber(uint8_t digitIndex, uint8_t number);
+void displayPrint(uint8_t startDigitIndex, char characters[]);
+void displaySetDecodeMode(uint8_t modes);
+void displaySetIntensity(uint8_t intensity);
+void displaySetScanLimit(uint8_t scanLimit);
+void displayStartDisplayTest();
+void displayStopDisplayTest();
+void displayShutdown();
+void displayActivate();
 
-    // Set a specific LED on or off
-    // column (0-7), row (0,7), on/off
-    void setLED(uint8_t, uint8_t, bool);
 
-    // Set the values for a row of LEDs
-    // row index (0-7)
-    // Bits for each LED on the row
-    void setRow(uint8_t, uint8_t);
-
-    // Set the values for a column of LEDs
-    // colum index (0-7)
-    // Bits for each LED on the column
-    void setColumn(uint8_t, uint8_t);
-
-    // Clears the entire display (turn all LEDs off)
-    void clear();
-
-    // direct raw write
-    void write(uint8_t, uint8_t);
-
-    // Writes a character to a given digit
-    // digit index (0-7)
-    // Character to write (A-Z, 0-9)
-    // Dot on/off
-    // Note: not all characters in the latin alphabet can be
-    // properly displayed on a 7 segment display.
-    void writeChar(uint8_t, char, bool);
-
-    // Shorthand for writeChar without a dot.
-    void writeChar(uint8_t, char);
-
-    // Writes a single digit number to a given digit index
-    void writeNumber(uint8_t, uint8_t);
-
-    // Writes a character array starting from a given digit index
-    // Starting index (0-7)
-    // Array of characters to write (A-Z, 0-9)
-    // This will stop when end of string is detected,
-    // or when we run of out digits, whichever comes first
-    // Note: not all characters in the latin alphabet can be
-    // properly displayed on a 7 segment display.
-    void print(uint8_t, char[]);
-
-    // Sets whether to use the builtin decoder for each digit
-    void setDecodeMode(uint8_t);
-
-    // Sets the intensity of the display, in a range of 0-15
-    // 0 is not off, it is minimum intensity.
-    void setIntensity(uint8_t);
-
-    // Sets how many digits are being used
-    // If you're only using, say, 4 digits, setting the scan limit to 4
-    // will improve brightness of those digits as the multiplexer doesn't
-    // iterate over the unused digits.
-    void setScanLimit(uint8_t);
-
-    // Overrides all other settings and turns on all LEDs to full brightness
-    void startDisplayTest();
-
-    // End display test mode, reverting back to other settings and data
-    void stopDisplayTest();
-
-    void shutdown();
-
-    void activate();
-
-    // TODO? writeNumber?
-
-  private:
-    uint8_t _pinChipSelect;
-	uint8_t _pinDataOut;
-	uint8_t _pinClock;
-    void _beginTransmission();
-    void _endTransmission();
-    void _transmitSetRegister(uint8_t, uint8_t);
-    void _setRegister(uint8_t, uint8_t);
-    uint8_t _mapChar(char);
-};
-
-#endif
-
+#endif /* MAX72S19_H_ */
