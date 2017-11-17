@@ -1,5 +1,3 @@
-#include <TimerOne.h>
-
 #include "sequence.h"
 #include "io.h"
 #include "notemapper.h"
