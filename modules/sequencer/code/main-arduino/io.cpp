@@ -11,6 +11,7 @@ AdcReadHandler IO::_adcReadHandler;
 ButtonPressedHandler IO::_gateButtonPressedHandler;
 ButtonPressedHandler IO::_repeatButtonPressedHandler;
 ButtonPressedHandler IO::_runStopButtonPressedHandler;
+TickHandler IO::_externalClockTickHandler;
 
 MAX72S19 IO::_display(PIN_SPI_CS_DISP);
 MCP23S17 IO::_portExp(PORT_EXPANDER_CHANNEL, PIN_SPI_CS_PORTEXP);
@@ -18,7 +19,6 @@ MCP3202 IO::_adc(PIN_SPI_CS_ADC);
 MCP492X IO::_dac(PIN_SPI_CS_DAC);
 
 void IO::init() {
-  ::pinMode(PIN_RUNSTOP_BUTTON, INPUT_PULLUP);
   ::pinMode(PIN_RUNNING, OUTPUT);
   ::pinMode(PIN_GATE_OUT, OUTPUT);
   ::pinMode(PIN_TRIGGER_OUT, OUTPUT);
@@ -38,10 +38,11 @@ void IO::init() {
   // Port A = buttons per step
   byte portAmodes = 0xFF; // All pins on port A are input
   // Port B = various buttons
-  byte portBmodes = 0b00000111; // Change as needed
-  //                          |||- PORTEXP_PIN_GATE_MODE_SELECT_BUTTON [*]
-  //                          ||- PORTEXP_PIN_REPEAT_SELECT_BUTTON     [*]
-  //                          |- PORTEXP_PIN_MODE_SELECT_BUTTON
+  byte portBmodes = 0b00001111; // Change as needed
+  //                      ||||- PORTEXP_PIN_GATE_MODE_SELECT_BUTTON [*]
+  //                      |||- PORTEXP_PIN_REPEAT_SELECT_BUTTON     [*]
+  //                      ||- PORTEXP_PIN_MODE_SELECT_BUTTON
+  //                      |- PORTEXT_PIN_RUN_STOP_BUTTON            [*]
   // [*] - interrupt attached
   word combinedModes = (portBmodes << 8) | portAmodes;
   _portExp.pinMode(combinedModes);
@@ -59,11 +60,11 @@ void IO::init() {
     _processPortExpanderInterrupt,
     FALLING);
 
-  // Set up interrupt for runstop button (TODO, move to port expander)
+  // Set up interrupt for external clock
   ::attachInterrupt(
-    digitalPinToInterrupt(PIN_RUNSTOP_BUTTON),
-    _processRunStopPressedInterrupt,
-    FALLING);
+    digitalPinToInterrupt(PIN_EXTERNAL_CLOCK),
+    _processExternalClockTick,
+    RISING);
 
   // Set up other devices
   _adc.begin();
@@ -155,14 +156,23 @@ void IO::onRepeatButtonPressed(ButtonPressedHandler handler) {
 
 void IO::onRunStopButtonPressed(ButtonPressedHandler handler) {
   _runStopButtonPressedHandler = handler;
+
+  _portExp.attachInterrupt(
+    PORTEXP_PIN_RUN_STOP_BUTTON,
+    _internalHandleRunStopButtonPressed,
+    FALLING);
 }
 
-void IO::_processRunStopPressedInterrupt() {
-  _runStopButtonPressedHandler();
+void IO::onExternalClockTick(TickHandler handler) {
+  _externalClockTickHandler = handler;
 }
 
 void IO::_processPortExpanderInterrupt() {
   _queueTask(PROCESS_PORTEXP_INTERRUPT);
+}
+
+void IO::_processExternalClockTick() {
+  _externalClockTickHandler();
 }
 
 // Adds a new task to the queue, or executes it instantly if the queue is empty
@@ -351,4 +361,11 @@ void IO::_internalHandleRepeatButtonPressed() {
   // to mark that done before invoking whatever handler we've got
   _spiBusy = false;
   _repeatButtonPressedHandler();
+}
+
+void IO::_internalHandleRunStopButtonPressed() {
+  // spiBusy was set to true in _taskProcessPortExpInterrupt, and we want
+  // to mark that done before invoking whatever handler we've got
+  _spiBusy = false;
+  _runStopButtonPressedHandler();
 }

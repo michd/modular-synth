@@ -7,7 +7,7 @@
 #define PIN_SPI_CS_PORTEXP A0
 #define PIN_SPI_CS_DISP 9
 
-#define PIN_RUNSTOP_BUTTON 7
+#define PIN_EXTERNAL_CLOCK 7
 
 #define PIN_RUNNING 8
 #define PIN_GATE_OUT 10
@@ -23,6 +23,7 @@
 #define PORTEXP_PIN_GATE_MODE_SELECT_BUTTON 9
 #define PORTEXP_PIN_REPEAT_SELECT_BUTTON 10
 #define PORTEXP_PIN_MODE_SELECT_BUTTON 11
+#define PORTEXP_PIN_RUN_STOP_BUTTON 12
 
 #define PORT_EXPANDER_CHANNEL 0
 
@@ -77,6 +78,7 @@ enum Tasks {
 
 typedef void (*AdcReadHandler)(unsigned int);
 typedef void (*ButtonPressedHandler)(void);
+typedef void (*TickHandler)(void);
 
 class IO {
 
@@ -116,6 +118,9 @@ class IO {
     static void onRepeatButtonPressed(ButtonPressedHandler);
     static void onRunStopButtonPressed(ButtonPressedHandler);
 
+    // External clock tick handler
+    static void onExternalClockTick(TickHandler);
+
   private:
     static void _queueTask(Tasks);
     static void _processQueuedTask();
@@ -131,9 +136,11 @@ class IO {
 
     static void _processPortExpanderInterrupt();
     static void _processRunStopPressedInterrupt();
+    static void _processExternalClockTick();
 
     static void _internalHandleGateButtonPressed();
     static void _internalHandleRepeatButtonPressed();
+    static void _internalHandleRunStopButtonPressed();
 
     volatile static bool _spiBusy;
     volatile static Tasks _taskQueue[MAX_TASK_QUEUE_LENGTH];
@@ -145,6 +152,8 @@ class IO {
     static ButtonPressedHandler _gateButtonPressedHandler;
     static ButtonPressedHandler _repeatButtonPressedHandler;
     static ButtonPressedHandler _runStopButtonPressedHandler;
+
+    static TickHandler _externalClockTickHandler;
 
     static MAX72S19 _display;
     static MCP23S17 _portExp;

@@ -24,18 +24,11 @@ volatile unsigned long debounceTicksRecorded = 0;
 volatile unsigned long debounceTicks = 0;
 
 void setup() {
-  // Tempo is in beats per minute
-  // MIDI PPQ is pulses per beat
-  // And timer period is in microseconds, of which there are 1000000 per second
-  // 60 being seconds per minute
-  // Summarized, the period of the timer is calculated to generate MIDI_PPQ pulses per beat for the given bpm
-  Timer1.initialize(round((double)1000000 / (double)((DEFAULT_TEMPO * PPQ) / (double)60)));
-  Timer1.attachInterrupt(internalTimerTick);
-
   IO::init();
   IO::onGateButtonPressed(gateModeOnPressed);
   IO::onRepeatButtonPressed(repeatOnPressed);
   IO::onRunStopButtonPressed(runStopOnPressed);
+  IO::onExternalClockTick(externalClockTick);
 
   Sequence::init();
   Sequence::onRunningChange(sequenceOnRunningChanged);
@@ -90,7 +83,7 @@ void mapNoteAndWriteDac(unsigned int adcReading) {
   }
 }
 
-void internalTimerTick() {
+void externalClockTick() {
   if (!initialized) return;
 
   debounceTicks++;
