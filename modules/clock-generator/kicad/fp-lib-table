@@ -1,0 +1,4 @@
+(fp_lib_table
+  (lib (name MAX7221)(type KiCad)(uri "$(KIPRJMOD)\\MAX7221.pretty")(options "")(descr ""))
+  (lib (name LB303AK)(type KiCad)(uri "$(KIPRJMOD)\\LB303AK.pretty")(options "")(descr ""))
+)
