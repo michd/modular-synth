@@ -25,9 +25,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.4"
-     inkscape:cx="130.85656"
-     inkscape:cy="717.62812"
+     inkscape:zoom="1.979899"
+     inkscape:cx="224.11265"
+     inkscape:cy="787.22177"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -44,7 +44,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -1827,12 +1827,12 @@
            x="40"
            y="23.790775" /></flowRegion><flowPara
          id="flowPara5574">1HP</flowPara></flowRoot>    <rect
-       style="opacity:1;fill:#a5a5a5;fill-opacity:0.71844662;stroke:#00ff00;stroke-width:0.03543308;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:10;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       style="opacity:1;fill:#a5a5a5;fill-opacity:0.71844662;stroke:#00ff00;stroke-width:0.08858267;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:10;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        id="rect7437"
-       width="197.96455"
-       height="472.46457"
-       x="43.732071"
-       y="98.988632" />
+       width="197.91142"
+       height="472.41141"
+       x="43.758648"
+       y="99.041786" />
     <g
        id="g8261"
        transform="translate(0,-0.57142848)">
@@ -1847,7 +1847,7 @@
            x="361.62653"
            y="151.38722" />
         <circle
-           style="opacity:1;fill:#d27878;fill-opacity:0.71844662;stroke:#00ff00;stroke-width:0.03543307;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:10;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+           style="opacity:1;fill:#d27878;fill-opacity:0.71844662;stroke:#00ff00;stroke-width:0.08858268;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:10;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
            id="path8219"
            cx="449.19659"
            cy="242.50293"
@@ -1889,13 +1889,11 @@
            id="circle8249"
            style="opacity:1;fill:#7a2929;fill-opacity:0.82038838;stroke:none;stroke-width:0.03543307;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:10;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
       </g>
-      <rect
-         y="177.4509"
-         x="103.48285"
-         height="46.566143"
-         width="78.46299"
+      <path
+         style="color:#000000;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:medium;line-height:normal;font-family:sans-serif;text-indent:0;text-align:start;text-decoration:none;text-decoration-line:none;text-decoration-style:solid;text-decoration-color:#000000;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;baseline-shift:baseline;text-anchor:start;white-space:normal;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:2.16141725;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:10;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+         d="m 103.48242,176.37109 a 1.0808167,1.0808167 0 0 0 -1.08008,1.08008 l 0,46.56641 a 1.0808167,1.0808167 0 0 0 1.08008,1.08008 l 78.46289,0 a 1.0808167,1.0808167 0 0 0 1.08203,-1.08008 l 0,-46.56641 a 1.0808167,1.0808167 0 0 0 -1.08203,-1.08008 l -78.46289,0 z m 1.08203,2.16016 76.30078,0 0,44.4043 -76.30078,0 0,-44.4043 z"
          id="rect8217"
-         style="opacity:1;fill:#d27878;fill-opacity:0.71844662;stroke:#00ff00;stroke-width:0.03543307;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:10;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
+         inkscape:connector-curvature="0" />
     </g>
     <circle
        r="6.1830711"
@@ -2248,7 +2246,7 @@
            x="-18.035715"
            y="170.04077"
            style="font-size:11.25px;" /></flowRegion><flowPara
-         id="flowPara8523"></flowPara></flowRoot>    <text
+         id="flowPara8523" /></flowRoot>    <text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:10px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        x="-108.92857"
