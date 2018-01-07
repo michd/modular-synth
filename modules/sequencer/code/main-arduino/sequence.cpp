@@ -107,16 +107,29 @@ void Sequence::setGate(bool on) {
 }
 
 void Sequence::setTimeDivider(short int newDivider) {
-  // TODO: constrain divider
+  _timeDivider = constrain(newDivider, 1, 16);
   _pulsesPerSubstep = (short int)((double)(PPQ / 2) / ((double)newDivider / (double)4));
 }
 
-void Sequence::raiseTimeDivider() {
-  _adjustTimeDivider(true);
-}
+byte Sequence::cycleTimeDivider(bool higher) {
+  short int newTimeDivider;
 
-void Sequence::lowerTimeDivider() {
-  _adjustTimeDivider(false);
+  if (higher) {
+    newTimeDivider = _timeDivider << 1;
+
+    if (newTimeDivider > MAX_TIME_DIVIDER) {
+      newTimeDivider = MAX_TIME_DIVIDER;
+    }
+  } else {
+    newTimeDivider = _timeDivider >> 1;
+
+    if (newTimeDivider < MIN_TIME_DIVIDER) {
+      newTimeDivider = MIN_TIME_DIVIDER;
+    }
+  }
+
+  setTimeDivider(newTimeDivider);
+  return _timeDivider;
 }
 
 byte Sequence::setGateModeForStep(byte step, byte gateMode) {
@@ -378,24 +391,4 @@ void Sequence::_advanceSequence() {
 
   _previousStep = oldStep;
   _selectStep(nextStep);
-}
-
-void Sequence::_adjustTimeDivider(bool higher) {
-  short int newTimeDivider;
-
-  if (higher) {
-    newTimeDivider = _timeDivider << 1;
-
-    if (newTimeDivider > MAX_TIME_DIVIDER) {
-      newTimeDivider = MAX_TIME_DIVIDER;
-    }
-  } else {
-    newTimeDivider = _timeDivider >> 1;
-
-    if (newTimeDivider < MIN_TIME_DIVIDER) {
-      newTimeDivider = MIN_TIME_DIVIDER;
-    }
-  }
-
-  setTimeDivider(newTimeDivider);
 }

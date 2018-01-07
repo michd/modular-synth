@@ -93,8 +93,6 @@ void MCP23S17::begin() {
   SPI.begin();                          // Start up the SPI bus
   _spiSettings = SPISettings(10000000, MSBFIRST, SPI_MODE0); // Sets up SPI settings for later transmission use  
   byteWrite(IOCON, ADDR_ENABLE);
-  // Read initial values into input cache
-  //digitalRead();
 }
 
 // GENERIC BYTE WRITE - will write a byte to a register, arguments are register address and the value to write

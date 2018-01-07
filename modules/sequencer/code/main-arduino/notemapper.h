@@ -22,8 +22,6 @@
 
 #include <Arduino.h>
 
-// TODO: mapping arrays for scales and their notes
-
 class NoteMapper {
   public:
     static void init();
@@ -37,6 +35,12 @@ class NoteMapper {
 
     // String representation of a scale, for display
     static char * getScaleText(byte);
+
+    // Sets the min note up or down, and returns the new min note
+    static byte cycleMinNote(bool);
+
+    // Sets the max note up or down, and returns the new max note
+    static byte cycleMaxNote(bool);
   
   private:
     static byte* _getScale(byte);

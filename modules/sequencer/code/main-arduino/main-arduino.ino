@@ -23,9 +23,14 @@ volatile unsigned long debounceTicks = 0;
 
 void setup() {
   IO::init();
+  IO::onSequenceModeButtonPressed(sequenceModeOnPressed);
   IO::onGateButtonPressed(gateModeOnPressed);
   IO::onRepeatButtonPressed(repeatOnPressed);
   IO::onRunStopButtonPressed(runStopOnPressed);
+  IO::onMinNoteArrowButtonPressed(minNoteArrowPressed);
+  IO::onMaxNoteArrowButtonPressed(maxNoteArrowPressed);
+  IO::onTimeDivisionArrowButtonPressed(timeDivisionArrowPressed);
+
   IO::onExternalClockTick(externalClockTick);
 
   Sequence::init();
@@ -46,14 +51,9 @@ void setup() {
 }
 
 void loop() {
-  byte oneIndexedStep = getSelectedStep();
+  byte oneIndexedStep = IO::getSelectedStep();
 
-  if (IO::getPortExpPin(PORTEXP_PIN_MODE_SELECT_BUTTON) == 0) {
-    // Mode select button held down
-    if (oneIndexedStep != 0) {
-      Sequence::setSequenceMode(oneIndexedStep - 1);
-    }
-  } else if (!Sequence::isRunning()) {
+  if (!Sequence::isRunning()) {
     // Not running, and no other buttons pressed,
     // make this step active
     if (oneIndexedStep != 0) {
@@ -83,31 +83,11 @@ void mapNoteAndWriteDac(unsigned int adcReading) {
 
 void externalClockTick() {
   if (!initialized) return;
-
+  // TODO: perhaps the routine reads should not be based on
+  // external clock since it's variable?
   debounceTicks++;
-  IO::readPortExp();
+  IO::readSelectedStep();
   Sequence::tick();
-}
-
-// Gets the currently pressed button index, corresponding to the step it's under.
-// The return value is 1-indexed, as the 0 value is reserved for when no button is pressed.
-byte getSelectedStep() {
-  // The pins are pull-up, so 1 = not pressed.
-  // Therefore, we're bitwise inverting first.
-  uint8_t wordA = (IO::readPortExpCache() & 0xFF);
-
-  if (wordA == 0) return 0;
-
-  // I don't know if this would be less efficient in a for loop.
-  // Worth playing with to test performance.
-  if (wordA & 0b10000000) return 8;
-  if (wordA & 0b01000000) return 7;
-  if (wordA & 0b00100000) return 6;
-  if (wordA & 0b00010000) return 5;
-  if (wordA & 0b00001000) return 4;
-  if (wordA & 0b00000100) return 3;
-  if (wordA & 0b00000010) return 2;
-  if (wordA & 0b00000001) return 1;
 }
 
 // Button handlers
@@ -127,6 +107,17 @@ bool debounceButton() {
 void runStopOnPressed() {
   if (debounceButton()) return;
   Sequence::toggleRunning();
+}
+
+void sequenceModeOnPressed() {
+  // TODO: evaluate if still needed
+  if (debounceButton()) return;
+
+  byte oneIndexedStep = IO::getSelectedStep();
+
+  if (oneIndexedStep != 0) {
+    Sequence::setSequenceMode(oneIndexedStep - 1);
+  }
 }
 
 void gateModeOnPressed() {
@@ -159,12 +150,48 @@ void repeatOnPressed() {
   IO::writeDisplay(text);
 }
 
+void minNoteArrowPressed(bool upArrow) {
+  // TODO: evaluate if still needed
+  if (debounceButton()) return;
+
+  byte newMinNote = NoteMapper::cycleMinNote(upArrow);
+  // TODO: way to also indicate what the note being displayed is for
+  IO::writeDisplay(NoteMapper::getNoteText(newMinNote));
+}
+
+void maxNoteArrowPressed(bool upArrow) {
+  // TODO: evaluate if still needed
+  if (debounceButton()) return;
+
+  byte newMaxNote = NoteMapper::cycleMaxNote(upArrow);
+  IO::writeDisplay(NoteMapper::getNoteText(newMaxNote));  
+}
+
+void timeDivisionArrowPressed(bool upArrow) {
+  // TODO: evaluate if still needed
+  if (debounceButton()) return;
+
+  byte newDivider = Sequence::cycleTimeDivider(upArrow);
+
+  static char dispText[] =  "1/  ";
+
+  if (newDivider >= 10) {
+    dispText[2] = '0' + (char)(newDivider / 10);
+    dispText[3] = '0' + (char)(newDivider % 10);
+  } else {
+    dispText[2] = ' ';
+    dispText[3] = '0' + newDivider;
+  }
+
+  IO::writeDisplay(dispText);
+}
+
 // Retrieves the step to alter some property of, based on whether we're running
 byte getRelevantOneIndexedStep() {
   if (!Sequence::isRunning()) {
     return Sequence::getSelectedStep() + 1;
   } else {
-    return getSelectedStep();
+    return IO::getSelectedStep();
   }
 }
 

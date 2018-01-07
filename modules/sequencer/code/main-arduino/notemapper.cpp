@@ -3,7 +3,7 @@
 unsigned int NoteMapper::_noteOutputValues[NOTE_RANGE];
 volatile byte NoteMapper::_selectedScale = SCALE_CHROMATIC;
 volatile byte NoteMapper::_rangeMinNote = 12; // TODO constant for default
-volatile byte NoteMapper::_rangeMaxNote = 36;
+volatile byte NoteMapper::_rangeMaxNote = 24;
 
 void NoteMapper::init() {
   float noteStep = (float)DAC_MAX / (float)(NOTE_RANGE - 1);
@@ -92,7 +92,7 @@ char * NoteMapper::getNoteText(byte note) {
   }
 
   text[2] = ' ';
-  text[3] = '0' + ((note  + MIN_NOTE_MIDI) / 12);
+  text[3] = '0' + ((note + MIN_NOTE_MIDI) / 12);
   text[4] = '\0';
 
   return text;
@@ -109,6 +109,26 @@ char* NoteMapper::getScaleText(byte scale) {
     char text[] = "Chro";
     return text;
   }
+}
+
+byte NoteMapper::cycleMinNote(bool up) {
+  if (up) {
+    if (_rangeMinNote < NOTE_RANGE) _rangeMinNote++;
+  } else {
+    if (_rangeMinNote > 0) _rangeMinNote--;
+  }
+
+  return _rangeMinNote;
+}
+
+byte NoteMapper::cycleMaxNote(bool up) {
+  if (up) {
+    if (_rangeMaxNote < NOTE_RANGE) _rangeMaxNote++;
+  } else {
+    if (_rangeMaxNote > 0) _rangeMaxNote--;
+  }
+
+  return _rangeMaxNote; 
 }
 
 byte* NoteMapper::_getScale(byte scaleIndex) {

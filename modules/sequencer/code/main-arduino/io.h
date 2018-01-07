@@ -22,12 +22,17 @@
 
 #define PORTEXP_PIN_GATE_MODE_SELECT_BUTTON 9
 #define PORTEXP_PIN_REPEAT_SELECT_BUTTON 10
-#define PORTEXP_PIN_MODE_SELECT_BUTTON 11
+#define PORTEXP_PIN_SEQUENCE_MODE_SELECT_BUTTON 11
 #define PORTEXP_PIN_RUN_STOP_BUTTON 12
+#define PORTEXP_PIN_UP_ARROW 1
+#define PORTEXP_PIN_DOWN_ARROW 2
+#define PORTEXP_PIN_PARAM_SELECT_A 3
+#define PORTEXP_PIN_PARAM_SELECT_B 4
 
 #define PORT_EXPANDER_CHANNEL 0
 
 #define ADC_CV_CHANNEL 0
+#define ADC_STEP_CHANNEL 1
 
 #define ADC_RESOLUTION_BIT 12
 #define DAC_RESOLUTION_BIT 12
@@ -36,8 +41,10 @@
 #define ADC_MAX 4096
 #define DAC_MAX 4096
 
-// There are only 5 possible tasks, and none may be duplicated in the queue
-#define MAX_TASK_QUEUE_LENGTH 5
+#define NUM_STEPS 8
+
+// There are only 6 possible tasks, and none may be duplicated in the queue
+#define MAX_TASK_QUEUE_LENGTH 6
 #define DISPLAY_STRING_LENGTH 5 // 1 of the null terminator
 
 #include <Arduino.h>
@@ -70,6 +77,7 @@
 enum Tasks {
     BLANK,
     READ_ADC,
+    READ_SELECTED_STEP,
     WRITE_DAC,
     READ_PORTEXP,
     PROCESS_PORTEXP_INTERRUPT,
@@ -78,11 +86,10 @@ enum Tasks {
 
 typedef void (*AdcReadHandler)(unsigned int);
 typedef void (*ButtonPressedHandler)(void);
+typedef void (*ArrowButtonPressedHandler)(bool);
 typedef void (*TickHandler)(void);
 
 class IO {
-
-
   public:
     static void init();
 
@@ -109,14 +116,25 @@ class IO {
 
     static bool getPortExpPin(byte);
 
+    // Read and derive the pressed step from the ADC
+    // The step buttons are set up as a little keyboard, resistors between them
+    // We read an ADC value to figure out which one's pressed, if any
+    static void readSelectedStep();
+
+    static byte getSelectedStep();
+
     // Note: very limiting but should cover needs pretty well for now
     // Write 4 characters to the display
     static void writeDisplay(char*);
 
     // Assign button press handlers
+    static void onSequenceModeButtonPressed(ButtonPressedHandler);
     static void onGateButtonPressed(ButtonPressedHandler);
     static void onRepeatButtonPressed(ButtonPressedHandler);
     static void onRunStopButtonPressed(ButtonPressedHandler);
+    static void onMinNoteArrowButtonPressed(ArrowButtonPressedHandler);
+    static void onMaxNoteArrowButtonPressed(ArrowButtonPressedHandler);
+    static void onTimeDivisionArrowButtonPressed(ArrowButtonPressedHandler);
 
     // External clock tick handler
     static void onExternalClockTick(TickHandler);
@@ -129,6 +147,7 @@ class IO {
     static bool _taskQueueContainsTask(Tasks);
     static void _executeTask(Tasks);
     static void _taskReadAdc();
+    static void _taskReadSelectedStep();
     static void _taskWriteDac();
     static void _taskReadPortExp();
     static void _taskProcessPortExpInterrupt();
@@ -138,20 +157,37 @@ class IO {
     static void _processRunStopPressedInterrupt();
     static void _processExternalClockTick();
 
+    static void _internalHandleSequenceModeButtonPressed();
     static void _internalHandleGateButtonPressed();
     static void _internalHandleRepeatButtonPressed();
     static void _internalHandleRunStopButtonPressed();
+
+    static void _setupArrowButtonHandler();
+    static void _internalHandleUpArrowButtonPressed();
+    static void _internalHandleDownArrowButtonPressed();
+    static void _handleArrowButtonPressed(bool);
+
+    static void _noopArrowButtonPressedHandler(bool);
 
     volatile static bool _spiBusy;
     volatile static Tasks _taskQueue[MAX_TASK_QUEUE_LENGTH];
     volatile static byte _taskQueueLength;
     volatile static unsigned int _queuedDacValue;
+    volatile static byte _cachedSelectedStep;
+    static const unsigned int _stepSize = (ADC_MAX - 8) / (NUM_STEPS + 1);
+    static const unsigned int _halfStepSize = _stepSize / 2;
     static char *_queuedDisplayValue;
     static AdcReadHandler _adcReadHandler;
+    static bool _arrowButtonHandlerSetup;
 
+    static ButtonPressedHandler _sequenceModeButtonPressedHandler;
     static ButtonPressedHandler _gateButtonPressedHandler;
     static ButtonPressedHandler _repeatButtonPressedHandler;
     static ButtonPressedHandler _runStopButtonPressedHandler;
+
+    static ArrowButtonPressedHandler _minNoteArrowButtonPressedHandler;
+    static ArrowButtonPressedHandler _maxNoteArrowButtonPressedHandler;
+    static ArrowButtonPressedHandler _timeDivisionArrowButtonPressedHandler;
 
     static TickHandler _externalClockTickHandler;
 

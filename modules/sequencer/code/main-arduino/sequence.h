@@ -3,7 +3,7 @@
 
 #define PPQ 24 // Pulses per quarter note, like in MIDI
 #define MIN_TIME_DIVIDER 1
-#define MAX_TIME_DIVIDER 32
+#define MAX_TIME_DIVIDER 16
 #define DEFAULT_TIME_DIVIDER 16
 
 // Don't change this; rest of code is not set up for different value.
@@ -77,10 +77,7 @@ class Sequence {
     // For instance the value 8 would be 1 eight note
     static void setTimeDivider(short int);
 
-    // Convenience methods to change time divider, automatically ensuring that
-    // the values used are constrained appropriately
-    static void raiseTimeDivider();
-    static void lowerTimeDivider();
+    static byte cycleTimeDivider(bool);
 
     // Change gate mode per step, directly, or by cycling
     static byte setGateModeForStep(byte step, byte gateMode);
@@ -121,7 +118,6 @@ class Sequence {
     static void _setTrigger(bool);
     static void _advanceSubStep();
     static void _advanceSequence();
-    static void _adjustTimeDivider(bool);
 };
 
 #endif // MODULE_SEQUENCE_H

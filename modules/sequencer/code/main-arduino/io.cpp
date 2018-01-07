@@ -5,12 +5,21 @@ volatile bool IO::_spiBusy = false;
 volatile Tasks IO::_taskQueue[MAX_TASK_QUEUE_LENGTH];
 volatile byte IO::_taskQueueLength = 0;
 volatile unsigned int IO::_queuedDacValue = 0;
+volatile byte IO::_cachedSelectedStep = 0;
 char *IO::_queuedDisplayValue;
+bool IO::_arrowButtonHandlerSetup = false;
+
 AdcReadHandler IO::_adcReadHandler;
 
+ButtonPressedHandler IO::_sequenceModeButtonPressedHandler;
 ButtonPressedHandler IO::_gateButtonPressedHandler;
 ButtonPressedHandler IO::_repeatButtonPressedHandler;
 ButtonPressedHandler IO::_runStopButtonPressedHandler;
+
+ArrowButtonPressedHandler IO::_minNoteArrowButtonPressedHandler;
+ArrowButtonPressedHandler IO::_maxNoteArrowButtonPressedHandler;
+ArrowButtonPressedHandler IO::_timeDivisionArrowButtonPressedHandler;
+
 TickHandler IO::_externalClockTickHandler;
 
 MAX72S19 IO::_display(PIN_SPI_CS_DISP);
@@ -36,13 +45,17 @@ void IO::init() {
   _portExp.begin();
   // Configure pins on port expander
   // Port A = buttons per step
-  byte portAmodes = 0xFF; // All pins on port A are input
+  byte portAmodes = 0b00001111; // Change as needed
+  //                      ||||- PORTEXP_PIN_UP_ARROW                  [*]
+  //                      |||- PORTEXP_PIN_DOWN_ARROW                 [*]
+  //                      ||- PORTEXP_PIN_PARAM_SELECT_A
+  //                      |- PORTEXP_PIN_PARAM_SELECT_B   
   // Port B = various buttons
   byte portBmodes = 0b00001111; // Change as needed
-  //                      ||||- PORTEXP_PIN_GATE_MODE_SELECT_BUTTON [*]
-  //                      |||- PORTEXP_PIN_REPEAT_SELECT_BUTTON     [*]
-  //                      ||- PORTEXP_PIN_MODE_SELECT_BUTTON
-  //                      |- PORTEXT_PIN_RUN_STOP_BUTTON            [*]
+  //                      ||||- PORTEXP_PIN_GATE_MODE_SELECT_BUTTON   [*]
+  //                      |||- PORTEXP_PIN_REPEAT_SELECT_BUTTON       [*]
+  //                      ||- PORTEXP_PIN_SEQUENCE_MODE_SELECT_BUTTON [*]
+  //                      |- PORTEXP_PIN_RUN_STOP_BUTTON              [*]
   // [*] - interrupt attached
   word combinedModes = (portBmodes << 8) | portAmodes;
   _portExp.pinMode(combinedModes);
@@ -50,9 +63,15 @@ void IO::init() {
   // This means we can re-use the portmodes word
   _portExp.pullupMode(combinedModes);
   
-  _portExp.inputInvert(0xFF);
+  _portExp.inputInvert(0x0000);
   // Cache initial values
   _portExp.digitalRead();
+
+  // Assign no-op handlers to prevent potentially calling handlers that were
+  // not assigned (causing undefined behavior or segfaults)
+  _minNoteArrowButtonPressedHandler = _noopArrowButtonPressedHandler;
+  _maxNoteArrowButtonPressedHandler = _noopArrowButtonPressedHandler;
+  _timeDivisionArrowButtonPressedHandler = _noopArrowButtonPressedHandler;
 
   // Set up interrupts with the port expander
   ::attachInterrupt(
@@ -79,6 +98,7 @@ void IO::init() {
   _display.activate();
 
   _dac.analogWrite(DAC_CENTER_VALUE); // 0V
+  
   Serial.begin(250000);
 }
 
@@ -123,6 +143,14 @@ void IO::readPortExp() {
   _queueTask(READ_PORTEXP);
 }
 
+void IO::readSelectedStep() {
+  _queueTask(READ_SELECTED_STEP);
+}
+
+byte IO::getSelectedStep() {
+  return _cachedSelectedStep;
+}
+
 word IO::readPortExpCache() {
   return _portExp.digitalReadCache();
 }
@@ -134,6 +162,15 @@ bool IO::getPortExpPin(byte pin) {
 void IO::writeDisplay(char *characters) {
   _queuedDisplayValue = characters;
   _queueTask(WRITE_DISPLAY);
+}
+
+void IO::onSequenceModeButtonPressed(ButtonPressedHandler handler) {
+  _sequenceModeButtonPressedHandler = handler;
+
+  _portExp.attachInterrupt(
+    PORTEXP_PIN_SEQUENCE_MODE_SELECT_BUTTON,
+    _internalHandleSequenceModeButtonPressed,
+    FALLING);
 }
 
 void IO::onGateButtonPressed(ButtonPressedHandler handler) {
@@ -163,6 +200,21 @@ void IO::onRunStopButtonPressed(ButtonPressedHandler handler) {
     FALLING);
 }
 
+void IO::onMinNoteArrowButtonPressed(ArrowButtonPressedHandler handler) {
+  _minNoteArrowButtonPressedHandler = handler;
+  if (!_arrowButtonHandlerSetup) _setupArrowButtonHandler();
+}
+
+void IO::onMaxNoteArrowButtonPressed(ArrowButtonPressedHandler handler) {
+  _maxNoteArrowButtonPressedHandler = handler;
+  if (!_arrowButtonHandlerSetup) _setupArrowButtonHandler();
+}
+
+void IO::onTimeDivisionArrowButtonPressed(ArrowButtonPressedHandler handler) {
+  _timeDivisionArrowButtonPressedHandler = handler;
+  if (!_arrowButtonHandlerSetup) _setupArrowButtonHandler();
+}
+
 void IO::onExternalClockTick(TickHandler handler) {
   _externalClockTickHandler = handler;
 }
@@ -186,7 +238,7 @@ void IO::_queueTask(Tasks task) {
   if (_taskQueueContainsTask(task)) return;
 
   bool highPriority = (task == PROCESS_PORTEXP_INTERRUPT);
-  bool lowPriority = (task == READ_PORTEXP);
+  bool lowPriority = (task == READ_PORTEXP || task == READ_SELECTED_STEP);
   bool containsLowPriority = _taskQueue[_taskQueueLength - 1] == READ_PORTEXP;
 
   // High priority tasks should always go at position 0
@@ -276,6 +328,7 @@ void IO::_taskFinished() {
 void IO::_executeTask(Tasks task) {
   switch (task) {
     case READ_ADC: return _taskReadAdc();
+    case READ_SELECTED_STEP: return _taskReadSelectedStep();
     case WRITE_DAC: return _taskWriteDac();
     case READ_PORTEXP: return _taskReadPortExp();
     case PROCESS_PORTEXP_INTERRUPT: return _taskProcessPortExpInterrupt();
@@ -294,6 +347,27 @@ void IO::_taskReadAdc() {
   _spiBusy = false;
 
   _adcReadHandler(adcValue);
+
+  _taskFinished();
+}
+
+// Read from the ADC and figure out selected step
+void IO::_taskReadSelectedStep() {
+  if (_spiBusy) return;
+
+  _spiBusy = true;
+  unsigned int adcValue = _adc.analogRead(ADC_STEP_CHANNEL);
+  _spiBusy = false;
+
+  byte selectedStep = 0;
+
+  while (adcValue > ((selectedStep * _stepSize) + _halfStepSize)) {
+    selectedStep++;
+  }
+
+  if (selectedStep > NUM_STEPS) selectedStep = NUM_STEPS;
+
+  _cachedSelectedStep = selectedStep;
 
   _taskFinished();
 }
@@ -349,6 +423,13 @@ void IO::_taskWriteDisplay() {
   _taskFinished();
 }
 
+void IO::_internalHandleSequenceModeButtonPressed() {
+  // spiBusy was set to true in _taskProcessPortExpInterrupt, and we want
+  // to mark that done before invoking whatever handler we've got
+  _spiBusy = false;
+  _sequenceModeButtonPressedHandler();
+}
+
 void IO::_internalHandleGateButtonPressed() {
   // spiBusy was set to true in _taskProcessPortExpInterrupt, and we want
   // to mark that done before invoking whatever handler we've got
@@ -369,3 +450,48 @@ void IO::_internalHandleRunStopButtonPressed() {
   _spiBusy = false;
   _runStopButtonPressedHandler();
 }
+
+void IO::_setupArrowButtonHandler() {
+  if (_arrowButtonHandlerSetup) return;
+
+  _portExp.attachInterrupt(
+    PORTEXP_PIN_UP_ARROW,
+    _internalHandleUpArrowButtonPressed,
+    FALLING);
+
+  _portExp.attachInterrupt(
+    PORTEXP_PIN_DOWN_ARROW,
+    _internalHandleDownArrowButtonPressed,
+    FALLING);
+
+  _arrowButtonHandlerSetup = true;
+}
+
+void IO::_internalHandleUpArrowButtonPressed() {
+  _handleArrowButtonPressed(true);
+}
+
+void IO::_internalHandleDownArrowButtonPressed() {
+  _handleArrowButtonPressed(false);
+}
+
+void IO::_handleArrowButtonPressed(bool upArrow) {
+  bool paramA = _portExp.digitalRead(PORTEXP_PIN_PARAM_SELECT_A);
+  bool paramB = _portExp.digitalRead(PORTEXP_PIN_PARAM_SELECT_B);
+
+  byte combinedParams = (paramA << 1) | paramB;
+
+  switch (combinedParams) {
+    // TODO: fiddle with these so they're right and map to switch positions
+    case 0b01: return _minNoteArrowButtonPressedHandler(upArrow);
+    case 0b11: return _maxNoteArrowButtonPressedHandler(upArrow);
+    case 0b10: return _timeDivisionArrowButtonPressedHandler(upArrow);
+
+    // Note: there is no 0b00 (both pins grounded) case as an on-off-on switch
+    // cannot turn both sides on at once
+    // 0 is on here as the middle pin of the switch is ground, and the pins
+    // discussed are in pull-up mode. When they're floating, they're high.
+  }
+}
+
+void IO::_noopArrowButtonPressedHandler (bool _) {}

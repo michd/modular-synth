@@ -108,7 +108,7 @@ uint8_t MAX72S19::_mapChar(char inputChar) {
     //  E /       / C
     //   /_______/ * dp
     //       D
-    
+
     //               dpABCDEFG
     case '0': return B01111110;
     case '1': return B00110000;
@@ -175,6 +175,7 @@ uint8_t MAX72S19::_mapChar(char inputChar) {
     case '-': return B00000001;
     case '_': return B00001000;
     case '.': return B10000000;
+    case '/': return B00100100;
     case ' ':
     default:  return B00000000;
   }
