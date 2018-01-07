@@ -15,7 +15,7 @@
 
 #define PPQ 24 // pulses per quarter note, from MIDI
 
-#define PIN_LED_OUT PINA0
+#define PIN_32TH_OUT PINA0
 #define PIN_PPQ_OUT PINA7
 
 // Serial interface to MAX72S19
@@ -44,7 +44,7 @@ volatile long pulseCount = 0;
 // Main loop ticks
 bool evenTick;
 
-volatile bool ledOn;
+volatile bool output32th;
 volatile bool ppqOn = true;
 
 volatile unsigned short int tempo = 0;
@@ -115,7 +115,7 @@ ISR(TIM1_COMPA_vect) {
 int main(void)
 {
 	// Configure outputs: PIN_LED, PIN_PPQ
-	DDRA |= _BV(PIN_LED_OUT) | _BV(PIN_PPQ_OUT);
+	DDRA |= _BV(PIN_32TH_OUT) | _BV(PIN_PPQ_OUT);
 	
 	// Configure inputs: PIN_BUTTON_DOWN, PIN_BUTTON_UP
 	DDRA &= ~(_BV(PIN_BUTTON_DOWN) | _BV(PIN_BUTTON_UP));
@@ -322,17 +322,14 @@ void internalTimerTick() {
 	if (ppqOn) PORTA |= _BV(PIN_PPQ_OUT);
 	else PORTA &= ~_BV(PIN_PPQ_OUT);
 	
-	// If we're not on the on part of the cycle, don't bother with divided output
-	if (!ppqOn) return;
-
 	// Increment pulse counter for secondary output that only happens every 4th note
 	pulseCount++;
 	
-	if (pulseCount >= PPQ / 2) {
+	if (pulseCount >= PPQ / 8) {
 		pulseCount = 0;
-		ledOn = !ledOn;
-		if (ledOn) PORTA |= _BV(PIN_LED_OUT);
-		else PORTA &= ~_BV(PIN_LED_OUT);
+		output32th = !output32th;
+		if (output32th) PORTA |= _BV(PIN_32TH_OUT);
+		else PORTA &= ~_BV(PIN_32TH_OUT);
 	}
 }
 
