@@ -24,6 +24,7 @@
 #define PORTEXP_PIN_REPEAT_SELECT_BUTTON 10
 #define PORTEXP_PIN_SEQUENCE_MODE_SELECT_BUTTON 11
 #define PORTEXP_PIN_RUN_STOP_BUTTON 12
+#define PORTEXP_PIN_SCALE_BUTTON 13
 #define PORTEXP_PIN_UP_ARROW 1
 #define PORTEXP_PIN_DOWN_ARROW 2
 #define PORTEXP_PIN_PARAM_SELECT_A 3
@@ -132,6 +133,7 @@ class IO {
     static void onGateButtonPressed(ButtonPressedHandler);
     static void onRepeatButtonPressed(ButtonPressedHandler);
     static void onRunStopButtonPressed(ButtonPressedHandler);
+    static void onScaleButtonPressed(ButtonPressedHandler);
     static void onMinNoteArrowButtonPressed(ArrowButtonPressedHandler);
     static void onMaxNoteArrowButtonPressed(ArrowButtonPressedHandler);
     static void onTimeDivisionArrowButtonPressed(ArrowButtonPressedHandler);
@@ -161,6 +163,7 @@ class IO {
     static void _internalHandleGateButtonPressed();
     static void _internalHandleRepeatButtonPressed();
     static void _internalHandleRunStopButtonPressed();
+    static void _internalHandleScaleButtonPressed();
 
     static void _setupArrowButtonHandler();
     static void _internalHandleUpArrowButtonPressed();
@@ -184,6 +187,7 @@ class IO {
     static ButtonPressedHandler _gateButtonPressedHandler;
     static ButtonPressedHandler _repeatButtonPressedHandler;
     static ButtonPressedHandler _runStopButtonPressedHandler;
+    static ButtonPressedHandler _scaleButtonPressedHandler;
 
     static ArrowButtonPressedHandler _minNoteArrowButtonPressedHandler;
     static ArrowButtonPressedHandler _maxNoteArrowButtonPressedHandler;

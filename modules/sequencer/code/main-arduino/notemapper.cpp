@@ -100,13 +100,22 @@ char * NoteMapper::getNoteText(byte note) {
 
 char* NoteMapper::getScaleText(byte scale) {
   if (scale == SCALE_C_MAJOR) {
-    char text[] = "CMaj";
+    static char text[] = "CMaj";
     return text;
   } else if (scale == SCALE_CHROMATIC) {
-    char text[] = "Chro";
+    static char text[] = "Chro";
+    return text;
+  } else if (scale == SCALE_PENTATONIC) {
+    static char text[] = "PENT";
+    return text;
+  } else if (scale == SCALE_BLUES) {
+    static char text[] = "BLUE";
+    return text;
+  } else if (scale == SCALE_HEXATONIC) {
+    static char text[] = "HEXA";
     return text;
   } else {
-    char text[] = "Chro";
+    static char text[] = "Chro";
     return text;
   }
 }
@@ -131,13 +140,26 @@ byte NoteMapper::cycleMaxNote(bool up) {
   return _rangeMaxNote; 
 }
 
+byte NoteMapper::cycleScale() {
+  byte nextScale = _selectedScale + 1;
+  if (nextScale > MAX_SCALE) nextScale = 0;
+  _selectedScale = nextScale;
+  return nextScale;
+}
+
 byte* NoteMapper::_getScale(byte scaleIndex) {
   static byte chromaticScale[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, SCALE_TERMINATOR };
   static byte cMajorScale[] = { 0, 2, 4, 5, 7, 9, 11, SCALE_TERMINATOR };
+  static byte pentatonicScale[] = { 1, 3, 6, 8, 10, SCALE_TERMINATOR };
+  static byte bluesScale[] = { 1, 3, 6, 8, 9, 10, SCALE_TERMINATOR };
+  static byte hexatonicScale[] = { 0, 2, 4, 6, 8, 10, SCALE_TERMINATOR };
 
   switch (scaleIndex) {
     case SCALE_CHROMATIC: return chromaticScale;
     case SCALE_C_MAJOR: return cMajorScale;
+    case SCALE_PENTATONIC: return pentatonicScale;
+    case SCALE_BLUES: return bluesScale;
+    case SCALE_HEXATONIC: return hexatonicScale;
     default: return chromaticScale;
   }
 }

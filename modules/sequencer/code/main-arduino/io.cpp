@@ -15,6 +15,7 @@ ButtonPressedHandler IO::_sequenceModeButtonPressedHandler;
 ButtonPressedHandler IO::_gateButtonPressedHandler;
 ButtonPressedHandler IO::_repeatButtonPressedHandler;
 ButtonPressedHandler IO::_runStopButtonPressedHandler;
+ButtonPressedHandler IO::_scaleButtonPressedHandler;
 
 ArrowButtonPressedHandler IO::_minNoteArrowButtonPressedHandler;
 ArrowButtonPressedHandler IO::_maxNoteArrowButtonPressedHandler;
@@ -51,11 +52,12 @@ void IO::init() {
   //                      ||- PORTEXP_PIN_PARAM_SELECT_A
   //                      |- PORTEXP_PIN_PARAM_SELECT_B   
   // Port B = various buttons
-  byte portBmodes = 0b00001111; // Change as needed
-  //                      ||||- PORTEXP_PIN_GATE_MODE_SELECT_BUTTON   [*]
-  //                      |||- PORTEXP_PIN_REPEAT_SELECT_BUTTON       [*]
-  //                      ||- PORTEXP_PIN_SEQUENCE_MODE_SELECT_BUTTON [*]
-  //                      |- PORTEXP_PIN_RUN_STOP_BUTTON              [*]
+  byte portBmodes = 0b00011111; // Change as needed
+  //                     |||||- PORTEXP_PIN_GATE_MODE_SELECT_BUTTON   [*]
+  //                     ||||- PORTEXP_PIN_REPEAT_SELECT_BUTTON       [*]
+  //                     |||- PORTEXP_PIN_SEQUENCE_MODE_SELECT_BUTTON [*]
+  //                     ||- PORTEXP_PIN_RUN_STOP_BUTTON              [*]
+  //                     |- PORTEXP_PIN_SCALE_BUTTON                  [*]
   // [*] - interrupt attached
   word combinedModes = (portBmodes << 8) | portAmodes;
   _portExp.pinMode(combinedModes);
@@ -197,6 +199,15 @@ void IO::onRunStopButtonPressed(ButtonPressedHandler handler) {
   _portExp.attachInterrupt(
     PORTEXP_PIN_RUN_STOP_BUTTON,
     _internalHandleRunStopButtonPressed,
+    FALLING);
+}
+
+void IO::onScaleButtonPressed(ButtonPressedHandler handler) {
+  _scaleButtonPressedHandler = handler;
+
+  _portExp.attachInterrupt(
+    PORTEXP_PIN_SCALE_BUTTON,
+    _internalHandleScaleButtonPressed,
     FALLING);
 }
 
@@ -449,6 +460,13 @@ void IO::_internalHandleRunStopButtonPressed() {
   // to mark that done before invoking whatever handler we've got
   _spiBusy = false;
   _runStopButtonPressedHandler();
+}
+
+void IO::_internalHandleScaleButtonPressed() {
+  // spiBusy was set to true in _taskProcessPortExpInterrupt, and we want
+  // to mark that done before invoking whatever handler we've got
+  _spiBusy = false;
+  _scaleButtonPressedHandler(); 
 }
 
 void IO::_setupArrowButtonHandler() {

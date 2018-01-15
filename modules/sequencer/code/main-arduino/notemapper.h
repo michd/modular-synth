@@ -15,8 +15,11 @@
 
 #define SCALE_CHROMATIC 0
 #define SCALE_C_MAJOR 1
+#define SCALE_PENTATONIC 2
+#define SCALE_BLUES 3
+#define SCALE_HEXATONIC 4
 
-#define MAX_SCALE 1
+#define MAX_SCALE 4
 
 #define SCALE_TERMINATOR 0xFF
 
@@ -41,6 +44,9 @@ class NoteMapper {
 
     // Sets the max note up or down, and returns the new max note
     static byte cycleMaxNote(bool);
+
+    // Cycles to the next defined scale and returns the scale identifier
+    static byte cycleScale();
   
   private:
     static byte* _getScale(byte);

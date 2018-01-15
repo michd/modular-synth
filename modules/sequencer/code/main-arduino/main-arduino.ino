@@ -27,6 +27,7 @@ void setup() {
   IO::onGateButtonPressed(gateModeOnPressed);
   IO::onRepeatButtonPressed(repeatOnPressed);
   IO::onRunStopButtonPressed(runStopOnPressed);
+  IO::onScaleButtonPressed(scaleOnPressed);
   IO::onMinNoteArrowButtonPressed(minNoteArrowPressed);
   IO::onMaxNoteArrowButtonPressed(maxNoteArrowPressed);
   IO::onTimeDivisionArrowButtonPressed(timeDivisionArrowPressed);
@@ -107,6 +108,15 @@ bool debounceButton() {
 void runStopOnPressed() {
   if (debounceButton()) return;
   Sequence::toggleRunning();
+}
+
+// Scale button pressed
+void scaleOnPressed() {
+  if (debounceButton()) return;
+
+  byte newScale = NoteMapper::cycleScale();
+
+  IO::writeDisplay(NoteMapper::getScaleText(newScale));
 }
 
 void sequenceModeOnPressed() {
