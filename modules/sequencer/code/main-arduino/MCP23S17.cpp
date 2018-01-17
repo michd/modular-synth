@@ -285,7 +285,7 @@ void MCP23S17::processInterrupt() {
 
   bool interruptOnFallingFlank = _getBit(_interruptLocalCompareDefaults, pin);
 
-  if (isFallingFlank == interruptOnFallingFlank) {
+  if (isFallingFlank != interruptOnFallingFlank) {
     (*_interruptHandlers[pin - 1])();    
   }
 }
