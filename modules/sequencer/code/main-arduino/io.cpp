@@ -6,7 +6,7 @@ volatile Tasks IO::_taskQueue[MAX_TASK_QUEUE_LENGTH];
 volatile byte IO::_taskQueueLength = 0;
 volatile unsigned int IO::_queuedDacValue = 0;
 volatile byte IO::_cachedSelectedStep = 0;
-char *IO::_queuedDisplayValue;
+String IO::_queuedDisplayValue;
 bool IO::_arrowButtonHandlerSetup = false;
 
 AdcReadHandler IO::_adcReadHandler;
@@ -174,8 +174,8 @@ byte IO::getSelectedParam() {
   return (paramA << 1) | paramB;
 }
 
-void IO::writeDisplay(char *characters) {
-  _queuedDisplayValue = characters;
+void IO::writeDisplay(String text) {
+  _queuedDisplayValue = text;
   _queueTask(WRITE_DISPLAY);
 }
 

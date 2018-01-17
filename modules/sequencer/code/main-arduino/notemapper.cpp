@@ -33,90 +33,36 @@ unsigned int NoteMapper::getNoteOutput(byte note) {
   return _noteOutputValues[note];
 }
 
-char * NoteMapper::getNoteText(byte note) {
-  static char text[5];
+String NoteMapper::getNoteText(byte note) {
+  String octaveText = String(((note + MIN_NOTE_MIDI) / 12));
   byte baseNote = note % 12;
+
   switch (baseNote) {
-    case 0:
-      text[0] = 'C';
-      text[1] = ' ';
-      break;
-    case 1:
-      text[0] = 'D';
-      text[1] = 'b';
-      break;
-    case 2:
-      text[0] = 'D';
-      text[1] = ' ';
-      break;
-    case 3:
-      text[0] = 'E';
-      text[1] = 'b';
-      break;
-    case 4:
-      text[0] = 'E';
-      text[1] = ' ';
-      break;
-    case 5:
-      text[0] = 'F';
-      text[1] = ' ';
-      break;
-    case 6:
-      text[0] = 'G';
-      text[1] = 'b';
-      break;
-    case 7:
-      text[0] = 'G';
-      text[1] = ' ';
-      break;
-    case 8:
-      text[0] = 'A';
-      text[1] = 'b';
-      break;
-    case 9:
-      text[0] = 'A';
-      text[1] = ' ';
-      break;
-    case 10:
-      text[0] = 'B';
-      text[1] = 'b';
-      break;
-    case 11:
-      text[0] = 'B';
-      text[1] = ' ';
-      break;
-    case 12:
-      text[0] = 'C';
-      text[1] = 'b';
-      break;
+    case  0: return "C  " + octaveText;
+    case  1: return "Db " + octaveText;
+    case  2: return "D  " + octaveText;
+    case  3: return "Eb " + octaveText;
+    case  4: return "E  " + octaveText;
+    case  5: return "F  " + octaveText;
+    case  6: return "Gb " + octaveText;
+    case  7: return "G  " + octaveText;
+    case  8: return "Ab " + octaveText;
+    case  9: return "A  " + octaveText;
+    case 10: return "Bb " + octaveText;
+    case 11: return "B  " + octaveText;
+    default: return "----";
   }
-
-  text[2] = ' ';
-  text[3] = '0' + ((note + MIN_NOTE_MIDI) / 12);
-  text[4] = '\0';
-
-  return text;
 }
 
-char* NoteMapper::getScaleText(byte scale) {
-  if (scale == SCALE_C_MAJOR) {
-    static char text[] = "CMaj";
-    return text;
-  } else if (scale == SCALE_CHROMATIC) {
-    static char text[] = "Chro";
-    return text;
-  } else if (scale == SCALE_PENTATONIC) {
-    static char text[] = "PENT";
-    return text;
-  } else if (scale == SCALE_BLUES) {
-    static char text[] = "BLUE";
-    return text;
-  } else if (scale == SCALE_HEXATONIC) {
-    static char text[] = "HEXA";
-    return text;
-  } else {
-    static char text[] = "Chro";
-    return text;
+String NoteMapper::getScaleText(byte scale) {
+  switch (scale) {
+    case SCALE_C_MAJOR: return "CMaj";
+    case SCALE_PENTATONIC: return "PENT";
+    case SCALE_BLUES: return "BLUE";
+    case SCALE_HEXATONIC: return "HEXA";
+    case SCALE_CHROMATIC:
+    default:
+       return "Chro";
   }
 }
 

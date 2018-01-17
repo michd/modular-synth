@@ -25,6 +25,7 @@
 
 #include "settings.h"
 #include <Arduino.h>
+#include <String.h>
 
 class NoteMapper {
   public:
@@ -34,11 +35,11 @@ class NoteMapper {
 
     static unsigned int getNoteOutput(byte);
 
-    // Builds a string representation of a note, for display
-    static char * getNoteText(byte);
+    // Builds a String representation of a note, for display
+    static String getNoteText(byte);
 
     // String representation of a scale, for display
-    static char * getScaleText(byte);
+    static String getScaleText(byte);
 
     // Sets the min note up or down, and returns the new min note
     static byte cycleMinNote(bool);

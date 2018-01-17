@@ -5,6 +5,7 @@
 
 #include <Arduino.h>
 #include <SPI.h>
+#include <String.h>
 
 #ifndef MAX72S19_h // Ensure we're not double-defining the library if it was already included
 #define MAX72S19_h
@@ -70,11 +71,11 @@ class MAX72S19 {
     // Writes a character array starting from a given digit index
     // Starting index (0-7)
     // Array of characters to write (A-Z, 0-9)
-    // This will stop when end of string is detected,
+    // This will stop when end of String is detected,
     // or when we run of out digits, whichever comes first
     // Note: not all characters in the latin alphabet can be
     // properly displayed on a 7 segment display.
-    void print(uint8_t, char[]);
+    void print(uint8_t, String);
 
     // Sets whether to use the builtin decoder for each digit
     void setDecodeMode(uint8_t);

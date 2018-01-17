@@ -3,31 +3,31 @@
 #include "notemapper.h"
 #include "settings.h"
 
-#define DEFAULT_TEMPO 80
+// Note: Using String for displaying our text as opposed to plain char
+// arrays adds a lot of convenience, but adds a significant amount to
+// program size. If program space becomes tight, this is a good area
+// to optimize.
+#include <String.h>
 
-#define BUTTON_DEBOUNCE_TICKS 10
-
-long lastTriggered = 0;
+#define RESET_BUTTON_HOLD_TIME 1500
+#define PORTEXP_READ_CYCLE_TICKS 100
 
 volatile bool initialized = false;
 
 volatile byte lastNoteRead;
 
-// Input stabilization
-// For debouncing buttons that trigger interrupts
-volatile unsigned long debounceTimeRecorded = 0;
-volatile unsigned long debounceTicksRecorded = 0;
+volatile bool holdingReset = false;
 
-// Alternative to micros() when running,
-// as we do too much work for micros to work reliably when running
-volatile unsigned long debounceTicks = 0;
+volatile unsigned int resetTicksHeld = 0;
+
+volatile byte readCycleTicks = 0;
 
 void setup() {
   IO::init();
   IO::onSequenceModeButtonPressed(sequenceModeOnPressed);
   IO::onGateButtonPressed(gateModeOnPressed);
   IO::onRepeatButtonPressed(repeatOnPressed);
-  IO::onRunStopButtonPressed(runStopOnPressed);
+  IO::onRunStopButtonPressed(Sequence::toggleRunning);
   IO::onScaleButtonPressed(scaleOnPressed);
   IO::onResetButtonPressed(resetOnPressed);
   IO::onLoadButtonPressed(loadOnPressed);
@@ -40,18 +40,18 @@ void setup() {
   IO::onExternalClockTick(externalClockTick);
 
   Sequence::init();
-  Sequence::onRunningChange(sequenceOnRunningChanged);
+  Sequence::onRunningChange(IO::setRunning);
   Sequence::onSequenceModeChange(sequenceOnSequenceModeChanged);
-  Sequence::onGateChange(sequenceOnGateChanged);
-  Sequence::onTriggerChange(sequenceOnTriggerChanged);
+  Sequence::onGateChange(IO::setGate);
+  Sequence::onTriggerChange(IO::setTrigger);
   Sequence::onSelectedStepChange(sequenceOnSelectedStepChanged);
 
   NoteMapper::init();
 
   IO::setStep(0);
 
-  char initText[] = "Init";
-  IO::writeDisplay(initText);
+  //IO::writeDisplay("Init");
+  fullReset();
 
   initialized = true;
 }
@@ -72,6 +72,27 @@ void loop() {
     }
   }
 
+  // If we were holding the reset button, and it is still held,
+  // increase ticks held, and measure if we've held for long enough.
+  // If held for long enough, reset counter and held flag, and execute full
+  // reset
+  if (holdingReset && !IO::getPortExpPin(PORTEXP_PIN_RESET_BUTTON)) {
+    resetTicksHeld++;
+
+    if (resetTicksHeld == RESET_BUTTON_HOLD_TIME) {
+      resetTicksHeld = 0;
+      holdingReset = false;
+      fullReset();
+    }
+  }
+
+  readCycleTicks++;
+
+  if (readCycleTicks == PORTEXP_READ_CYCLE_TICKS) {
+    readCycleTicks = 0;
+    IO::readPortExp();
+  }
+
   delay(1);
 }
 
@@ -89,45 +110,30 @@ void mapNoteAndWriteDac(unsigned int adcReading) {
 
 void externalClockTick() {
   if (!initialized) return;
-  // TODO: perhaps the routine reads should not be based on
-  // external clock since it's variable?
-  debounceTicks++;
   IO::readSelectedStep();
   Sequence::tick();
 }
 
-// Button handlers
-
-bool debounceButton() {
-  unsigned long currentTicks = debounceTicks;
-
-  if (currentTicks - debounceTicksRecorded < BUTTON_DEBOUNCE_TICKS) {
-    return true;
-  }
-
-  debounceTicksRecorded = currentTicks;
-  return false;
+void fullReset() {
+  Sequence::loadFromSettings(&(SettingsManager::defaultSettings));
+  NoteMapper::loadFromSettings(&(SettingsManager::defaultSettings));
+  IO::writeDisplay("Init");
 }
+
+// Button handlers
 
 // Run/stop pressed
 void runStopOnPressed() {
-  if (debounceButton()) return;
   Sequence::toggleRunning();
 }
 
 // Scale button pressed
 void scaleOnPressed() {
-  if (debounceButton()) return;
-
   byte newScale = NoteMapper::cycleScale();
-
   IO::writeDisplay(NoteMapper::getScaleText(newScale));
 }
 
 void sequenceModeOnPressed() {
-  // TODO: evaluate if still needed
-  if (debounceButton()) return;
-
   byte oneIndexedStep = IO::getSelectedStep();
 
   if (oneIndexedStep != 0) {
@@ -135,12 +141,17 @@ void sequenceModeOnPressed() {
   }
 }
 
+// Reset all settings to default, or only one of them
+// If reset is pressed while no relevant other button is pressed, all settings
+// are reset to default, and "Init" is displayed.
+// If reset is pressed while one or more relevant other buttons are pressed,
+// only those settings get reset to defaults, and a message re.XX is shown,
+// where XX attempts to indicate what was reset.
+// Note: the XX displayed will be for the last matching button, so if more
+// than one button was held to be reset, all those settings are reset,
+// but only the bottom one is displayed on-screen.
 void resetOnPressed() {
-  // TODO: evaluate if still needed
-  if (debounceButton()) return;
-
-  // TODO: make this stuff work with strings, character arrays are unwieldy
-  char resultText[] = "re.  ";
+  String resultText = "re.";
 
   Settings settingsToRevertTo;
   Sequence::collectSettings(&settingsToRevertTo);
@@ -148,31 +159,45 @@ void resetOnPressed() {
 
   Settings &defSettings = SettingsManager::defaultSettings;
 
+  bool fullReset = true;
+
+  // Reset gate modes
   if (!IO::getPortExpPin(PORTEXP_PIN_GATE_MODE_SELECT_BUTTON)) {
-    // Reset gate modes
     for (byte i = 0; i < NUM_STEPS; i++) {
       settingsToRevertTo.gateModes[i] = defSettings.gateModes[i];
     }
-    resultText[3] = 'G';
-    resultText[4] = 'a';
-  } else if (!IO::getPortExpPin(PORTEXP_PIN_REPEAT_SELECT_BUTTON)) {
-    // Reset step repeats
+
+    resultText += "Ga";
+    fullReset = false;
+  } 
+
+  // Reset step repeats
+  if (!IO::getPortExpPin(PORTEXP_PIN_REPEAT_SELECT_BUTTON)) {    
     for (byte i = 0; i < NUM_STEPS; i++) {
       settingsToRevertTo.stepRepeat[i] = defSettings.stepRepeat[i];
     }
-    resultText[3] = 'S';
-    resultText[4] = 'r';
-  } else if (!IO::getPortExpPin(PORTEXP_PIN_SEQUENCE_MODE_SELECT_BUTTON)) {
-    // Reset sequence mode
+
+    resultText += "Sr";
+    fullReset = false;
+  } 
+
+  // Reset sequence mode
+  if (!IO::getPortExpPin(PORTEXP_PIN_SEQUENCE_MODE_SELECT_BUTTON)) {    
     settingsToRevertTo.sequenceMode = defSettings.sequenceMode;
-    resultText[3] = 'S';
-    resultText[4] = 'M';
-  } else if (!IO::getPortExpPin(PORTEXP_PIN_SCALE_BUTTON)) {
-    // Reset scale
+    resultText += "SM";
+    fullReset = false;
+  } 
+
+  // Reset scale
+  if (!IO::getPortExpPin(PORTEXP_PIN_SCALE_BUTTON)) {
     settingsToRevertTo.scale = defSettings.scale;
-    resultText[3] = 'S';
-    resultText[4] = 'c';
-  } else if (!IO::getPortExpPin(PORTEXP_PIN_UP_ARROW) 
+    resultText += "Sc";
+    fullReset = false;
+  } 
+
+  // Reset setting controlled by the arrow buttons,
+  // depending on how the param select switch is set
+  if (!IO::getPortExpPin(PORTEXP_PIN_UP_ARROW) 
     || !IO::getPortExpPin(PORTEXP_PIN_DOWN_ARROW)) {
 
     byte selectedParam = IO::getSelectedParam();
@@ -180,67 +205,52 @@ void resetOnPressed() {
     switch (selectedParam) {
       case PARAM_MIN_NOTE:
         // Reset min note
-        settingsToRevertTo.minNote = defSettings.minNote;        
-        resultText[3] = 'M';
-        resultText[4] = 'i';
+        settingsToRevertTo.minNote = defSettings.minNote;
+        resultText += "Mi";
         break;
 
       case PARAM_MAX_NOTE:
         // Reset max note
         settingsToRevertTo.maxNote = defSettings.maxNote;
-        resultText[3] = 'M';
-        resultText[4] = 'a';
+        resultText += "Ma";
         break;
 
       case PARAM_TIME_DIVIDER:      
       default:
         // Reset time divider
         settingsToRevertTo.timeDivider = defSettings.timeDivider;
-        resultText[3] = 'T';
-        resultText[4] = 'd';
+        resultText += "Td";
         break;
     }
-  } else {
-    // Reset all
-    settingsToRevertTo = SettingsManager::defaultSettings;
-    resultText[0] = 'I';
-    resultText[1] = 'n';
-    resultText[2] = 'i';
-    resultText[3] = 't';
-    resultText[4] = '\0';
+
+    fullReset = false;
+  } 
+
+  // If we're not pressing anything else,
+  // ensure we hold reset for a while before doing the full reset.
+  holdingReset = fullReset;
+  if (fullReset) resetTicksHeld = 0;
+
+  if (!fullReset) {
+    Sequence::loadFromSettings(&settingsToRevertTo);
+    NoteMapper::loadFromSettings(&settingsToRevertTo);
+    IO::writeDisplay(resultText);  
   }
-
-  Sequence::loadFromSettings(&settingsToRevertTo);
-  NoteMapper::loadFromSettings(&settingsToRevertTo);
-
-  IO::writeDisplay(resultText);
 }
 
 void loadOnPressed() {
-  // TODO: evaluate if still needed
-  if (debounceButton()) return;
-
   // Get settings slot from pressed sequence button
   // If none is pressed, defaults to the first
   // getSelectedStep is 1-indexed and returns 0 for none pressed
   // 0 is a valid slot of its own.
   byte slot = IO::getSelectedStep();
-
   Settings settings = SettingsManager::load(slot);
-
   Sequence::loadFromSettings(&settings);
   NoteMapper::loadFromSettings(&settings);
-
-  char resultText[] = "Loa.X";
-  resultText[4] = '0' + slot;
-  
-  IO::writeDisplay(resultText);
+  IO::writeDisplay("Loa." + String(slot));
 }
 
 void saveOnPressed() {
-  // TODO: evaluate if still needed
-  if (debounceButton()) return;
-
   // Get settings slot from pressed sequence button
   // If none is pressed, defaults to the first
   // getSelectedStep is 1-indexed and returns 0 for none pressed
@@ -249,92 +259,47 @@ void saveOnPressed() {
 
   Settings settingsToSave;
   Sequence::collectSettings(&settingsToSave);
-  NoteMapper::collectSettings(&settingsToSave);
-  
+  NoteMapper::collectSettings(&settingsToSave);  
   SettingsManager::save(settingsToSave, slot);
-  
-  char resultText[] = "Sav.X";
-  resultText[4] = '0' + slot;
-  
-  IO::writeDisplay(resultText);
+  IO::writeDisplay("Sav." + String(slot));
 }
 
 void gateModeOnPressed() {
-  // TODO: evaluate if still needed
-  if (debounceButton()) return;
-
   byte stepToAlter = IO::getSelectedStep();
   if (stepToAlter == 0) return;
   stepToAlter--;
 
   byte newGateMode = Sequence::cycleGateModeForStep(stepToAlter);
 
-  char text[] = "GM.0.0";
-  text[3] = '1' + stepToAlter;
-  text[5] = '1' + newGateMode;
-  IO::writeDisplay(text);
+  IO::writeDisplay(
+    "GM." + String(stepToAlter + 1) + "." + String(newGateMode + 1));
 }
 
-void repeatOnPressed() {
-  // TODO: evaluate if still needed
-  if (debounceButton()) return;
-
+void repeatOnPressed() { 
   byte stepToAlter = IO::getSelectedStep();
   if (stepToAlter == 0) return;
   stepToAlter--;
   byte newStepRepeat = Sequence::cycleStepRepeatForStep(stepToAlter);
-  char text[] = "SR.0.0";
-  text[3] = '1' + stepToAlter;
-  text[5] = '0' + newStepRepeat;
-  IO::writeDisplay(text);
+  IO::writeDisplay(
+    "SR." + String(stepToAlter + 1) + "." + String(newStepRepeat));
 }
 
 void minNoteArrowPressed(bool upArrow) {
-  // TODO: evaluate if still needed
-  if (debounceButton()) return;
-
   byte newMinNote = NoteMapper::cycleMinNote(upArrow);
   // TODO: way to also indicate what the note being displayed is for
   IO::writeDisplay(NoteMapper::getNoteText(newMinNote));
 }
 
 void maxNoteArrowPressed(bool upArrow) {
-  // TODO: evaluate if still needed
-  if (debounceButton()) return;
-
   byte newMaxNote = NoteMapper::cycleMaxNote(upArrow);
   IO::writeDisplay(NoteMapper::getNoteText(newMaxNote));  
 }
 
 void timeDivisionArrowPressed(bool upArrow) {
-  // TODO: evaluate if still needed
-  if (debounceButton()) return;
-
   byte newDivider = Sequence::cycleTimeDivider(upArrow);
 
-  static char dispText[] =  "1/  ";
-
-  if (newDivider >= 10) {
-    dispText[2] = '0' + (char)(newDivider / 10);
-    dispText[3] = '0' + (char)(newDivider % 10);
-  } else {
-    dispText[2] = ' ';
-    dispText[3] = '0' + newDivider;
-  }
-
-  IO::writeDisplay(dispText);
-}
-
-void sequenceOnRunningChanged(bool running) {
-  IO::setRunning(running);
-}
-
-void sequenceOnGateChanged(bool gateOn) {
-  IO::setGate(gateOn);
-}
-
-void sequenceOnTriggerChanged(bool triggerOn) {
-  IO::setTrigger(triggerOn);
+  IO::writeDisplay(
+    "1/" + ((newDivider < 10) ? String(" ") : String("")) + String(newDivider));
 }
 
 void sequenceOnSelectedStepChanged(byte selectedStep) {
@@ -343,8 +308,5 @@ void sequenceOnSelectedStepChanged(byte selectedStep) {
 }
 
 void sequenceOnSequenceModeChanged(byte sequenceMode) {
-  char text[] = "SEQ.0";
-  text[4] = '0' + sequenceMode + 1;
-  IO::writeDisplay(text);
+  IO::writeDisplay("SEQ." + String(sequenceMode + 1));
 }
-

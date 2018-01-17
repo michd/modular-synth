@@ -56,6 +56,7 @@
 #define DISPLAY_STRING_LENGTH 5 // 1 of the null terminator
 
 #include <Arduino.h>
+#include <String.h>
 
 #include "MAX72S19.h" // Display driver
 #include "MCP23S17.h" // Port expander
@@ -135,7 +136,7 @@ class IO {
 
     // Note: very limiting but should cover needs pretty well for now
     // Write 4 characters to the display
-    static void writeDisplay(char*);
+    static void writeDisplay(String);
 
     // Assign button press handlers
     static void onSequenceModeButtonPressed(ButtonPressedHandler);
@@ -194,7 +195,7 @@ class IO {
     volatile static byte _cachedSelectedStep;
     static const unsigned int _stepSize = (ADC_MAX - 8) / (NUM_STEPS + 1);
     static const unsigned int _halfStepSize = _stepSize / 2;
-    static char *_queuedDisplayValue;
+    static String _queuedDisplayValue;
     static AdcReadHandler _adcReadHandler;
     static bool _arrowButtonHandlerSetup;
 

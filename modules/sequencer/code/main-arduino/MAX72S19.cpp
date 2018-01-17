@@ -53,17 +53,17 @@ void MAX72S19::writeNumber(uint8_t digitIndex, uint8_t number) {
   writeChar(digitIndex, '0' + number);
 }
 
-void MAX72S19::print(uint8_t startDigitIndex, char characters[]) {
+void MAX72S19::print(uint8_t startDigitIndex, String text) {
   uint8_t curDigit = constrain(startDigitIndex, 0, 7);
   uint8_t charIndex = 0;
-  char curChar = characters[charIndex];
+  char curChar = text[charIndex];
 
   while (curDigit < MAX_DIGITS * 2) {
     if (curChar == '\0') break;
-    bool curCharDot = characters[charIndex + 1] == '.';
+    bool curCharDot = text[charIndex + 1] == '.';
     writeChar(curDigit++, curChar, curCharDot);
     if (curCharDot) ++charIndex;
-    curChar = characters[++charIndex];
+    curChar = text[++charIndex];
   }
 }
 
