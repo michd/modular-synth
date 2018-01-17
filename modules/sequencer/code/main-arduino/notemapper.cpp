@@ -147,6 +147,18 @@ byte NoteMapper::cycleScale() {
   return nextScale;
 }
 
+void NoteMapper::collectSettings(Settings *settingsToSave) {
+  settingsToSave->scale = _selectedScale;
+  settingsToSave->minNote = _rangeMinNote;
+  settingsToSave->maxNote = _rangeMaxNote;
+}
+
+void NoteMapper::loadFromSettings(Settings *settings) {
+  _selectedScale = constrain(settings->scale, 0, MAX_SCALE);
+  _rangeMinNote = constrain(settings->minNote, 0, NOTE_RANGE);
+  _rangeMaxNote = constrain(settings->maxNote, _rangeMinNote, NOTE_RANGE);
+}
+
 byte* NoteMapper::_getScale(byte scaleIndex) {
   static byte chromaticScale[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, SCALE_TERMINATOR };
   static byte cMajorScale[] = { 0, 2, 4, 5, 7, 9, 11, SCALE_TERMINATOR };

@@ -8,7 +8,7 @@ volatile byte Sequence::_currentStepRepetition = 0;
 volatile byte Sequence::_sequenceMode = SEQUENCE_MODE_FORWARD;
 volatile byte Sequence::_gateMode[NUM_STEPS];
 volatile byte Sequence::_stepRepeat[NUM_STEPS];
-volatile short int Sequence::_timeDivider = DEFAULT_TIME_DIVIDER;
+volatile byte Sequence::_timeDivider = DEFAULT_TIME_DIVIDER;
 volatile unsigned long Sequence::_pulsesPerSubstep = (PPQ / 2) / (DEFAULT_TIME_DIVIDER / 4);
 volatile bool Sequence::_firstHalfOfStep = true;
 volatile unsigned long Sequence::_internalTicks = 0;
@@ -106,13 +106,13 @@ void Sequence::setGate(bool on) {
   if (on) _setTrigger(true);
 }
 
-void Sequence::setTimeDivider(short int newDivider) {
+void Sequence::setTimeDivider(byte newDivider) {
   _timeDivider = constrain(newDivider, 1, 16);
   _pulsesPerSubstep = (short int)((double)(PPQ / 2) / ((double)newDivider / (double)4));
 }
 
 byte Sequence::cycleTimeDivider(bool higher) {
-  short int newTimeDivider;
+  byte newTimeDivider;
 
   if (higher) {
     newTimeDivider = _timeDivider << 1;
@@ -166,6 +166,28 @@ byte Sequence::cycleStepRepeatForStep(byte step) {
   if (stepRepetitions > MAX_STEP_REPEAT) stepRepetitions = MIN_STEP_REPEAT;
   _stepRepeat[step] = stepRepetitions;
   return stepRepetitions;
+}
+
+void Sequence::collectSettings(Settings *settingsToSave) {
+  settingsToSave->timeDivider = _timeDivider;
+  settingsToSave->sequenceMode = _sequenceMode;
+
+  for (uint8_t i = 0; i < NUM_STEPS; i++) {
+    settingsToSave->gateModes[i] = _gateMode[i];
+    settingsToSave->stepRepeat[i] = _stepRepeat[i];
+  }
+}
+
+void Sequence::loadFromSettings(Settings *settings) {
+  setTimeDivider(constrain(settings->timeDivider, MIN_TIME_DIVIDER, MAX_TIME_DIVIDER));
+  _sequenceMode = constrain(settings->sequenceMode, SEQUENCE_MODE_FORWARD, SEQUENCE_MODE_RANDOM);
+
+  // TODO further clean up _timeDivider, essentially ensuring it only has one 1 in the byte
+
+  for (uint8_t i = 0; i < NUM_STEPS; i++) {
+    _gateMode[i] = constrain(settings->gateModes[i], GATE_MODE_HALF_STEP, MAX_GATE_MODE_VALUE);
+    _stepRepeat[i] = constrain(settings->stepRepeat[i], MIN_STEP_REPEAT, MAX_STEP_REPEAT);
+  }
 }
 
 void Sequence::onRunningChange(BoolChangedHandler handler) {

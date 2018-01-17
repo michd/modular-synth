@@ -25,12 +25,19 @@
 #define PORTEXP_PIN_SEQUENCE_MODE_SELECT_BUTTON 11
 #define PORTEXP_PIN_RUN_STOP_BUTTON 12
 #define PORTEXP_PIN_SCALE_BUTTON 13
+#define PORTEXP_PIN_RESET_BUTTON 14
+#define PORTEXP_PIN_LOAD_BUTTON 15
+#define PORTEXP_PIN_SAVE_BUTTON 16
 #define PORTEXP_PIN_UP_ARROW 1
 #define PORTEXP_PIN_DOWN_ARROW 2
 #define PORTEXP_PIN_PARAM_SELECT_A 3
 #define PORTEXP_PIN_PARAM_SELECT_B 4
 
 #define PORT_EXPANDER_CHANNEL 0
+
+#define PARAM_MIN_NOTE 0b01
+#define PARAM_MAX_NOTE 0b11
+#define PARAM_TIME_DIVIDER 0b10
 
 #define ADC_CV_CHANNEL 0
 #define ADC_STEP_CHANNEL 1
@@ -117,6 +124,8 @@ class IO {
 
     static bool getPortExpPin(byte);
 
+    static byte getSelectedParam();
+
     // Read and derive the pressed step from the ADC
     // The step buttons are set up as a little keyboard, resistors between them
     // We read an ADC value to figure out which one's pressed, if any
@@ -134,6 +143,9 @@ class IO {
     static void onRepeatButtonPressed(ButtonPressedHandler);
     static void onRunStopButtonPressed(ButtonPressedHandler);
     static void onScaleButtonPressed(ButtonPressedHandler);
+    static void onResetButtonPressed(ButtonPressedHandler);
+    static void onLoadButtonPressed(ButtonPressedHandler);
+    static void onSaveButtonPressed(ButtonPressedHandler);
     static void onMinNoteArrowButtonPressed(ArrowButtonPressedHandler);
     static void onMaxNoteArrowButtonPressed(ArrowButtonPressedHandler);
     static void onTimeDivisionArrowButtonPressed(ArrowButtonPressedHandler);
@@ -164,6 +176,9 @@ class IO {
     static void _internalHandleRepeatButtonPressed();
     static void _internalHandleRunStopButtonPressed();
     static void _internalHandleScaleButtonPressed();
+    static void _internalHandleResetButtonPressed();
+    static void _internalHandleLoadButtonPressed();
+    static void _internalHandleSaveButtonPressed();
 
     static void _setupArrowButtonHandler();
     static void _internalHandleUpArrowButtonPressed();
@@ -188,6 +203,9 @@ class IO {
     static ButtonPressedHandler _repeatButtonPressedHandler;
     static ButtonPressedHandler _runStopButtonPressedHandler;
     static ButtonPressedHandler _scaleButtonPressedHandler;
+    static ButtonPressedHandler _resetButtonPressedHandler;
+    static ButtonPressedHandler _loadButtonPressedHandler;
+    static ButtonPressedHandler _saveButtonPressedHandler;
 
     static ArrowButtonPressedHandler _minNoteArrowButtonPressedHandler;
     static ArrowButtonPressedHandler _maxNoteArrowButtonPressedHandler;

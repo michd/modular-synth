@@ -23,6 +23,7 @@
 
 #define SCALE_TERMINATOR 0xFF
 
+#include "settings.h"
 #include <Arduino.h>
 
 class NoteMapper {
@@ -47,6 +48,12 @@ class NoteMapper {
 
     // Cycles to the next defined scale and returns the scale identifier
     static byte cycleScale();
+
+    // Writes notemapper's settings to the given settings struct
+    static void collectSettings(Settings *settingsToSave);
+
+    // Given settings struct, changes local settings to the provided ones
+    static void loadFromSettings(Settings *settings);
   
   private:
     static byte* _getScale(byte);
@@ -54,8 +61,7 @@ class NoteMapper {
     static unsigned int _noteOutputValues[];
     static volatile byte _selectedScale;
     static volatile byte _rangeMinNote;
-    static volatile byte _rangeMaxNote;
-    
+    static volatile byte _rangeMaxNote;    
 };
 
 #endif // NOTEMAPPER_H

@@ -21,7 +21,10 @@ Settings SettingsManager::load(uint8_t index) {
   // Don't try to retrieve settings that can't exist.
   // Instead of constraining to an existing one and getting unexpected results,
   // return default settings instead.
-  if (index >= NUM_STEPS) return defaultSettings;
+  // Note: The slots are 1-indexed when using step buttons; if none is specified
+  // slot 0 is used. This is good for comparing patches and not accidentally
+  // overwriting patch 1.
+  if (index > NUM_STEPS) return defaultSettings;
 
   // Located stating address, based on size of Settings struct + 1 for
   // "contains patch" indicator value
@@ -57,7 +60,10 @@ Settings SettingsManager::load(uint8_t index) {
 
 void SettingsManager::save(Settings settings, uint8_t index) {
   // Don't attempt to save if index is out of bounds.
-  if (index >= NUM_STEPS) return;
+  // Note: The slots are 1-indexed when using step buttons; if none is specified
+  // slot 0 is used. This is good for comparing patches and not accidentally
+  // overwriting patch 1.
+  if (index > NUM_STEPS) return;
 
   unsigned int address = index * (sizeof(Settings) + 1);
 

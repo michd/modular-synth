@@ -8,7 +8,9 @@
 
 // Don't change this; rest of code is not set up for different value.
 // It is only here to clarify the meaning of the number 8 in the code.
+#ifndef NUM_STEPS
 #define NUM_STEPS 8
+#endif
 
 // Sequence modes
 #define SEQUENCE_MODE_FORWARD              0
@@ -31,6 +33,7 @@
 #define MIN_STEP_REPEAT 0
 #define MAX_STEP_REPEAT 8
 
+#include "settings.h"
 #include <Arduino.h>
 
 typedef void (*BoolChangedHandler)(bool);
@@ -75,7 +78,7 @@ class Sequence {
 
     // Sets the time divider, that is, the musical length of 1 step
     // For instance the value 8 would be 1 eight note
-    static void setTimeDivider(short int);
+    static void setTimeDivider(byte);
 
     static byte cycleTimeDivider(bool);
 
@@ -86,6 +89,12 @@ class Sequence {
     // Change step repetition count, directly, or by cycling
     static byte setStepRepeatForStep(byte step, byte repetitions);
     static byte cycleStepRepeatForStep(byte step);
+
+    // Writes Sequence's local settings to teh given settings struct
+    static void collectSettings(Settings *settingsToSave);
+
+    // Given settings struct, changes local settings to the provided ones
+    static void loadFromSettings(Settings *settings);
 
     // Event handlers
     static void onRunningChange(BoolChangedHandler);
@@ -101,7 +110,7 @@ class Sequence {
     static volatile byte _sequenceMode;
     static volatile byte _gateMode[NUM_STEPS];
     static volatile byte _stepRepeat[NUM_STEPS];
-    static volatile short int _timeDivider;
+    static volatile byte _timeDivider;
     static volatile unsigned long _pulsesPerSubstep;
     static volatile bool _firstHalfOfStep;
     static volatile unsigned long _internalTicks;

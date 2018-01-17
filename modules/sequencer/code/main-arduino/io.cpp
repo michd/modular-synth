@@ -16,6 +16,9 @@ ButtonPressedHandler IO::_gateButtonPressedHandler;
 ButtonPressedHandler IO::_repeatButtonPressedHandler;
 ButtonPressedHandler IO::_runStopButtonPressedHandler;
 ButtonPressedHandler IO::_scaleButtonPressedHandler;
+ButtonPressedHandler IO::_resetButtonPressedHandler;
+ButtonPressedHandler IO::_loadButtonPressedHandler;
+ButtonPressedHandler IO::_saveButtonPressedHandler;
 
 ArrowButtonPressedHandler IO::_minNoteArrowButtonPressedHandler;
 ArrowButtonPressedHandler IO::_maxNoteArrowButtonPressedHandler;
@@ -52,12 +55,15 @@ void IO::init() {
   //                      ||- PORTEXP_PIN_PARAM_SELECT_A
   //                      |- PORTEXP_PIN_PARAM_SELECT_B   
   // Port B = various buttons
-  byte portBmodes = 0b00011111; // Change as needed
-  //                     |||||- PORTEXP_PIN_GATE_MODE_SELECT_BUTTON   [*]
-  //                     ||||- PORTEXP_PIN_REPEAT_SELECT_BUTTON       [*]
-  //                     |||- PORTEXP_PIN_SEQUENCE_MODE_SELECT_BUTTON [*]
-  //                     ||- PORTEXP_PIN_RUN_STOP_BUTTON              [*]
-  //                     |- PORTEXP_PIN_SCALE_BUTTON                  [*]
+  byte portBmodes = 0b11111111; // Change as needed
+  //                  ||||||||- PORTEXP_PIN_GATE_MODE_SELECT_BUTTON   [*]
+  //                  |||||||- PORTEXP_PIN_REPEAT_SELECT_BUTTON       [*]
+  //                  ||||||- PORTEXP_PIN_SEQUENCE_MODE_SELECT_BUTTON [*]
+  //                  |||||- PORTEXP_PIN_RUN_STOP_BUTTON              [*]
+  //                  ||||- PORTEXP_PIN_SCALE_BUTTON                  [*]
+  //                  |||- PORTEXP_PIN_RESET_BUTTON                   [*]
+  //                  ||- PORTEXP_PIN_LOAD_BUTTON                     [*]
+  //                  |- PORTEXP_PIN_SAVE_BUTTON                      [*]
   // [*] - interrupt attached
   word combinedModes = (portBmodes << 8) | portAmodes;
   _portExp.pinMode(combinedModes);
@@ -161,6 +167,13 @@ bool IO::getPortExpPin(byte pin) {
   return _portExp.digitalReadCache(pin);
 }
 
+byte IO::getSelectedParam() {
+  bool paramA = _portExp.digitalReadCache(PORTEXP_PIN_PARAM_SELECT_A);
+  bool paramB = _portExp.digitalReadCache(PORTEXP_PIN_PARAM_SELECT_B);
+
+  return (paramA << 1) | paramB;
+}
+
 void IO::writeDisplay(char *characters) {
   _queuedDisplayValue = characters;
   _queueTask(WRITE_DISPLAY);
@@ -208,6 +221,33 @@ void IO::onScaleButtonPressed(ButtonPressedHandler handler) {
   _portExp.attachInterrupt(
     PORTEXP_PIN_SCALE_BUTTON,
     _internalHandleScaleButtonPressed,
+    FALLING);
+}
+
+void IO::onResetButtonPressed(ButtonPressedHandler handler) {
+  _resetButtonPressedHandler = handler;
+
+  _portExp.attachInterrupt(
+    PORTEXP_PIN_RESET_BUTTON,
+    _internalHandleResetButtonPressed,
+    FALLING);
+}
+
+void IO::onLoadButtonPressed(ButtonPressedHandler handler) {
+  _loadButtonPressedHandler = handler;
+
+  _portExp.attachInterrupt(
+    PORTEXP_PIN_LOAD_BUTTON,
+    _internalHandleLoadButtonPressed,
+    FALLING);
+}
+
+void IO::onSaveButtonPressed(ButtonPressedHandler handler) {
+  _saveButtonPressedHandler = handler;
+
+  _portExp.attachInterrupt(
+    PORTEXP_PIN_SAVE_BUTTON,
+    _internalHandleSaveButtonPressed,
     FALLING);
 }
 
@@ -469,6 +509,27 @@ void IO::_internalHandleScaleButtonPressed() {
   _scaleButtonPressedHandler(); 
 }
 
+void IO::_internalHandleResetButtonPressed() {
+  // spiBusy was set to true in _taskProcessPortExpInterrupt, and we want
+  // to mark that done before invoking whatever handler we've got
+  _spiBusy = false;
+  _resetButtonPressedHandler();  
+}
+
+void IO::_internalHandleLoadButtonPressed() {
+  // spiBusy was set to true in _taskProcessPortExpInterrupt, and we want
+  // to mark that done before invoking whatever handler we've got
+  _spiBusy = false;
+  _loadButtonPressedHandler();  
+}
+
+void IO::_internalHandleSaveButtonPressed() {
+  // spiBusy was set to true in _taskProcessPortExpInterrupt, and we want
+  // to mark that done before invoking whatever handler we've got
+  _spiBusy = false;
+  _saveButtonPressedHandler();  
+}
+
 void IO::_setupArrowButtonHandler() {
   if (_arrowButtonHandlerSetup) return;
 
@@ -494,16 +555,17 @@ void IO::_internalHandleDownArrowButtonPressed() {
 }
 
 void IO::_handleArrowButtonPressed(bool upArrow) {
-  bool paramA = _portExp.digitalRead(PORTEXP_PIN_PARAM_SELECT_A);
-  bool paramB = _portExp.digitalRead(PORTEXP_PIN_PARAM_SELECT_B);
-
-  byte combinedParams = (paramA << 1) | paramB;
+  byte combinedParams = getSelectedParam();
 
   switch (combinedParams) {
-    // TODO: fiddle with these so they're right and map to switch positions
-    case 0b01: return _minNoteArrowButtonPressedHandler(upArrow);
-    case 0b11: return _maxNoteArrowButtonPressedHandler(upArrow);
-    case 0b10: return _timeDivisionArrowButtonPressedHandler(upArrow);
+    case PARAM_MIN_NOTE:
+      return _minNoteArrowButtonPressedHandler(upArrow);
+
+    case PARAM_MAX_NOTE:
+      return _maxNoteArrowButtonPressedHandler(upArrow);
+
+    case PARAM_TIME_DIVIDER:    
+      return _timeDivisionArrowButtonPressedHandler(upArrow);
 
     // Note: there is no 0b00 (both pins grounded) case as an on-off-on switch
     // cannot turn both sides on at once
