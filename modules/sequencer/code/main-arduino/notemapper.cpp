@@ -2,8 +2,8 @@
 
 unsigned int NoteMapper::_noteOutputValues[NOTE_RANGE];
 volatile byte NoteMapper::_selectedScale = SCALE_CHROMATIC;
-volatile byte NoteMapper::_rangeMinNote = 12; // TODO constant for default
-volatile byte NoteMapper::_rangeMaxNote = 24;
+volatile byte NoteMapper::_rangeMinNote = DEFAULT_MIN_NOTE;
+volatile byte NoteMapper::_rangeMaxNote = DEFAULT_MAX_NOTE;
 
 void NoteMapper::init() {
   float noteStep = (float)DAC_MAX / (float)(NOTE_RANGE - 1);
@@ -11,9 +11,6 @@ void NoteMapper::init() {
   for (byte i = 0; i < NOTE_RANGE; i++) {
     _noteOutputValues[i] = (unsigned int)round(noteStep * (float)i);
   }
-
-  _rangeMaxNote = 36;
-  _rangeMinNote = 12;
 }
 
 uint8_t NoteMapper::mapToNote(unsigned short int input) {

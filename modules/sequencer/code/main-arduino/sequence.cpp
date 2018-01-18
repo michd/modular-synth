@@ -81,8 +81,6 @@ void Sequence::setSequenceMode(byte newSequenceMode) {
   _sequenceMode = newSequenceMode;
 
   if (_sequenceMode == SEQUENCE_MODE_RANDOM) {
-    // TODO: look into eliminating Arduino.h dependency for this
-    // seems overkill for the two functions
     ::randomSeed(::millis());
   }
 
@@ -216,6 +214,9 @@ void Sequence::_selectStep(byte newSelectedStep) {
   (*_onSelectedStepChangedHandler)(newSelectedStep);
 }
 
+// TODO: hardcode sequences, instead of procedural
+// TODO: random sequence should be randomly generated 16 step sequence,
+// generated at time of setting mode to random
 byte Sequence::_getNextStepIndexInSequence() {
   byte oldStep = _currentStep;
   byte previousStep = _previousStep;
@@ -374,9 +375,6 @@ void Sequence::_advanceSubStep() {
     (*_onSelectedStepChangedHandler)(_currentStep);
   }
 
-  // TODO: ensure trigger is adequately set:
-  // when: - having changed to a new step and gate is high
-  //       - gate was low before
   switch (_gateMode[_currentStep]) {
     case GATE_MODE_HALF_STEP:
       setGate(

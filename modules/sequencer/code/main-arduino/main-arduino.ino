@@ -50,7 +50,6 @@ void setup() {
 
   IO::setStep(0);
 
-  //IO::writeDisplay("Init");
   fullReset();
 
   initialized = true;

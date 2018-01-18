@@ -100,8 +100,6 @@ class MAX72S19 {
 
     void activate();
 
-    // TODO? writeNumber?
-
   private:
     uint8_t _pinChipSelect;
     SPISettings _spiSettings;
