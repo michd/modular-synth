@@ -100,7 +100,7 @@ void IO::init() {
 
   // Configure display
   _display.setDecodeMode(0x00);
-  _display.setIntensity(0xF);
+  _display.setIntensity(0x5);
   _display.setScanLimit(3);
   _display.clear();
   _display.activate();
