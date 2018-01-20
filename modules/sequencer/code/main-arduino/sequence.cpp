@@ -205,6 +205,7 @@ void Sequence::collectSettings(Settings *settingsToSave) {
 void Sequence::loadFromSettings(Settings *settings) {
   setTimeDivider(constrain(settings->timeDivider, MIN_TIME_DIVIDER, MAX_TIME_DIVIDER));
   _sequenceMode = constrain(settings->sequenceMode, SEQUENCE_MODE_FORWARD, SEQUENCE_MODE_RANDOM);
+  _initSequence(_sequenceMode);
 
   // TODO further clean up _timeDivider, essentially ensuring it only has one 1 in the byte
 
