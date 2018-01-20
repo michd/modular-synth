@@ -22,6 +22,9 @@
 #define SEQUENCE_MODE_ALT_BACK_AND_FORTH_B 6
 #define SEQUENCE_MODE_RANDOM               7
 
+#define MIN_SEQUENCE_MODE 0
+#define MAX_SEQUENCE_MODE 8
+
 // Gate modes
 #define GATE_MODE_HALF_STEP 0
 #define GATE_MODE_FULL_STEP 1
@@ -33,6 +36,13 @@
 #define MIN_STEP_REPEAT 0
 #define MAX_STEP_REPEAT 8
 
+#define MAX_SEQUENCE_LENGTH 16
+#define SEQUENCE_TERMINATOR 0xFF
+#define SEQUENCE_RANDOM_STEP 0xEE
+
+// Shorthand
+#define SEQ_RS SEQUENCE_RANDOM_STEP
+
 #include "settings.h"
 #include <Arduino.h>
 
@@ -42,8 +52,6 @@ typedef void (*ByteChangedHandler)(byte);
 // Sequence deals with everything to do with actual sequencing, that is,
 // figuring out which step is active, which is next, managing the gate
 class Sequence {
-
-
   public:
     // Initializes values
     static void init();
@@ -104,7 +112,9 @@ class Sequence {
     static void onSequenceModeChange(ByteChangedHandler);
 
   private:
-    static volatile byte _previousStep;
+    static const byte _sequences[][MAX_SEQUENCE_LENGTH + 1];
+    static volatile byte _selectedSequence[MAX_SEQUENCE_LENGTH + 1];
+    static volatile byte _indexInSequence;
     static volatile byte _currentStep;
     static volatile byte _currentStepRepetition;
     static volatile byte _sequenceMode;
@@ -123,10 +133,11 @@ class Sequence {
     static ByteChangedHandler _onSelectedStepChangedHandler;
     static ByteChangedHandler _onSequenceModeChangedHandler;
     static void _selectStep(byte);
-    static byte _getNextStepIndexInSequence();
     static void _setTrigger(bool);
     static void _advanceSubStep();
     static void _advanceSequence();
+    static void _initSequence(byte);
+    static byte _generateRandomStep(byte);
 };
 
 #endif // MODULE_SEQUENCE_H

@@ -2,13 +2,13 @@
 
 // Note: this entire class is used in a static way, it is not to be instantiated.
 
-volatile byte Sequence::_previousStep = 0;
 volatile byte Sequence::_currentStep = 0;
 volatile byte Sequence::_currentStepRepetition = 0;
 volatile byte Sequence::_sequenceMode = SEQUENCE_MODE_FORWARD;
 volatile byte Sequence::_gateMode[NUM_STEPS];
 volatile byte Sequence::_stepRepeat[NUM_STEPS];
 volatile byte Sequence::_timeDivider = DEFAULT_TIME_DIVIDER;
+volatile byte Sequence::_indexInSequence = 0;
 volatile unsigned long Sequence::_pulsesPerSubstep = (PPQ / 2) / (DEFAULT_TIME_DIVIDER / 4);
 volatile bool Sequence::_firstHalfOfStep = true;
 volatile unsigned long Sequence::_internalTicks = 0;
@@ -21,11 +21,37 @@ BoolChangedHandler Sequence::_onTriggerChangedHandler;
 ByteChangedHandler Sequence::_onSelectedStepChangedHandler;
 ByteChangedHandler Sequence::_onSequenceModeChangedHandler;
 
+// Initialize hardcoded sequences
+const byte Sequence::_sequences[][MAX_SEQUENCE_LENGTH + 1] = {
+  // 1: Simple forward, length 8
+  { 0, 1, 2, 3, 4, 5, 6, 7, SEQUENCE_TERMINATOR },
+  // 2: Reverse, length 8
+  { 7, 6, 5, 4, 3, 2, 1, 0, SEQUENCE_TERMINATOR },
+  // 3: Forward, then revers, length 16
+  { 0, 1, 2, 3, 4, 5, 6, 7, 7, 6, 5, 4, 3, 2, 1, 0, SEQUENCE_TERMINATOR },
+  // 4: Even steps, then odd steps, length 8
+  { 0, 2, 4, 6, 1, 3, 5, 7, SEQUENCE_TERMINATOR },
+  // 5: The above, reversed, length 8
+  { 7, 5, 3, 1, 6, 4, 2, 0, SEQUENCE_TERMINATOR },
+  // 6: The above two in order kinda, length 8
+  { 0, 2, 4, 6, 1, 3, 5, 7, 6, 4, 2, 0, 7, 5, 3, 1, SEQUENCE_TERMINATOR },
+  // 7: Even step forwared, odd steps backwards, length 8
+  { 0, 2, 4, 6, 7, 5, 3, 1, SEQUENCE_TERMINATOR },
+  // 8: Random steps, generated when random mode is selected, length 16
+  { SEQ_RS, SEQ_RS, SEQ_RS, SEQ_RS, SEQ_RS, SEQ_RS, SEQ_RS, SEQ_RS,
+    SEQ_RS, SEQ_RS, SEQ_RS, SEQ_RS, SEQ_RS, SEQ_RS, SEQ_RS, SEQ_RS,
+    SEQUENCE_TERMINATOR }
+};
+
+volatile byte Sequence::_selectedSequence[MAX_SEQUENCE_LENGTH + 1]; 
+
 void Sequence::init() {
   for (byte i = 0; i < NUM_STEPS; i++) {
     _gateMode[i] = GATE_MODE_HALF_STEP;
     _stepRepeat[i] = 1;
   }
+
+  _initSequence(SEQUENCE_MODE_FORWARD);
 }
 
 void Sequence::tick() {
@@ -75,15 +101,15 @@ void Sequence::setSequenceMode(byte newSequenceMode) {
   if (_sequenceMode == newSequenceMode) {
     // Trigger change handler anyway to update display
     (*_onSequenceModeChangedHandler)(newSequenceMode);
+
+    if (_sequenceMode == SEQUENCE_MODE_RANDOM) {
+      _initSequence(_sequenceMode);
+    }
     return;
   }
 
   _sequenceMode = newSequenceMode;
-
-  if (_sequenceMode == SEQUENCE_MODE_RANDOM) {
-    ::randomSeed(::millis());
-  }
-
+  _initSequence(_sequenceMode);
   (*_onSequenceModeChangedHandler)(newSequenceMode);
 }
 
@@ -214,138 +240,6 @@ void Sequence::_selectStep(byte newSelectedStep) {
   (*_onSelectedStepChangedHandler)(newSelectedStep);
 }
 
-// TODO: hardcode sequences, instead of procedural
-// TODO: random sequence should be randomly generated 16 step sequence,
-// generated at time of setting mode to random
-byte Sequence::_getNextStepIndexInSequence() {
-  byte oldStep = _currentStep;
-  byte previousStep = _previousStep;
-
-  byte nextStep = 0;
-
-  switch (_sequenceMode) {
-    // Moving forward; simple 0..7, returning to 0 when past the last step
-    // 0,1,2,3,4,5,6,7
-    case SEQUENCE_MODE_FORWARD:
-      nextStep = oldStep + 1;
-      if (nextStep >= NUM_STEPS) {
-        nextStep = 0;
-      }
-      break;
-
-    // Reverse: 7..0, back to 7 when past 0
-    // 7,6,5,4,3,2,1,0
-    case SEQUENCE_MODE_REVERSE:
-      if (oldStep > 0) {
-        nextStep = oldStep - 1;
-      } else {
-        nextStep = NUM_STEPS - 1;
-      }
-      break;
-
-    // Forward, then backward
-    // 0,1,2,3,4,5,6,7,6,5,4,3,2,1
-    case SEQUENCE_MODE_BACK_AND_FORTH:
-      if (previousStep < oldStep) {
-        nextStep = oldStep + 1;
-        if (nextStep >= NUM_STEPS) {
-          nextStep = oldStep - 1;
-        }
-      } else {
-        if (oldStep > 0) {
-          nextStep = oldStep - 1;
-        } else {
-          nextStep = oldStep + 1;
-        }
-      }
-      break;
-
-    // Even steps, then odd steps:
-    // 0,2,4,6,1,3,5,7
-    case SEQUENCE_MODE_ALT_FORWARD:
-      nextStep = oldStep + 2;
-      if (nextStep == NUM_STEPS) {
-        nextStep = 1;
-      } else if (nextStep > NUM_STEPS) {
-        nextStep = 0;
-      }
-      break;
-
-    // The above, reversed
-    // 7,5,3,1,6,4,2,0
-    case SEQUENCE_MODE_ALT_REVERSE:
-      if (oldStep > 1) {
-        nextStep = oldStep - 2;
-      } else if (oldStep == 1) {
-        nextStep = NUM_STEPS - 2;
-      } else if (oldStep == 0) {
-        nextStep = NUM_STEPS - 1;
-      }
-      break;
-
-    // The above two in order
-    // 0,2,4,6,1,3,5,7,6,4,2,0,7,5,3,1
-    case SEQUENCE_MODE_ALT_BACK_AND_FORTH_A:
-      if (oldStep == 0) {
-        if (previousStep > 1) {
-          nextStep = NUM_STEPS - 1;
-        } else {
-          nextStep = oldStep + 2;
-        }
-      } else if (oldStep == 1) {
-        if (previousStep == NUM_STEPS - 2) {
-          nextStep = oldStep + 2;
-        } else {
-          nextStep = 0;
-        }
-      } else if (oldStep == NUM_STEPS - 2) {
-        if (previousStep > oldStep) {
-          nextStep = oldStep - 2;
-        } else {
-          nextStep = 1;
-        }
-      } else if (oldStep == NUM_STEPS - 1) {
-        if (previousStep == 0) {
-          nextStep = oldStep - 2;
-        } else {
-          nextStep = NUM_STEPS - 2;
-        }
-      } else if (previousStep < oldStep) {
-        nextStep = oldStep + 2;
-      } else {
-        nextStep = oldStep - 2;
-      }
-      break;
-
-    // Even forward, odd backward
-    // 0,2,4,6,7,5,3,1
-    case SEQUENCE_MODE_ALT_BACK_AND_FORTH_B:
-      if (oldStep == 0) {
-        nextStep = oldStep + 2;
-      } else if (oldStep == NUM_STEPS - 2) {
-        nextStep = NUM_STEPS - 1;
-      } else if (oldStep == NUM_STEPS -1) {
-        nextStep = oldStep - 2;
-      } else if (oldStep == 1) {
-        nextStep = 0;
-      } else if (previousStep < oldStep) {
-        nextStep = oldStep + 2;
-      } else {
-        nextStep = oldStep - 2;
-      }
-      break;
-
-    // Random step each time, but ensures not the same step is chosen twice in a row
-    case SEQUENCE_MODE_RANDOM:
-      do {
-        nextStep = random(NUM_STEPS);
-      } while (nextStep == oldStep);
-      break;
-  }
-
-  return nextStep;
-}
-
 void Sequence::_setTrigger(bool on) {
   if (_trigger == on) return;
 
@@ -406,9 +300,53 @@ void Sequence::_advanceSubStep() {
 }
 
 void Sequence::_advanceSequence() {
-  byte oldStep = _currentStep;
-  byte nextStep = _getNextStepIndexInSequence();
+  if (_selectedSequence[++_indexInSequence] == SEQUENCE_TERMINATOR) {
+    _indexInSequence = 0;
+  }
 
-  _previousStep = oldStep;
-  _selectStep(nextStep);
+  _selectStep(_selectedSequence[_indexInSequence]);
+}
+
+void Sequence::_initSequence(byte sequenceMode) {
+  sequenceMode = constrain(sequenceMode, MIN_SEQUENCE_MODE, MAX_SEQUENCE_MODE);
+
+  if (sequenceMode == SEQUENCE_MODE_RANDOM) {
+    ::randomSeed(::millis());
+  }
+
+  byte *sequence = _sequences[sequenceMode];
+
+  byte previousStep = SEQUENCE_TERMINATOR;
+  byte i;
+  bool reachedEnd = false;
+
+  // Copies over the values of the selected sequence,
+  // and fills remaining space with sequence terminator
+  for (i = 0; i <= MAX_SEQUENCE_LENGTH; i++) {
+    if (reachedEnd) {
+      _selectedSequence[i] = SEQUENCE_TERMINATOR;
+      continue;
+    }
+
+    if (sequence[i] == SEQUENCE_RANDOM_STEP) {
+      _selectedSequence[i] = _generateRandomStep(previousStep);
+      previousStep = _selectedSequence[i];
+    } else {
+      _selectedSequence[i] = sequence[i];
+    }
+
+    if (_selectedSequence[i] == SEQUENCE_TERMINATOR) reachedEnd = true;
+  }
+
+  _selectedSequence[i] = SEQUENCE_TERMINATOR;
+}
+
+byte Sequence::_generateRandomStep(byte previousStep) {
+  byte nextStep;
+
+  do {
+    nextStep = random(NUM_STEPS);
+  } while (nextStep == previousStep);
+
+  return nextStep;
 }
