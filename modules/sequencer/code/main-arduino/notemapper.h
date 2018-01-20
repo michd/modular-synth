@@ -13,6 +13,9 @@
 #define MAX_NOTE_MIDI 108 // C9
 #define NOTE_RANGE 84
 
+#define DEFAULT_MIN_NOTE 12
+#define DEFAULT_MAX_NOTE 36
+
 #define SCALE_CHROMATIC 0
 #define SCALE_C_MAJOR 1
 #define SCALE_PENTATONIC 2
