@@ -1,5 +1,5 @@
 /*
- * MAX72S19 8x8 matrix / 8 digit 7 segment display driver library
+ * MAX72S21 8x8 matrix / 8 digit 7 segment display driver library
  * By MichD
  */
 
@@ -8,8 +8,8 @@
 #include <String.h>
 #include <stdint.h>
 
-#ifndef MAX72S19_h // Ensure we're not double-defining the library if it was already included
-#define MAX72S19_h
+#ifndef MAX72S21_h // Ensure we're not double-defining the library if it was already included
+#define MAX72S21_h
 
 // Register addresses as defined in datasheet
 
@@ -36,9 +36,9 @@
 #define NUM_SEGMENTS    8
 #define MAX_COLUMNS     NUM_SEGMENTS
 
-class MAX72S19 {
+class MAX72S21 {
   public:
-    MAX72S19(uint8_t); // Constructor, takes chip select pin
+    MAX72S21(uint8_t); // Constructor, takes chip select pin
     void begin();      // Start the SPI bug
 
     // Set a specific LED on or off
@@ -118,4 +118,4 @@ class MAX72S19 {
     uint8_t _mapChar(char);
 };
 
-#endif // MAX72S19_h
+#endif // MAX72S21_h

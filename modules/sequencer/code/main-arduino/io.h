@@ -67,7 +67,7 @@
 #include <String.h>
 #include <stdint.h>
 
-#include "MAX72S19.h" // Display driver
+#include "MAX72S21.h" // Display driver
 #include "MCP23S17.h" // Port expander
 #include "MCP3202.h"  // ADC
 #include "MCP492X.h"  // DAC
@@ -240,7 +240,7 @@ class IO {
 
     static TickHandler _externalClockTickHandler;
 
-    static MAX72S19 _display;
+    static MAX72S21 _display;
     static MCP23S17 _portExp;
     static MCP3202 _adc;
     static MCP492X _dac;

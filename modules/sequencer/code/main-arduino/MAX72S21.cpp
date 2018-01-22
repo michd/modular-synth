@@ -1,20 +1,20 @@
-#include "MAX72S19.h"
+#include "MAX72S21.h"
 
-MAX72S19::MAX72S19(uint8_t pinChipSelect) {
+MAX72S21::MAX72S21(uint8_t pinChipSelect) {
   _pinChipSelect = pinChipSelect;
 
   // Init cache
   for (uint8_t i = 0; i < MAX_DIGITS; i++) _displayCache[i] = 0x00;
 }
 
-void MAX72S19::begin() {
+void MAX72S21::begin() {
   ::pinMode(_pinChipSelect, OUTPUT);
   ::digitalWrite(_pinChipSelect, 1);
   SPI.begin();
   _spiSettings = SPISettings(10000000, MSBFIRST, SPI_MODE2);
 }
 
-void MAX72S19::setLED(uint8_t row, uint8_t column, bool on) {
+void MAX72S21::setLED(uint8_t row, uint8_t column, bool on) {
   row = constrain(row, 0, MAX_ROWS - 1);
   column = constrain(column, 0, MAX_COLUMNS - 1);
 
@@ -29,7 +29,7 @@ void MAX72S19::setLED(uint8_t row, uint8_t column, bool on) {
   setRow(row, newRowValue);
 }
 
-void MAX72S19::setRow(uint8_t row, uint8_t states) {
+void MAX72S21::setRow(uint8_t row, uint8_t states) {
   row = constrain(row, 0, MAX_ROWS - 1);
 
   if (_displayCache[row] != states) {
@@ -37,7 +37,7 @@ void MAX72S19::setRow(uint8_t row, uint8_t states) {
   }
 }
 
-void MAX72S19::setColumn(uint8_t column, uint8_t states) {
+void MAX72S21::setColumn(uint8_t column, uint8_t states) {
   column = constrain(column, 0, MAX_COLUMNS);
 
   for (uint8_t i = 0; i < MAX_ROWS; i++) {
@@ -45,17 +45,17 @@ void MAX72S19::setColumn(uint8_t column, uint8_t states) {
   }
 }
 
-void MAX72S19::clear() {
+void MAX72S21::clear() {
   for (uint8_t i = 0; i < MAX_DIGITS; i++) {
     _setRegister(REG_DIGIT0 + i, 0x00);
   }
 }
 
-void MAX72S19::write(uint8_t reg, uint8_t value) {
+void MAX72S21::write(uint8_t reg, uint8_t value) {
   _setRegister(reg, value);
 }
 
-void MAX72S19::writeChar(uint8_t digitIndex, char character, bool dotOn) {
+void MAX72S21::writeChar(uint8_t digitIndex, char character, bool dotOn) {
   digitIndex = constrain(digitIndex, 0, 7);
   uint8_t value = _mapChar(character);
 
@@ -66,16 +66,16 @@ void MAX72S19::writeChar(uint8_t digitIndex, char character, bool dotOn) {
   _setRegister(REG_DIGIT0 + digitIndex, value);
 }
 
-void MAX72S19::writeChar(uint8_t digitIndex, char character) {
+void MAX72S21::writeChar(uint8_t digitIndex, char character) {
   writeChar(digitIndex, character, false);
 }
 
-void MAX72S19::writeNumber(uint8_t digitIndex, uint8_t number) {
+void MAX72S21::writeNumber(uint8_t digitIndex, uint8_t number) {
   number = constrain(number, 0, 9);
   writeChar(digitIndex, '0' + number);
 }
 
-void MAX72S19::print(uint8_t startDigitIndex, String text) {
+void MAX72S21::print(uint8_t startDigitIndex, String text) {
   uint8_t curDigit = constrain(startDigitIndex, 0, 7);
   uint8_t charIndex = 0;
   char curChar = text[charIndex];
@@ -89,37 +89,37 @@ void MAX72S19::print(uint8_t startDigitIndex, String text) {
   }
 }
 
-void MAX72S19::setDecodeMode(uint8_t modes) {
+void MAX72S21::setDecodeMode(uint8_t modes) {
   _setRegister(REG_DECODEMODE, modes);
 }
 
-void MAX72S19::setIntensity(uint8_t intensity) {
+void MAX72S21::setIntensity(uint8_t intensity) {
   _setRegister(REG_INTENSITY, constrain(intensity, 0x0, 0xF));
 }
 
-void MAX72S19::setScanLimit(uint8_t scanLimit) {
+void MAX72S21::setScanLimit(uint8_t scanLimit) {
   _setRegister(REG_SCANLIMIT, constrain(scanLimit, 0x0, 0xF));
 }
 
-void MAX72S19::startDisplayTest() {
+void MAX72S21::startDisplayTest() {
   _setRegister(REG_DISPLAYTEST, 1);
 }
 
-void MAX72S19::stopDisplayTest() {
+void MAX72S21::stopDisplayTest() {
   _setRegister(REG_DISPLAYTEST, 0);
 }
 
-void MAX72S19::shutdown() {
+void MAX72S21::shutdown() {
   _setRegister(REG_SHUTDOWN, 0);
 }
 
-void MAX72S19::activate() {
+void MAX72S21::activate() {
   _setRegister(REG_SHUTDOWN, 1);
 }
 
 // Private method
 
-uint8_t MAX72S19::_mapChar(char inputChar) {
+uint8_t MAX72S21::_mapChar(char inputChar) {
   switch (inputChar) {
     //  Segments legend:
     //          _______
@@ -203,17 +203,17 @@ uint8_t MAX72S19::_mapChar(char inputChar) {
   }
 }
 
-void MAX72S19::_beginTransmission() {
+void MAX72S21::_beginTransmission() {
   ::digitalWrite(_pinChipSelect, 0);
   SPI.beginTransaction(_spiSettings);
 }
 
-void MAX72S19::_endTransmission() {
+void MAX72S21::_endTransmission() {
   SPI.endTransaction();
   ::digitalWrite(_pinChipSelect, 1);
 }
 
-void MAX72S19::_setRegister(uint8_t reg, uint8_t data) {
+void MAX72S21::_setRegister(uint8_t reg, uint8_t data) {
   if (reg >= MIN_DISPLAY_REG && reg <= MAX_DISPLAY_REG) {
     // If we're not updating, we don't need to initiate SPI communication
     if (_displayCache[reg - REG_DIGIT0] == data) {

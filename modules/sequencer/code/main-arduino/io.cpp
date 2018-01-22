@@ -27,7 +27,7 @@ ArrowButtonPressedHandler IO::_timeDivisionArrowButtonPressedHandler;
 
 TickHandler IO::_externalClockTickHandler;
 
-MAX72S19 IO::_display(PIN_SPI_CS_DISP);
+MAX72S21 IO::_display(PIN_SPI_CS_DISP);
 MCP23S17 IO::_portExp(PORT_EXPANDER_CHANNEL, PIN_SPI_CS_PORTEXP);
 MCP3202 IO::_adc(PIN_SPI_CS_ADC);
 MCP492X IO::_dac(PIN_SPI_CS_DAC);
