@@ -45,9 +45,10 @@
 
 #include "settings.h"
 #include <Arduino.h>
+#include <stdint.h>
 
 typedef void (*BoolChangedHandler)(bool);
-typedef void (*ByteChangedHandler)(byte);
+typedef void (*ByteChangedHandler)(uint8_t);
 
 // Sequence deals with everything to do with actual sequencing, that is,
 // figuring out which step is active, which is next, managing the gate
@@ -72,13 +73,13 @@ class Sequence {
     static bool isRunning();
 
     // Set the sequence mode to one of the SEQUENCE_MODE_ constants
-    static void setSequenceMode(byte);
+    static void setSequenceMode(uint8_t);
 
     // Manually selects the active step
-    static void selectStep(byte);
+    static void selectStep(uint8_t);
 
     // Retrieve the currently selected step
-    static byte getSelectedStep();
+    static uint8_t getSelectedStep();
 
     // Manually set the gate signal. This will get overridden by what the
     // sequence dictates when it's running
@@ -86,17 +87,17 @@ class Sequence {
 
     // Sets the time divider, that is, the musical length of 1 step
     // For instance the value 8 would be 1 eight note
-    static void setTimeDivider(byte);
+    static void setTimeDivider(uint8_t);
 
-    static byte cycleTimeDivider(bool);
+    static uint8_t cycleTimeDivider(bool);
 
     // Change gate mode per step, directly, or by cycling
-    static byte setGateModeForStep(byte step, byte gateMode);
-    static byte cycleGateModeForStep(byte step);
+    static uint8_t setGateModeForStep(uint8_t step, uint8_t gateMode);
+    static uint8_t cycleGateModeForStep(uint8_t step);
 
     // Change step repetition count, directly, or by cycling
-    static byte setStepRepeatForStep(byte step, byte repetitions);
-    static byte cycleStepRepeatForStep(byte step);
+    static uint8_t setStepRepeatForStep(uint8_t step, uint8_t repetitions);
+    static uint8_t cycleStepRepeatForStep(uint8_t step);
 
     // Writes Sequence's local settings to teh given settings struct
     static void collectSettings(Settings *settingsToSave);
@@ -112,18 +113,18 @@ class Sequence {
     static void onSequenceModeChange(ByteChangedHandler);
 
   private:
-    static const byte _sequences[][MAX_SEQUENCE_LENGTH + 1];
-    static volatile byte _selectedSequence[MAX_SEQUENCE_LENGTH + 1];
-    static volatile byte _indexInSequence;
-    static volatile byte _currentStep;
-    static volatile byte _currentStepRepetition;
-    static volatile byte _sequenceMode;
-    static volatile byte _gateMode[NUM_STEPS];
-    static volatile byte _stepRepeat[NUM_STEPS];
-    static volatile byte _timeDivider;
-    static volatile unsigned long _pulsesPerSubstep;
+    static const uint8_t _sequences[][MAX_SEQUENCE_LENGTH + 1];
+    static volatile uint8_t _selectedSequence[MAX_SEQUENCE_LENGTH + 1];
+    static volatile uint8_t _indexInSequence;
+    static volatile uint8_t _currentStep;
+    static volatile uint8_t _currentStepRepetition;
+    static volatile uint8_t _sequenceMode;
+    static volatile uint8_t _gateMode[NUM_STEPS];
+    static volatile uint8_t _stepRepeat[NUM_STEPS];
+    static volatile uint8_t _timeDivider;
+    static volatile uint32_t _pulsesPerSubstep;
     static volatile bool _firstHalfOfStep;
-    static volatile unsigned long _internalTicks;
+    static volatile uint32_t _internalTicks;
     static volatile bool _running;
     static volatile bool _gate;
     static volatile bool _trigger;
@@ -132,12 +133,12 @@ class Sequence {
     static BoolChangedHandler _onTriggerChangedHandler;
     static ByteChangedHandler _onSelectedStepChangedHandler;
     static ByteChangedHandler _onSequenceModeChangedHandler;
-    static void _selectStep(byte);
+    static void _selectStep(uint8_t);
     static void _setTrigger(bool);
     static void _advanceSubStep();
     static void _advanceSequence();
-    static void _initSequence(byte);
-    static byte _generateRandomStep(byte);
+    static void _initSequence(uint8_t);
+    static uint8_t _generateRandomStep(uint8_t);
 };
 
 #endif // MODULE_SEQUENCE_H

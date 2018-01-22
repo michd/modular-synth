@@ -21,6 +21,7 @@
  */
 
 #include <Arduino.h>
+#include <stdint.h>
 
 // Ensure we don't double-define the functionality
 #ifndef MCP492X_h
@@ -48,7 +49,7 @@ class MCP492X {
     // ```
     // myDac.analogWrite(1234);
     // ```
-    void analogWrite(unsigned int);       // Write a 12 bit value
+    void analogWrite(uint16_t);       // Write a 12 bit value
 
     // Writes a 12 bit value to a given DAC output (0 or 1 / A or B)
     // Param 1 = DAC selection
@@ -57,7 +58,7 @@ class MCP492X {
     // ```
     // myDac.analogWrite(1, 4095);
     // ```
-    void analogWrite(bool, unsigned int); // Write a 12 bit value to a specific output (only MCP4922)
+    void analogWrite(bool, uint16_t); // Write a 12 bit value to a specific output (only MCP4922)
 
     // Writes a 12 bit value to a given DAC output (0 or 1 / A or B),
     // and allows setting every config bit individually.
@@ -70,7 +71,7 @@ class MCP492X {
     // ```
     // myDac.analogWrite(1, 0, 1, 1, 2480);
     // ```
-    void analogWrite(bool, bool, bool, bool, unsigned int); // Full control over control bits
+    void analogWrite(bool, bool, bool, bool, uint16_t); // Full control over control bits
 
   private:
     // Internal fields/methods you should not need to worry about.

@@ -39,6 +39,14 @@
 #define PARAM_MAX_NOTE 0b11
 #define PARAM_TIME_DIVIDER 0b10
 
+// Least significant byte describes bits to be written to a row
+// Most significat bits describe which row to use
+// Split up accordingly
+#define LED_INDICATOR_NONE      0x400 // None of those LEDs on
+#define LED_INDICATOR_STEP_NOTE 0x440
+#define LED_INDICATOR_MAX_NOTE  0x420
+#define LED_INDICATOR_MIN_NOTE  0x410
+
 #define ADC_CV_CHANNEL 0
 #define ADC_STEP_CHANNEL 1
 
@@ -51,12 +59,13 @@
 
 #define NUM_STEPS 8
 
-// There are only 6 possible tasks, and none may be duplicated in the queue
-#define MAX_TASK_QUEUE_LENGTH 6
-#define DISPLAY_STRING_LENGTH 5 // 1 of the null terminator
+// There are only 7 possible tasks, and none may be duplicated in the queue
+#define MAX_TASK_QUEUE_LENGTH 7
+#define DISPLAY_STRING_LENGTH 5 // 1 for the null terminator
 
 #include <Arduino.h>
 #include <String.h>
+#include <stdint.h>
 
 #include "MAX72S19.h" // Display driver
 #include "MCP23S17.h" // Port expander
@@ -90,8 +99,17 @@ enum Tasks {
     WRITE_DAC,
     READ_PORTEXP,
     PROCESS_PORTEXP_INTERRUPT,
-    WRITE_DISPLAY
+    WRITE_DISPLAY,
+    WRITE_LEDS
   };
+
+enum LEDs {
+    INDICATOR_NONE,
+    INDICATOR_STEP_NOTE,
+    INDICATOR_MIN_NOTE,
+    INDICATOR_MAX_NOTE
+  };
+
 
 typedef void (*AdcReadHandler)(unsigned int);
 typedef void (*ButtonPressedHandler)(void);
@@ -99,7 +117,7 @@ typedef void (*ArrowButtonPressedHandler)(bool);
 typedef void (*TickHandler)(void);
 
 class IO {
-  public:
+  public:    
     static void init();
 
     static void setGate(bool);
@@ -109,10 +127,10 @@ class IO {
     static void setRunning(bool);
 
     // Drive multiplexers and decoder for selecting the current step
-    static void setStep(byte);
+    static void setStep(uint8_t);
 
     // write to DAC (SPI)
-    static void setPitch(unsigned int);
+    static void setPitch(uint16_t);
 
     // Read from the ADC, processing the result with a handler function
     static void readAdc(AdcReadHandler);
@@ -121,22 +139,28 @@ class IO {
     static void readPortExp();
 
     // Read the cached data from port expander
-    static word readPortExpCache();
+    static uint16_t readPortExpCache();
 
-    static bool getPortExpPin(byte);
+    static bool getPortExpPin(uint8_t);
 
-    static byte getSelectedParam();
+    static uint8_t getSelectedParam();
 
     // Read and derive the pressed step from the ADC
     // The step buttons are set up as a little keyboard, resistors between them
     // We read an ADC value to figure out which one's pressed, if any
     static void readSelectedStep();
 
-    static byte getSelectedStep();
+    static uint8_t getSelectedStep();
 
     // Note: very limiting but should cover needs pretty well for now
     // Write 4 characters to the display
     static void writeDisplay(String);
+
+    // Writes one of a configuration of LEDs
+    // This is an enum which covers needs for now (light one out of a set of 3)
+    // but could be updated to take a uint16_t instead to cover LED_INDICATOR_*
+    // constant formats directly
+    static void writeLeds(LEDs);
 
     // Assign button press handlers
     static void onSequenceModeButtonPressed(ButtonPressedHandler);
@@ -158,7 +182,7 @@ class IO {
     static void _queueTask(Tasks);
     static void _processQueuedTask();
     static void _taskFinished();
-    static void _taskQueueInsertAt(Tasks, byte);
+    static void _taskQueueInsertAt(Tasks, uint8_t);
     static bool _taskQueueContainsTask(Tasks);
     static void _executeTask(Tasks);
     static void _taskReadAdc();
@@ -167,6 +191,7 @@ class IO {
     static void _taskReadPortExp();
     static void _taskProcessPortExpInterrupt();
     static void _taskWriteDisplay();
+    static void _taskWriteLeds();
 
     static void _processPortExpanderInterrupt();
     static void _processRunStopPressedInterrupt();
@@ -190,12 +215,13 @@ class IO {
 
     volatile static bool _spiBusy;
     volatile static Tasks _taskQueue[MAX_TASK_QUEUE_LENGTH];
-    volatile static byte _taskQueueLength;
+    volatile static uint8_t _taskQueueLength;
     volatile static unsigned int _queuedDacValue;
-    volatile static byte _cachedSelectedStep;
+    volatile static uint8_t _cachedSelectedStep;
     static const unsigned int _stepSize = (ADC_MAX - 8) / (NUM_STEPS + 1);
     static const unsigned int _halfStepSize = _stepSize / 2;
     static String _queuedDisplayValue;
+    static uint16_t _queuedLedsValue;
     static AdcReadHandler _adcReadHandler;
     static bool _arrowButtonHandlerSetup;
 

@@ -29,29 +29,30 @@
 #include "settings.h"
 #include <Arduino.h>
 #include <String.h>
+#include <stdint.h>
 
 class NoteMapper {
   public:
     static void init();
     // Maps a ADC reading to a note base on current range and such
-    static byte mapToNote(unsigned short int);
+    static uint8_t mapToNote(uint16_t);
 
-    static unsigned int getNoteOutput(byte);
+    static uint16_t getNoteOutput(uint8_t);
 
     // Builds a String representation of a note, for display
-    static String getNoteText(byte);
+    static String getNoteText(uint8_t);
 
     // String representation of a scale, for display
-    static String getScaleText(byte);
+    static String getScaleText(uint8_t);
 
     // Sets the min note up or down, and returns the new min note
-    static byte cycleMinNote(bool);
+    static uint8_t cycleMinNote(bool);
 
     // Sets the max note up or down, and returns the new max note
-    static byte cycleMaxNote(bool);
+    static uint8_t cycleMaxNote(bool);
 
     // Cycles to the next defined scale and returns the scale identifier
-    static byte cycleScale();
+    static uint8_t cycleScale();
 
     // Writes notemapper's settings to the given settings struct
     static void collectSettings(Settings *settingsToSave);
@@ -60,12 +61,12 @@ class NoteMapper {
     static void loadFromSettings(Settings *settings);
   
   private:
-    static byte* _getScale(byte);
-    static byte _getClosest(byte, byte*);
-    static unsigned int _noteOutputValues[];
-    static volatile byte _selectedScale;
-    static volatile byte _rangeMinNote;
-    static volatile byte _rangeMaxNote;    
+    static uint8_t* _getScale(uint8_t);
+    static uint8_t _getClosest(uint8_t, uint8_t*);
+    static uint16_t _noteOutputValues[];
+    static volatile uint8_t _selectedScale;
+    static volatile uint8_t _rangeMinNote;
+    static volatile uint8_t _rangeMaxNote;    
 };
 
 #endif // NOTEMAPPER_H

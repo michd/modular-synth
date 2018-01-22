@@ -12,19 +12,17 @@ void MCP3202::begin() {
   _spiSettings = SPISettings(18000000, MSBFIRST, SPI_MODE0);
 }
 
-unsigned int MCP3202::analogRead(bool channel) {
+uint16_t MCP3202::analogRead(bool channel) {
   return _read(1, channel);
 }
 
-unsigned int MCP3202::analogReadDifferential(bool sign) {
+uint16_t MCP3202::analogReadDifferential(bool sign) {
   return _read(0, sign);
 }
 
-unsigned int MCP3202::_read(bool singleOrDiff, bool oddOrSign) {
+uint16_t MCP3202::_read(bool singleOrDiff, bool oddOrSign) {
   // See MCB3202 datasheet page 13 ("5. Serial Communications") for details
-
-  // TODO: consider whether most significant bit first should be configurable
-  byte commandBits = B00001001; // Leading zeroes, 2 config bits, MSBFIRST
+  uint8_t commandBits = B00001001; // Leading zeroes, 2 config bits, MSBFIRST
 
   commandBits |= singleOrDiff << 2;
   commandBits |= oddOrSign << 1;
@@ -34,9 +32,9 @@ unsigned int MCP3202::_read(bool singleOrDiff, bool oddOrSign) {
   // Transfer command bits (with leading 0s as we work in bytes)
   SPI.transfer(commandBits);
   // Get most significant 7 bits - 7 because the first one (MSB) is a null bit
-  unsigned int msbits7 = SPI.transfer(0) & B01111111;
+  uint16_t msbits7 = SPI.transfer(0) & 0b01111111;
   // Get leas significant 5 bits (and 3 extra bits we'll discard)
-  unsigned int lsbbits5 = SPI.transfer(0) & B11111000;
+  uint16_t lsbbits5 = SPI.transfer(0) & 0b11111000;
  
   _endTransmission();
   

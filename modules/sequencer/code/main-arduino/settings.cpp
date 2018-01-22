@@ -28,7 +28,7 @@ Settings SettingsManager::load(uint8_t index) {
 
   // Located stating address, based on size of Settings struct + 1 for
   // "contains patch" indicator value
-  unsigned int address = index * (sizeof(Settings) + 1);
+  uint16_t address = index * (sizeof(Settings) + 1);
   
   // If our magic value wasn't found, there are no settings here,
   // return default settings instead
@@ -65,7 +65,7 @@ void SettingsManager::save(Settings settings, uint8_t index) {
   // overwriting patch 1.
   if (index > NUM_STEPS) return;
 
-  unsigned int address = index * (sizeof(Settings) + 1);
+  uint16_t address = index * (sizeof(Settings) + 1);
 
   // Write our indicator, indicating that a valid set of settings comes after
   EEPROM.write(address, SETTING_INDEX_HAS_VALUE_INDICATOR);

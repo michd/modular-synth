@@ -2,6 +2,9 @@
 
 MAX72S19::MAX72S19(uint8_t pinChipSelect) {
   _pinChipSelect = pinChipSelect;
+
+  // Init cache
+  for (uint8_t i = 0; i < MAX_DIGITS; i++) _displayCache[i] = 0x00;
 }
 
 void MAX72S19::begin() {
@@ -12,15 +15,34 @@ void MAX72S19::begin() {
 }
 
 void MAX72S19::setLED(uint8_t row, uint8_t column, bool on) {
-  // TODO
+  row = constrain(row, 0, MAX_ROWS - 1);
+  column = constrain(column, 0, MAX_COLUMNS - 1);
+
+  uint8_t newRowValue = _displayCache[row];
+  
+  if (on) {
+    newRowValue |=  (1 << column);
+  } else {
+    newRowValue &= ~(1 << column);
+  }
+
+  setRow(row, newRowValue);
 }
 
 void MAX72S19::setRow(uint8_t row, uint8_t states) {
-  // TODO
+  row = constrain(row, 0, MAX_ROWS - 1);
+
+  if (_displayCache[row] != states) {
+    _setRegister(row + REG_DIGIT0, states);  
+  }
 }
 
 void MAX72S19::setColumn(uint8_t column, uint8_t states) {
-  // TODO
+  column = constrain(column, 0, MAX_COLUMNS);
+
+  for (uint8_t i = 0; i < MAX_ROWS; i++) {
+    setLED(i, column, (states & (1 << i)));
+  }
 }
 
 void MAX72S19::clear() {
@@ -192,8 +214,20 @@ void MAX72S19::_endTransmission() {
 }
 
 void MAX72S19::_setRegister(uint8_t reg, uint8_t data) {
+  if (reg >= MIN_DISPLAY_REG && reg <= MAX_DISPLAY_REG) {
+    // If we're not updating, we don't need to initiate SPI communication
+    if (_displayCache[reg - REG_DIGIT0] == data) {
+      return;
+    }
+
+    // Store in display cache
+    _displayCache[reg - REG_DIGIT0] = data;
+  }
+
   _beginTransmission();
+
   SPI.transfer(reg);
   SPI.transfer(data);
+
   _endTransmission();
 }

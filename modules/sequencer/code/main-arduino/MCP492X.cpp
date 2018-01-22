@@ -12,12 +12,12 @@ void MCP492X::begin() {
   _spiSettings = SPISettings(20000000, MSBFIRST, SPI_MODE0);
 }
 
-void MCP492X::analogWrite(unsigned int value) {
+void MCP492X::analogWrite(uint16_t value) {
   analogWrite(0, value);
 }
 
 // Only applies to MCP4922
-void MCP492X::analogWrite(bool odd, unsigned int value) {
+void MCP492X::analogWrite(bool odd, uint16_t value) {
   analogWrite(
     odd, // Pass channel
     0,   // Not buffered,
@@ -29,15 +29,15 @@ void MCP492X::analogWrite(bool odd, unsigned int value) {
 // If you want full control, this method lets you set all config bits
 // See MCP492X datasheet page 18 ("5.0 Serial interface") for details
 void MCP492X::analogWrite(
-  bool odd, bool buffered, bool gain, bool active, unsigned int value) {
+  bool odd, bool buffered, bool gain, bool active, uint16_t value) {
   
-  byte configBits = odd << 3 | buffered << 2 | gain << 1 | active;
+  uint8_t configBits = odd << 3 | buffered << 2 | gain << 1 | active;
 
   // Compose the first byte to send to the DAC:
   // the 4 control bits, and the 4 most significant bits of the value
-  byte firstByte = configBits << 4 | (value & 0xF00) >> 8;
+  uint8_t firstByte = configBits << 4 | (value & 0xF00) >> 8;
   // Second byte is the lower 8 bits of the value
-  byte secondByte = value & 0xFF;
+  uint8_t secondByte = value & 0xFF;
 
   _beginTransmission();
   SPI.transfer(firstByte);

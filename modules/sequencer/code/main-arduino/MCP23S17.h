@@ -121,8 +121,7 @@
 #define    OLATB     (0x15)      // 1 = Latch High, 0 = Latch Low (default) Reading Returns Latch State, Not Port Value!
 
 #include <Arduino.h>
-
-
+#include <stdint.h>
 
 class MCP23S17 {
 
@@ -132,133 +131,133 @@ class MCP23S17 {
     // Constructor to instantiate a discrete IC as an object:
     // address 0-7
     // chipSelect pin
-    MCP23S17(byte, byte);
+    MCP23S17(uint8_t, uint8_t);
 
     // Start the SPI Bus
     void begin();
 
     // Typically only used internally, but allows the user to write any register pair if needed, so it's public
-    void wordWrite(byte, word);
+    void wordWrite(uint8_t, uint16_t);
 
     // Typically only used internally, but allows the user to write any register if needed, so it's public
-    void byteWrite(byte, byte);
+    void byteWrite(uint8_t, uint8_t);
 
     // Sets the mode (input or output) of a single I/O pin
     // Pin number, input (1) / output (0)
-    void pinMode(byte, bool);
+    void pinMode(uint8_t, bool);
 
     // Sets the mode (input or output) of all I/O pins at once
-    void pinMode(word);
+    void pinMode(uint16_t);
 
     // Selects internal 100k input pull-up of a single I/O pin
     // Pin number, pull-up enabled (1) / disabled (0)
-    void pullupMode(byte, bool);
+    void pullupMode(uint8_t, bool);
 
     // Selects internal 100k input pull-up of all I/O pins at once
-    void pullupMode(word);
+    void pullupMode(uint16_t);
 
     // Selects input state inversion of a single I/O pin (writing 1 turns on inversion)
     // Pin number, invert enabled (1) / disabled (0)
-    void inputInvert(byte, bool);
+    void inputInvert(uint8_t, bool);
 
     // Selects input state inversion of all I/O pins at once (writing a 1 turns on inversion)
-    void inputInvert(word);
+    void inputInvert(uint16_t);
 
     // Sets a single pin to trigger interrupts when it changes
-    void interruptOnChange(byte, bool);
+    void interruptOnChange(uint8_t, bool);
 
     // Configures which pins should trigger an interrupt when changed
-    void interruptOnChange(word);
+    void interruptOnChange(uint16_t);
 
     // Configures for a single pin whether to compare to default value or just change
     // to trigger an interrupt
-    void interruptCompareToDefault(byte, bool);
+    void interruptCompareToDefault(uint8_t, bool);
 
     // Configures which pins should compare to default value or just change
     // to trigger an interrupt
-    void interruptCompareToDefault(word);
+    void interruptCompareToDefault(uint16_t);
 
     // Sets the default to compare to to trigger an interrupt, for a given pin
-    void interruptSetDefault(byte, bool);
+    void interruptSetDefault(uint8_t, bool);
 
     // Sets all the defaults to compare to trigger interrupts in one fell swoop
-    void interruptSetDefault(word);
+    void interruptSetDefault(uint16_t);
 
     // Sets an individual output pin HIGH or LOW
-    void digitalWrite(byte, bool);
+    void digitalWrite(uint8_t, bool);
 
     // Sets all output pins at once. If some pins are configured as input, those bits will be ignored on write
-    void digitalWrite(word);
+    void digitalWrite(uint16_t);
 
     // Reads an individual input pin
-    bool digitalRead(byte);
+    bool digitalRead(uint8_t);
 
     // Reads an individual register and returns the byte. Argument is the register address
-    byte byteRead(byte);
+    uint8_t byteRead(uint8_t);
 
     // Reads all input pins at once. Be sure it ignore the value of pins configured as output!
-    word digitalRead(void);
+    uint16_t digitalRead();
 
     // Return an individual input pin from cached value - not using SPI to read up to date value
-    bool digitalReadCache(byte);
+    bool digitalReadCache(uint8_t);
 
     // Return all input pins at once from cache
-    word digitalReadCache(void);
+    uint16_t digitalReadCache();
 
     // Attach an interrupt handler to a pin, using same modes are on Arduino's version
     // pin number, handler function, CHANGE / FALLING / RISING
-    void attachInterrupt(byte, InterruptHandler, int mode);
+    void attachInterrupt(uint8_t, InterruptHandler, int mode);
 
     // Remove an interrupt handler from a pin
-    void detachInterrupt(byte);
+    void detachInterrupt(uint8_t);
 
     // Handle interrupt from main program
-    void processInterrupt(void);
+    void processInterrupt();
 
   private:
     // 3-bit address of the MCP23S17 in use
-    byte _address;
+    uint8_t _address;
 
     // Slave-select pin
-    byte _ss;
+    uint8_t _ss;
 
     // Settings to use for SPI transmissions, initialized in begin()
     SPISettings _spiSettings;
 
     // Caches the mode (input/output) configuration of I/O pins
-    word _modeCache;
+    uint16_t _modeCache;
 
     // Caches the internal pull-up configuration of input pins (values persist across mode changes)
-    word _pullupCache;
+    uint16_t _pullupCache;
 
     // Caches the input pin inversion selection (values persist across mode changes)
-    word _invertCache;
+    uint16_t _invertCache;
 
     // Caches the interrupt-on-change selections
-    word _interruptOnChangeCache;
+    uint16_t _interruptOnChangeCache;
 
     // Caches the interrupt comparison mode selections
     // If a bit here is 1, it compares to the default values rather than on change
-    word _interruptCompareToDefaultCache;
+    uint16_t _interruptCompareToDefaultCache;
 
     // Caches the default values compared to for triggering interrupts
     // These are only relevant for pins where we're comparing to default value
-    word _interruptCompareDefaultsCache;
+    uint16_t _interruptCompareDefaultsCache;
 
     // The MCP23S17 functionality for compare to default is a bit undesirable
     // in that it keeps the interrupt active until conditions change, rather
     // than just on change, so we're doing what it's meant to do, locally.
     // Each bit here indicates whether to compare whether we've changed values,
     // and whether that's a change from the default
-    word _interruptLocalCompareToDefault;
+    uint16_t _interruptLocalCompareToDefault;
 
-    word _interruptLocalCompareDefaults;
+    uint16_t _interruptLocalCompareDefaults;
 
     // Caches the output pin state of pins
-    word _outputCache;
+    uint16_t _outputCache;
 
     // Caches input pins whenever they are read, so they can be retrieved from cache directly
-    word _inputCache;
+    uint16_t _inputCache;
 
     // Function pointers to interrupt handlers for each pin
     InterruptHandler _interruptHandlers[16];
@@ -268,21 +267,21 @@ class MCP23S17 {
     void _endTransmission();
 
     // Helper to check whether pin is in range
-    bool _isValidPin(byte);
+    bool _isValidPin(uint8_t);
 
     // Helper for common action of setting one bit in a word
     // Input word, 1-indexed bit, new value for that bit
     // variable is passed by reference, this will modify the given variable
-    void _toggleBit(word &, byte, bool);
+    void _toggleBit(uint16_t &, uint8_t, bool);
 
     // Returns the state of a single bit from a word
     // bit is 1-indexed
-    bool _getBit(word, byte);
+    bool _getBit(uint16_t, uint8_t);
 
     // Helper for _interruptHandler, determines 1-index pin number that caused interrupt
     // With some nice optimizations, like not bothering to request the seconds
     // (B) register if the A register was non-zero
-    byte _getInterruptCausingPin(void);
+    uint8_t _getInterruptCausingPin();
  };
 
 #endif //MCP23S17

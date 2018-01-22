@@ -2,16 +2,16 @@
 
 // Note: this entire class is used in a static way, it is not to be instantiated.
 
-volatile byte Sequence::_currentStep = 0;
-volatile byte Sequence::_currentStepRepetition = 0;
-volatile byte Sequence::_sequenceMode = SEQUENCE_MODE_FORWARD;
-volatile byte Sequence::_gateMode[NUM_STEPS];
-volatile byte Sequence::_stepRepeat[NUM_STEPS];
-volatile byte Sequence::_timeDivider = DEFAULT_TIME_DIVIDER;
-volatile byte Sequence::_indexInSequence = 0;
-volatile unsigned long Sequence::_pulsesPerSubstep = (PPQ / 2) / (DEFAULT_TIME_DIVIDER / 4);
+volatile uint8_t Sequence::_currentStep = 0;
+volatile uint8_t Sequence::_currentStepRepetition = 0;
+volatile uint8_t Sequence::_sequenceMode = SEQUENCE_MODE_FORWARD;
+volatile uint8_t Sequence::_gateMode[NUM_STEPS];
+volatile uint8_t Sequence::_stepRepeat[NUM_STEPS];
+volatile uint8_t Sequence::_timeDivider = DEFAULT_TIME_DIVIDER;
+volatile uint8_t Sequence::_indexInSequence = 0;
+volatile uint32_t Sequence::_pulsesPerSubstep = (PPQ / 2) / (DEFAULT_TIME_DIVIDER / 4);
 volatile bool Sequence::_firstHalfOfStep = true;
-volatile unsigned long Sequence::_internalTicks = 0;
+volatile uint32_t Sequence::_internalTicks = 0;
 volatile bool Sequence::_running = false;
 volatile bool Sequence::_gate = false;
 volatile bool Sequence::_trigger = false;
@@ -22,7 +22,7 @@ ByteChangedHandler Sequence::_onSelectedStepChangedHandler;
 ByteChangedHandler Sequence::_onSequenceModeChangedHandler;
 
 // Initialize hardcoded sequences
-const byte Sequence::_sequences[][MAX_SEQUENCE_LENGTH + 1] = {
+const uint8_t Sequence::_sequences[][MAX_SEQUENCE_LENGTH + 1] = {
   // 1: Simple forward, length 8
   { 0, 1, 2, 3, 4, 5, 6, 7, SEQUENCE_TERMINATOR },
   // 2: Reverse, length 8
@@ -43,10 +43,10 @@ const byte Sequence::_sequences[][MAX_SEQUENCE_LENGTH + 1] = {
     SEQUENCE_TERMINATOR }
 };
 
-volatile byte Sequence::_selectedSequence[MAX_SEQUENCE_LENGTH + 1]; 
+volatile uint8_t Sequence::_selectedSequence[MAX_SEQUENCE_LENGTH + 1]; 
 
 void Sequence::init() {
-  for (byte i = 0; i < NUM_STEPS; i++) {
+  for (uint8_t i = 0; i < NUM_STEPS; i++) {
     _gateMode[i] = GATE_MODE_HALF_STEP;
     _stepRepeat[i] = 1;
   }
@@ -57,7 +57,7 @@ void Sequence::init() {
 void Sequence::tick() {
   if (!_running) return;
 
-  unsigned long ticks = _internalTicks;
+  uint32_t ticks = _internalTicks;
   ticks++;
 
   if (ticks >= _pulsesPerSubstep) {
@@ -97,7 +97,7 @@ bool Sequence::isRunning() {
   return _running;
 }
 
-void Sequence::setSequenceMode(byte newSequenceMode) {
+void Sequence::setSequenceMode(uint8_t newSequenceMode) {
   if (_sequenceMode == newSequenceMode) {
     // Trigger change handler anyway to update display
     (*_onSequenceModeChangedHandler)(newSequenceMode);
@@ -113,11 +113,11 @@ void Sequence::setSequenceMode(byte newSequenceMode) {
   (*_onSequenceModeChangedHandler)(newSequenceMode);
 }
 
-void Sequence::selectStep(byte newSelectedStep) {
+void Sequence::selectStep(uint8_t newSelectedStep) {
   _selectStep(constrain(newSelectedStep, 0, NUM_STEPS - 1));
 }
 
-byte Sequence::getSelectedStep() {
+uint8_t Sequence::getSelectedStep() {
   return _currentStep;
 }
 
@@ -130,13 +130,13 @@ void Sequence::setGate(bool on) {
   if (on) _setTrigger(true);
 }
 
-void Sequence::setTimeDivider(byte newDivider) {
+void Sequence::setTimeDivider(uint8_t newDivider) {
   _timeDivider = constrain(newDivider, 1, 16);
-  _pulsesPerSubstep = (short int)((double)(PPQ / 2) / ((double)newDivider / (double)4));
+  _pulsesPerSubstep = (uint16_t)((double)(PPQ / 2) / ((double)newDivider / (double)4));
 }
 
-byte Sequence::cycleTimeDivider(bool higher) {
-  byte newTimeDivider;
+uint8_t Sequence::cycleTimeDivider(bool higher) {
+  uint8_t newTimeDivider;
 
   if (higher) {
     newTimeDivider = _timeDivider << 1;
@@ -156,7 +156,7 @@ byte Sequence::cycleTimeDivider(bool higher) {
   return _timeDivider;
 }
 
-byte Sequence::setGateModeForStep(byte step, byte gateMode) {
+uint8_t Sequence::setGateModeForStep(uint8_t step, uint8_t gateMode) {
   step = constrain(step, 0, NUM_STEPS - 1);
   gateMode = constrain(gateMode, 0, MAX_GATE_MODE_VALUE);
 
@@ -164,9 +164,9 @@ byte Sequence::setGateModeForStep(byte step, byte gateMode) {
   return gateMode;
 }
 
-byte Sequence::cycleGateModeForStep(byte step) {
+uint8_t Sequence::cycleGateModeForStep(uint8_t step) {
   step = constrain(step, 0, NUM_STEPS - 1);
-  byte gateMode = _gateMode[step];
+  uint8_t gateMode = _gateMode[step];
 
   gateMode++;
   if (gateMode > MAX_GATE_MODE_VALUE) gateMode = 0;
@@ -174,7 +174,7 @@ byte Sequence::cycleGateModeForStep(byte step) {
   return gateMode;
 }
 
-byte Sequence::setStepRepeatForStep(byte step, byte repetitions) {
+uint8_t Sequence::setStepRepeatForStep(uint8_t step, uint8_t repetitions) {
   step = constrain(step, 0, NUM_STEPS - 1);
   repetitions = constrain(repetitions, MIN_STEP_REPEAT, MAX_STEP_REPEAT);
 
@@ -182,9 +182,9 @@ byte Sequence::setStepRepeatForStep(byte step, byte repetitions) {
   return repetitions;
 }
 
-byte Sequence::cycleStepRepeatForStep(byte step) {
+uint8_t Sequence::cycleStepRepeatForStep(uint8_t step) {
   step = constrain(step, 0, NUM_STEPS - 1);
-  byte stepRepetitions = _stepRepeat[step];
+  uint8_t stepRepetitions = _stepRepeat[step];
 
   stepRepetitions++;
   if (stepRepetitions > MAX_STEP_REPEAT) stepRepetitions = MIN_STEP_REPEAT;
@@ -203,11 +203,20 @@ void Sequence::collectSettings(Settings *settingsToSave) {
 }
 
 void Sequence::loadFromSettings(Settings *settings) {
+  uint8_t timeDivider = settings->timeDivider;
+  
+  // Tidy up timeDivider to ensure it only has a single ON bit
+  for (uint8_t tdBit = 0; tdBit < 8; tdBit++) {
+    uint8_t bitMask = 1 << (7 - tdBit);
+    if (timeDivider & bitMask) {
+      timeDivider &= bitMask;
+      break;
+    }
+  }
+
   setTimeDivider(constrain(settings->timeDivider, MIN_TIME_DIVIDER, MAX_TIME_DIVIDER));
   _sequenceMode = constrain(settings->sequenceMode, SEQUENCE_MODE_FORWARD, SEQUENCE_MODE_RANDOM);
   _initSequence(_sequenceMode);
-
-  // TODO further clean up _timeDivider, essentially ensuring it only has one 1 in the byte
 
   for (uint8_t i = 0; i < NUM_STEPS; i++) {
     _gateMode[i] = constrain(settings->gateModes[i], GATE_MODE_HALF_STEP, MAX_GATE_MODE_VALUE);
@@ -235,7 +244,7 @@ void Sequence::onSequenceModeChange(ByteChangedHandler handler) {
   _onSequenceModeChangedHandler = handler;
 }
 
-void Sequence::_selectStep(byte newSelectedStep) {
+void Sequence::_selectStep(uint8_t newSelectedStep) {
   if (_currentStep == newSelectedStep) return;
   _currentStep = newSelectedStep;
   (*_onSelectedStepChangedHandler)(newSelectedStep);
@@ -252,7 +261,7 @@ void Sequence::_advanceSubStep() {
   _firstHalfOfStep = !_firstHalfOfStep;
   bool firstHalf = _firstHalfOfStep;
   bool gateWasOn = _gate;
-  byte repeatsForThisStep = _stepRepeat[Sequence::_currentStep];
+  uint8_t repeatsForThisStep = _stepRepeat[Sequence::_currentStep];
 
   if (firstHalf) {
     if (_currentStepRepetition >= repeatsForThisStep) {
@@ -308,17 +317,17 @@ void Sequence::_advanceSequence() {
   _selectStep(_selectedSequence[_indexInSequence]);
 }
 
-void Sequence::_initSequence(byte sequenceMode) {
+void Sequence::_initSequence(uint8_t sequenceMode) {
   sequenceMode = constrain(sequenceMode, MIN_SEQUENCE_MODE, MAX_SEQUENCE_MODE);
 
   if (sequenceMode == SEQUENCE_MODE_RANDOM) {
     ::randomSeed(::millis());
   }
 
-  byte *sequence = _sequences[sequenceMode];
+  uint8_t *sequence = _sequences[sequenceMode];
 
-  byte previousStep = SEQUENCE_TERMINATOR;
-  byte i;
+  uint8_t previousStep = SEQUENCE_TERMINATOR;
+  uint8_t i;
   bool reachedEnd = false;
 
   // Copies over the values of the selected sequence,
@@ -342,8 +351,8 @@ void Sequence::_initSequence(byte sequenceMode) {
   _selectedSequence[i] = SEQUENCE_TERMINATOR;
 }
 
-byte Sequence::_generateRandomStep(byte previousStep) {
-  byte nextStep;
+uint8_t Sequence::_generateRandomStep(uint8_t previousStep) {
+  uint8_t nextStep;
 
   do {
     nextStep = random(NUM_STEPS);

@@ -1,38 +1,38 @@
 #include "notemapper.h"
 
-unsigned int NoteMapper::_noteOutputValues[NOTE_RANGE];
-volatile byte NoteMapper::_selectedScale = SCALE_CHROMATIC;
-volatile byte NoteMapper::_rangeMinNote = DEFAULT_MIN_NOTE;
-volatile byte NoteMapper::_rangeMaxNote = DEFAULT_MAX_NOTE;
+uint16_t NoteMapper::_noteOutputValues[NOTE_RANGE];
+volatile uint8_t NoteMapper::_selectedScale = SCALE_CHROMATIC;
+volatile uint8_t NoteMapper::_rangeMinNote = DEFAULT_MIN_NOTE;
+volatile uint8_t NoteMapper::_rangeMaxNote = DEFAULT_MAX_NOTE;
 
 void NoteMapper::init() {
-  float noteStep = (float)DAC_MAX / (float)(NOTE_RANGE - 1);
+  double noteStep = (double)DAC_MAX / (double)(NOTE_RANGE - 1);
 
-  for (byte i = 0; i < NOTE_RANGE; i++) {
-    _noteOutputValues[i] = (unsigned int)round(noteStep * (float)i);
+  for (uint8_t i = 0; i < NOTE_RANGE; i++) {
+    _noteOutputValues[i] = (uint16_t)round(noteStep * (double)i);
   }
 }
 
-uint8_t NoteMapper::mapToNote(unsigned short int input) {
-  byte note = (byte)(
-      ((float)input / (float)ADC_MAX) * 
+uint8_t NoteMapper::mapToNote(uint16_t input) {
+  uint8_t note = (uint8_t)(
+      ((double)input / (double)ADC_MAX) * 
       (_rangeMaxNote - _rangeMinNote + 1) + _rangeMinNote
     );
 
-  byte baseNote = note % 12;
-  byte mappedBaseNote = _getClosest(baseNote, _getScale(_selectedScale));
+  uint8_t baseNote = note % 12;
+  uint8_t mappedBaseNote = _getClosest(baseNote, _getScale(_selectedScale));
 
   return note - baseNote + mappedBaseNote; 
 }
 
-unsigned int NoteMapper::getNoteOutput(byte note) {
+uint16_t NoteMapper::getNoteOutput(uint8_t note) {
   note = constrain(note, 0, NOTE_RANGE -1);
   return _noteOutputValues[note];
 }
 
-String NoteMapper::getNoteText(byte note) {
+String NoteMapper::getNoteText(uint8_t note) {
   String octaveText = String(((note + MIN_NOTE_MIDI) / 12));
-  byte baseNote = note % 12;
+  uint8_t baseNote = note % 12;
 
   switch (baseNote) {
     case  0: return "C  " + octaveText;
@@ -51,7 +51,7 @@ String NoteMapper::getNoteText(byte note) {
   }
 }
 
-String NoteMapper::getScaleText(byte scale) {
+String NoteMapper::getScaleText(uint8_t scale) {
   switch (scale) {
     case SCALE_C_MAJOR: return "CMaj";
     case SCALE_PENTATONIC: return "PENT";
@@ -63,7 +63,7 @@ String NoteMapper::getScaleText(byte scale) {
   }
 }
 
-byte NoteMapper::cycleMinNote(bool up) {
+uint8_t NoteMapper::cycleMinNote(bool up) {
   if (up) {
     if (_rangeMinNote < NOTE_RANGE) _rangeMinNote++;
   } else {
@@ -73,7 +73,7 @@ byte NoteMapper::cycleMinNote(bool up) {
   return _rangeMinNote;
 }
 
-byte NoteMapper::cycleMaxNote(bool up) {
+uint8_t NoteMapper::cycleMaxNote(bool up) {
   if (up) {
     if (_rangeMaxNote < NOTE_RANGE) _rangeMaxNote++;
   } else {
@@ -83,8 +83,8 @@ byte NoteMapper::cycleMaxNote(bool up) {
   return _rangeMaxNote; 
 }
 
-byte NoteMapper::cycleScale() {
-  byte nextScale = _selectedScale + 1;
+uint8_t NoteMapper::cycleScale() {
+  uint8_t nextScale = _selectedScale + 1;
   if (nextScale > MAX_SCALE) nextScale = 0;
   _selectedScale = nextScale;
   return nextScale;
@@ -102,12 +102,12 @@ void NoteMapper::loadFromSettings(Settings *settings) {
   _rangeMaxNote = constrain(settings->maxNote, _rangeMinNote, NOTE_RANGE);
 }
 
-byte* NoteMapper::_getScale(byte scaleIndex) {
-  static byte chromaticScale[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, SCALE_TERMINATOR };
-  static byte cMajorScale[] = { 0, 2, 4, 5, 7, 9, 11, SCALE_TERMINATOR };
-  static byte pentatonicScale[] = { 1, 3, 6, 8, 10, SCALE_TERMINATOR };
-  static byte bluesScale[] = { 1, 3, 6, 8, 9, 10, SCALE_TERMINATOR };
-  static byte hexatonicScale[] = { 0, 2, 4, 6, 8, 10, SCALE_TERMINATOR };
+uint8_t* NoteMapper::_getScale(uint8_t scaleIndex) {
+  static uint8_t chromaticScale[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, SCALE_TERMINATOR };
+  static uint8_t cMajorScale[] = { 0, 2, 4, 5, 7, 9, 11, SCALE_TERMINATOR };
+  static uint8_t pentatonicScale[] = { 1, 3, 6, 8, 10, SCALE_TERMINATOR };
+  static uint8_t bluesScale[] = { 1, 3, 6, 8, 9, 10, SCALE_TERMINATOR };
+  static uint8_t hexatonicScale[] = { 0, 2, 4, 6, 8, 10, SCALE_TERMINATOR };
 
   switch (scaleIndex) {
     case SCALE_CHROMATIC: return chromaticScale;
@@ -119,9 +119,9 @@ byte* NoteMapper::_getScale(byte scaleIndex) {
   }
 }
 
-byte NoteMapper::_getClosest(byte baseNote, byte *scale) {
+uint8_t NoteMapper::_getClosest(uint8_t baseNote, uint8_t *scale) {
   baseNote = constrain(baseNote, 0, 12);
-  byte i = 0;
+  uint8_t i = 0;
 
   while (baseNote > *(scale + i) && *(scale + i) != SCALE_TERMINATOR) i++;
 

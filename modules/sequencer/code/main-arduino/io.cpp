@@ -3,10 +3,11 @@
 
 volatile bool IO::_spiBusy = false;
 volatile Tasks IO::_taskQueue[MAX_TASK_QUEUE_LENGTH];
-volatile byte IO::_taskQueueLength = 0;
+volatile uint8_t IO::_taskQueueLength = 0;
 volatile unsigned int IO::_queuedDacValue = 0;
-volatile byte IO::_cachedSelectedStep = 0;
+volatile uint8_t IO::_cachedSelectedStep = 0;
 String IO::_queuedDisplayValue;
+uint16_t IO::_queuedLedsValue = 0x0000;
 bool IO::_arrowButtonHandlerSetup = false;
 
 AdcReadHandler IO::_adcReadHandler;
@@ -49,23 +50,23 @@ void IO::init() {
   _portExp.begin();
   // Configure pins on port expander
   // Port A = buttons per step
-  byte portAmodes = 0b00001111; // Change as needed
-  //                      ||||- PORTEXP_PIN_UP_ARROW                  [*]
-  //                      |||- PORTEXP_PIN_DOWN_ARROW                 [*]
-  //                      ||- PORTEXP_PIN_PARAM_SELECT_A
-  //                      |- PORTEXP_PIN_PARAM_SELECT_B   
+  uint8_t portAmodes = 0b00001111; // Change as needed
+  //                         ||||- PORTEXP_PIN_UP_ARROW                  [*]
+  //                         |||- PORTEXP_PIN_DOWN_ARROW                 [*]
+  //                         ||- PORTEXP_PIN_PARAM_SELECT_A
+  //                         |- PORTEXP_PIN_PARAM_SELECT_B   
   // Port B = various buttons
-  byte portBmodes = 0b11111111; // Change as needed
-  //                  ||||||||- PORTEXP_PIN_GATE_MODE_SELECT_BUTTON   [*]
-  //                  |||||||- PORTEXP_PIN_REPEAT_SELECT_BUTTON       [*]
-  //                  ||||||- PORTEXP_PIN_SEQUENCE_MODE_SELECT_BUTTON [*]
-  //                  |||||- PORTEXP_PIN_RUN_STOP_BUTTON              [*]
-  //                  ||||- PORTEXP_PIN_SCALE_BUTTON                  [*]
-  //                  |||- PORTEXP_PIN_RESET_BUTTON                   [*]
-  //                  ||- PORTEXP_PIN_LOAD_BUTTON                     [*]
-  //                  |- PORTEXP_PIN_SAVE_BUTTON                      [*]
+  uint8_t portBmodes = 0b11111111; // Change as needed
+  //                     ||||||||- PORTEXP_PIN_GATE_MODE_SELECT_BUTTON   [*]
+  //                     |||||||- PORTEXP_PIN_REPEAT_SELECT_BUTTON       [*]
+  //                     ||||||- PORTEXP_PIN_SEQUENCE_MODE_SELECT_BUTTON [*]
+  //                     |||||- PORTEXP_PIN_RUN_STOP_BUTTON              [*]
+  //                     ||||- PORTEXP_PIN_SCALE_BUTTON                  [*]
+  //                     |||- PORTEXP_PIN_RESET_BUTTON                   [*]
+  //                     ||- PORTEXP_PIN_LOAD_BUTTON                     [*]
+  //                     |- PORTEXP_PIN_SAVE_BUTTON                      [*]
   // [*] - interrupt attached
-  word combinedModes = (portBmodes << 8) | portAmodes;
+  uint16_t combinedModes = (portBmodes << 8) | portAmodes;
   _portExp.pinMode(combinedModes);
   // Set all inputs to pull-up (buttons normal-open to gnd)
   // This means we can re-use the portmodes word
@@ -101,13 +102,15 @@ void IO::init() {
   // Configure display
   _display.setDecodeMode(0x00);
   _display.setIntensity(0x5);
-  _display.setScanLimit(3);
+  _display.setScanLimit(4);
   _display.clear();
   _display.activate();
 
   _dac.analogWrite(DAC_CENTER_VALUE); // 0V
-  
+
+#ifdef DEBUGLOGGING  
   Serial.begin(250000);
+#endif
 }
 
 void IO::setGate(bool on) {
@@ -119,10 +122,10 @@ void IO::setGate(bool on) {
 void IO::setTrigger(bool on) { ::digitalWrite(PIN_TRIGGER_OUT, on); }
 void IO::setRunning(bool on) { ::digitalWrite(PIN_RUNNING, on); }
 
-void IO::setStep(byte step) {
-  byte a = step & B001;
-  byte b = step & B010;
-  byte c = step & B100;
+void IO::setStep(uint8_t step) {
+  uint8_t a = step & B001;
+  uint8_t b = step & B010;
+  uint8_t c = step & B100;
 
   // Disable 3-to-8 decoded while writing to all lines
   // Prevents flickering of different values on the LEDS
@@ -137,7 +140,7 @@ void IO::setStep(byte step) {
   ::digitalWrite(PIN_STEP_ENABLE, 1);
 }
 
-void IO::setPitch(unsigned int newPitch) {
+void IO::setPitch(uint16_t newPitch) {
   _queuedDacValue = newPitch;
   _queueTask(WRITE_DAC);
 }
@@ -155,19 +158,19 @@ void IO::readSelectedStep() {
   _queueTask(READ_SELECTED_STEP);
 }
 
-byte IO::getSelectedStep() {
+uint8_t IO::getSelectedStep() {
   return _cachedSelectedStep;
 }
 
-word IO::readPortExpCache() {
+uint16_t IO::readPortExpCache() {
   return _portExp.digitalReadCache();
 }
 
-bool IO::getPortExpPin(byte pin) {
+bool IO::getPortExpPin(uint8_t pin) {
   return _portExp.digitalReadCache(pin);
 }
 
-byte IO::getSelectedParam() {
+uint8_t IO::getSelectedParam() {
   bool paramA = _portExp.digitalReadCache(PORTEXP_PIN_PARAM_SELECT_A);
   bool paramB = _portExp.digitalReadCache(PORTEXP_PIN_PARAM_SELECT_B);
 
@@ -177,6 +180,20 @@ byte IO::getSelectedParam() {
 void IO::writeDisplay(String text) {
   _queuedDisplayValue = text;
   _queueTask(WRITE_DISPLAY);
+}
+
+void IO::writeLeds(LEDs ledConfig) {
+  switch (ledConfig) {    
+    case INDICATOR_STEP_NOTE: _queuedLedsValue = LED_INDICATOR_STEP_NOTE; break;
+    case INDICATOR_MIN_NOTE: _queuedLedsValue = LED_INDICATOR_MIN_NOTE; break;
+    case INDICATOR_MAX_NOTE: _queuedLedsValue = LED_INDICATOR_MAX_NOTE; break;
+    case INDICATOR_NONE:
+    default:
+      _queuedLedsValue = LED_INDICATOR_NONE;
+      break;
+  }
+
+  _queueTask(WRITE_LEDS);
 }
 
 void IO::onSequenceModeButtonPressed(ButtonPressedHandler handler) {
@@ -315,9 +332,9 @@ void IO::_queueTask(Tasks task) {
 }
 
 // Inserts a task in the queue, moving other tasks down to make room
-void IO::_taskQueueInsertAt(Tasks task, byte index) {
+void IO::_taskQueueInsertAt(Tasks task, uint8_t index) {
   constrain(index, 0, MAX_TASK_QUEUE_LENGTH - 1);
-  byte firstBlank = index;
+  uint8_t firstBlank = index;
 
   // Locate earliest blank task in queue to find where to start shifting tasks
   while (firstBlank < MAX_TASK_QUEUE_LENGTH) {
@@ -326,7 +343,7 @@ void IO::_taskQueueInsertAt(Tasks task, byte index) {
   }
 
   // Move all tasks down one
-  for (byte j = firstBlank; j > index; j--) {
+  for (uint8_t j = firstBlank; j > index; j--) {
     if (j < MAX_TASK_QUEUE_LENGTH) {
       _taskQueue[j] = _taskQueue[j - 1];
     }
@@ -340,7 +357,7 @@ void IO::_taskQueueInsertAt(Tasks task, byte index) {
 }
 
 bool IO::_taskQueueContainsTask(Tasks task) {
-  for (byte i = 0; i < _taskQueueLength; i++) {
+  for (uint8_t i = 0; i < _taskQueueLength; i++) {
     if (_taskQueue[i] == task) return true;
   }
 
@@ -353,14 +370,14 @@ void IO::_processQueuedTask() {
   Tasks taskToRun = _taskQueue[0];
 
   // Shift everything up after removing the prioritized task
-  for (byte i = 0; i < _taskQueueLength - 1; i++) {
+  for (uint8_t i = 0; i < _taskQueueLength - 1; i++) {
     _taskQueue[i] = _taskQueue[i + 1];
   }
 
   _taskQueueLength--;
 
   // Ensure vacated positions are filled with "blank" tasks
-  for (byte i = _taskQueueLength; i < MAX_TASK_QUEUE_LENGTH; i++) {
+  for (uint8_t i = _taskQueueLength; i < MAX_TASK_QUEUE_LENGTH; i++) {
     _taskQueue[i] = BLANK;
   }
 
@@ -384,6 +401,7 @@ void IO::_executeTask(Tasks task) {
     case READ_PORTEXP: return _taskReadPortExp();
     case PROCESS_PORTEXP_INTERRUPT: return _taskProcessPortExpInterrupt();
     case WRITE_DISPLAY: return _taskWriteDisplay();
+    case WRITE_LEDS: return _taskWriteLeds();
     default: return;
   }
 }
@@ -394,7 +412,7 @@ void IO::_taskReadAdc() {
   if (_spiBusy) return;
 
   _spiBusy = true;
-  unsigned int adcValue = _adc.analogRead(ADC_CV_CHANNEL);
+  uint16_t adcValue = _adc.analogRead(ADC_CV_CHANNEL);
   _spiBusy = false;
 
   _adcReadHandler(adcValue);
@@ -407,10 +425,10 @@ void IO::_taskReadSelectedStep() {
   if (_spiBusy) return;
 
   _spiBusy = true;
-  unsigned int adcValue = _adc.analogRead(ADC_STEP_CHANNEL);
+  uint16_t adcValue = _adc.analogRead(ADC_STEP_CHANNEL);
   _spiBusy = false;
 
-  byte selectedStep = 0;
+  uint8_t selectedStep = 0;
 
   while (adcValue > ((selectedStep * _stepSize) + _halfStepSize)) {
     selectedStep++;
@@ -469,6 +487,18 @@ void IO::_taskWriteDisplay() {
 
   _spiBusy = true;
   _display.print(0, _queuedDisplayValue);
+  _spiBusy = false;
+
+  _taskFinished();
+}
+
+// Write some indication LEDs, through same chip as 7 segment display
+void IO::_taskWriteLeds() {
+  // Paranoid check
+  if (_spiBusy) return;
+
+  _spiBusy = true;
+  _display.setRow(_queuedLedsValue >> 8, _queuedLedsValue & 0xFF);
   _spiBusy = false;
 
   _taskFinished();
@@ -555,7 +585,7 @@ void IO::_internalHandleDownArrowButtonPressed() {
 }
 
 void IO::_handleArrowButtonPressed(bool upArrow) {
-  byte combinedParams = getSelectedParam();
+  uint8_t combinedParams = getSelectedParam();
 
   switch (combinedParams) {
     case PARAM_MIN_NOTE:

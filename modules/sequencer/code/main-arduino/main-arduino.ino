@@ -2,6 +2,7 @@
 #include "io.h"
 #include "notemapper.h"
 #include "settings.h"
+#include <stdint.h>
 
 // Note: Using String for displaying our text as opposed to plain char
 // arrays adds a lot of convenience, but adds a significant amount to
@@ -12,15 +13,18 @@
 #define RESET_BUTTON_HOLD_TIME 1500
 #define PORTEXP_READ_CYCLE_TICKS 100
 
+// Uncomment to enable serial logging
+//#define DEBUGLOGGING
+
 volatile bool initialized = false;
 
-volatile byte lastNoteRead;
+volatile uint8_t lastNoteRead;
 
 volatile bool holdingReset = false;
 
-volatile unsigned int resetTicksHeld = 0;
+volatile uint16_t resetTicksHeld = 0;
 
-volatile byte readCycleTicks = 0;
+volatile uint8_t readCycleTicks = 0;
 
 void setup() {
   IO::init();
@@ -56,7 +60,7 @@ void setup() {
 }
 
 void loop() {
-  byte oneIndexedStep = IO::getSelectedStep();
+  uint8_t oneIndexedStep = IO::getSelectedStep();
 
   if (!Sequence::isRunning()) {
     // Not running, and no other buttons pressed,
@@ -96,14 +100,13 @@ void loop() {
 }
 
 void mapNoteAndWriteDac(unsigned int adcReading) {
-  byte oldNote = lastNoteRead;
-  unsigned short int note = NoteMapper::mapToNote(adcReading);
+  uint8_t note = NoteMapper::mapToNote(adcReading);
 
-  lastNoteRead = note;
   IO::setPitch(NoteMapper::getNoteOutput(note));
-
-  if (!Sequence::isRunning() && oldNote != note) {
+  
+  if (!Sequence::isRunning()) {
     IO::writeDisplay(NoteMapper::getNoteText(note));
+    IO::writeLeds(INDICATOR_STEP_NOTE);
   }
 }
 
@@ -117,6 +120,7 @@ void fullReset() {
   Sequence::loadFromSettings(&(SettingsManager::defaultSettings));
   NoteMapper::loadFromSettings(&(SettingsManager::defaultSettings));
   IO::writeDisplay("Init");
+  IO::writeLeds(INDICATOR_NONE);
 }
 
 // Button handlers
@@ -128,12 +132,13 @@ void runStopOnPressed() {
 
 // Scale button pressed
 void scaleOnPressed() {
-  byte newScale = NoteMapper::cycleScale();
+  uint8_t newScale = NoteMapper::cycleScale();
   IO::writeDisplay(NoteMapper::getScaleText(newScale));
+  IO::writeLeds(INDICATOR_NONE);
 }
 
 void sequenceModeOnPressed() {
-  byte oneIndexedStep = IO::getSelectedStep();
+  uint8_t oneIndexedStep = IO::getSelectedStep();
 
   if (oneIndexedStep != 0) {
     Sequence::setSequenceMode(oneIndexedStep - 1);
@@ -162,7 +167,7 @@ void resetOnPressed() {
 
   // Reset gate modes
   if (!IO::getPortExpPin(PORTEXP_PIN_GATE_MODE_SELECT_BUTTON)) {
-    for (byte i = 0; i < NUM_STEPS; i++) {
+    for (uint8_t i = 0; i < NUM_STEPS; i++) {
       settingsToRevertTo.gateModes[i] = defSettings.gateModes[i];
     }
 
@@ -172,7 +177,7 @@ void resetOnPressed() {
 
   // Reset step repeats
   if (!IO::getPortExpPin(PORTEXP_PIN_REPEAT_SELECT_BUTTON)) {    
-    for (byte i = 0; i < NUM_STEPS; i++) {
+    for (uint8_t i = 0; i < NUM_STEPS; i++) {
       settingsToRevertTo.stepRepeat[i] = defSettings.stepRepeat[i];
     }
 
@@ -199,7 +204,7 @@ void resetOnPressed() {
   if (!IO::getPortExpPin(PORTEXP_PIN_UP_ARROW) 
     || !IO::getPortExpPin(PORTEXP_PIN_DOWN_ARROW)) {
 
-    byte selectedParam = IO::getSelectedParam();
+    uint8_t selectedParam = IO::getSelectedParam();
 
     switch (selectedParam) {
       case PARAM_MIN_NOTE:
@@ -233,7 +238,8 @@ void resetOnPressed() {
   if (!fullReset) {
     Sequence::loadFromSettings(&settingsToRevertTo);
     NoteMapper::loadFromSettings(&settingsToRevertTo);
-    IO::writeDisplay(resultText);  
+    IO::writeDisplay(resultText);
+    IO::writeLeds(INDICATOR_NONE);
   }
 }
 
@@ -242,11 +248,12 @@ void loadOnPressed() {
   // If none is pressed, defaults to the first
   // getSelectedStep is 1-indexed and returns 0 for none pressed
   // 0 is a valid slot of its own.
-  byte slot = IO::getSelectedStep();
+  uint8_t slot = IO::getSelectedStep();
   Settings settings = SettingsManager::load(slot);
   Sequence::loadFromSettings(&settings);
   NoteMapper::loadFromSettings(&settings);
   IO::writeDisplay("Loa." + String(slot));
+  IO::writeLeds(INDICATOR_NONE);
 }
 
 void saveOnPressed() {
@@ -254,58 +261,64 @@ void saveOnPressed() {
   // If none is pressed, defaults to the first
   // getSelectedStep is 1-indexed and returns 0 for none pressed
   // 0 is a valid slot of its own
-  byte slot = IO::getSelectedStep();
+  uint8_t slot = IO::getSelectedStep();
 
   Settings settingsToSave;
   Sequence::collectSettings(&settingsToSave);
   NoteMapper::collectSettings(&settingsToSave);  
   SettingsManager::save(settingsToSave, slot);
   IO::writeDisplay("Sav." + String(slot));
+  IO::writeLeds(INDICATOR_NONE);
 }
 
 void gateModeOnPressed() {
-  byte stepToAlter = IO::getSelectedStep();
+  uint8_t stepToAlter = IO::getSelectedStep();
   if (stepToAlter == 0) return;
   stepToAlter--;
 
-  byte newGateMode = Sequence::cycleGateModeForStep(stepToAlter);
+  uint8_t newGateMode = Sequence::cycleGateModeForStep(stepToAlter);
 
   IO::writeDisplay(
     "GM." + String(stepToAlter + 1) + "." + String(newGateMode + 1));
+  IO::writeLeds(INDICATOR_NONE);
 }
 
 void repeatOnPressed() { 
-  byte stepToAlter = IO::getSelectedStep();
+  uint8_t stepToAlter = IO::getSelectedStep();
   if (stepToAlter == 0) return;
   stepToAlter--;
-  byte newStepRepeat = Sequence::cycleStepRepeatForStep(stepToAlter);
+  uint8_t newStepRepeat = Sequence::cycleStepRepeatForStep(stepToAlter);
   IO::writeDisplay(
     "SR." + String(stepToAlter + 1) + "." + String(newStepRepeat));
+  IO::writeLeds(INDICATOR_NONE);
 }
 
 void minNoteArrowPressed(bool upArrow) {
-  byte newMinNote = NoteMapper::cycleMinNote(upArrow);
-  // TODO: way to also indicate what the note being displayed is for
+  uint8_t newMinNote = NoteMapper::cycleMinNote(upArrow);
   IO::writeDisplay(NoteMapper::getNoteText(newMinNote));
+  IO::writeLeds(INDICATOR_MIN_NOTE);
 }
 
 void maxNoteArrowPressed(bool upArrow) {
-  byte newMaxNote = NoteMapper::cycleMaxNote(upArrow);
+  uint8_t newMaxNote = NoteMapper::cycleMaxNote(upArrow);
   IO::writeDisplay(NoteMapper::getNoteText(newMaxNote));  
+  IO::writeLeds(INDICATOR_MAX_NOTE);
 }
 
 void timeDivisionArrowPressed(bool upArrow) {
-  byte newDivider = Sequence::cycleTimeDivider(upArrow);
+  uint8_t newDivider = Sequence::cycleTimeDivider(upArrow);
 
   IO::writeDisplay(
     "1/" + ((newDivider < 10) ? String(" ") : String("")) + String(newDivider));
+  IO::writeLeds(INDICATOR_NONE);
 }
 
-void sequenceOnSelectedStepChanged(byte selectedStep) {
+void sequenceOnSelectedStepChanged(uint8_t selectedStep) {
   IO::setStep(selectedStep);
   IO::readAdc(mapNoteAndWriteDac);
 }
 
-void sequenceOnSequenceModeChanged(byte sequenceMode) {
+void sequenceOnSequenceModeChanged(uint8_t sequenceMode) {
   IO::writeDisplay("SEQ." + String(sequenceMode + 1));
+  IO::writeLeds(INDICATOR_NONE);
 }

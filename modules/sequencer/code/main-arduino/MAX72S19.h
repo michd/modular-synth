@@ -6,6 +6,7 @@
 #include <Arduino.h>
 #include <SPI.h>
 #include <String.h>
+#include <stdint.h>
 
 #ifndef MAX72S19_h // Ensure we're not double-defining the library if it was already included
 #define MAX72S19_h
@@ -27,7 +28,13 @@
 #define REG_SHUTDOWN    0x0C
 #define REG_DISPLAYTEST 0x0F
 
+#define MIN_DISPLAY_REG REG_DIGIT0
+#define MAX_DISPLAY_REG REG_DIGIT7
+
 #define MAX_DIGITS      8
+#define MAX_ROWS        MAX_DIGITS
+#define NUM_SEGMENTS    8
+#define MAX_COLUMNS     NUM_SEGMENTS
 
 class MAX72S19 {
   public:
@@ -101,6 +108,7 @@ class MAX72S19 {
     void activate();
 
   private:
+    uint8_t _displayCache[MAX_DIGITS];
     uint8_t _pinChipSelect;
     SPISettings _spiSettings;
     void _beginTransmission();

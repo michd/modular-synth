@@ -4,21 +4,29 @@
  */
 
 #include <Arduino.h>
+#include <stdint.h>
 
-#ifndef MCP3202_h // Ensure we're not double-defining the library if it was already included
+#ifndef MCP3202_h
 #define MCP3202_h
 
 class MCP3202 {
  public:
-   MCP3202(uint8_t);                          // Constructor, takes chip select pin
-   void begin();                              // Start the SPI bus
-   unsigned int analogRead(bool);             // Read value from a single channel; 0 = channel 0, 1 = channel 1
-   unsigned int analogReadDifferential(bool); // Read value in pseudodifferential mode, selecting sign
+  // Constructor, takes chip select pin
+   MCP3202(uint8_t);
+  
+   // Start the SPI bus
+   void begin();
+
+   // Read value from a single channel; 0 = channel 0, 1 = channel 1
+   uint16_t analogRead(bool);
+
+   // Read value in pseudodifferential mode, selecting sign
+   uint16_t analogReadDifferential(bool); 
    
  private:
    uint8_t _pinChipSelect;
    SPISettings _spiSettings;
-   unsigned int _read(bool, bool);
+   uint16_t _read(bool, bool);
    void _beginTransmission();
    void _endTransmission();   
 };
