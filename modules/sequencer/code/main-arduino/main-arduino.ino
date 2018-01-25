@@ -16,13 +16,13 @@
 // Uncomment to enable serial logging
 //#define DEBUGLOGGING
 
-// TODO: wire up Sequence end to generate chain out pulse
-
 volatile bool initialized = false;
 
-volatile uint8_t lastNoteRead;
+volatile uint8_t lastNoteDisplayed;
 
 volatile bool holdingReset = false;
+
+volatile bool showingNoteOnScreen = false;
 
 volatile uint16_t resetTicksHeld = 0;
 
@@ -110,11 +110,15 @@ void mapNoteAndWriteDac(unsigned int adcReading) {
   uint8_t note = NoteMapper::mapToNote(adcReading);
 
   IO::setPitch(NoteMapper::getNoteOutput(note));
-  
-  if (!Sequence::isRunning()) {
-    IO::writeDisplay(NoteMapper::getNoteText(note));
-    IO::writeLeds(INDICATOR_STEP_NOTE);
+
+  if (Sequence::isRunning()) return;
+
+  if (note == lastNoteDisplayed) {
+    return;
   }
+
+  lastNoteDisplayed = note;
+  showNoteOnScreen(note, INDICATOR_STEP_NOTE);
 }
 
 void externalClockTick() {
@@ -128,7 +132,7 @@ void fullReset() {
   Sequence::loadFromSettings(&(SettingsManager::defaultSettings));
   NoteMapper::loadFromSettings(&(SettingsManager::defaultSettings));
   IO::writeDisplay("Init");
-  IO::writeLeds(INDICATOR_NONE);
+  clearNoteFromScreen();
 }
 
 // Button handlers
@@ -137,7 +141,7 @@ void fullReset() {
 void scaleOnPressed() {
   uint8_t newScale = NoteMapper::cycleScale();
   IO::writeDisplay(NoteMapper::getScaleText(newScale));
-  IO::writeLeds(INDICATOR_NONE);
+  clearNoteFromScreen();
 }
 
 void sequenceModeOnPressed() {
@@ -242,7 +246,7 @@ void resetOnPressed() {
     Sequence::loadFromSettings(&settingsToRevertTo);
     NoteMapper::loadFromSettings(&settingsToRevertTo);
     IO::writeDisplay(resultText);
-    IO::writeLeds(INDICATOR_NONE);
+    clearNoteFromScreen();
   }
 }
 
@@ -256,7 +260,7 @@ void loadOnPressed() {
   Sequence::loadFromSettings(&settings);
   NoteMapper::loadFromSettings(&settings);
   IO::writeDisplay("Loa." + String(slot));
-  IO::writeLeds(INDICATOR_NONE);
+  clearNoteFromScreen();
 }
 
 void saveOnPressed() {
@@ -271,7 +275,7 @@ void saveOnPressed() {
   NoteMapper::collectSettings(&settingsToSave);  
   SettingsManager::save(settingsToSave, slot);
   IO::writeDisplay("Sav." + String(slot));
-  IO::writeLeds(INDICATOR_NONE);
+  clearNoteFromScreen();
 }
 
 void gateModeOnPressed() {
@@ -283,7 +287,7 @@ void gateModeOnPressed() {
 
   IO::writeDisplay(
     "GM." + String(stepToAlter + 1) + "." + String(newGateMode + 1));
-  IO::writeLeds(INDICATOR_NONE);
+  clearNoteFromScreen();
 }
 
 void repeatOnPressed() { 
@@ -293,19 +297,17 @@ void repeatOnPressed() {
   uint8_t newStepRepeat = Sequence::cycleStepRepeatForStep(stepToAlter);
   IO::writeDisplay(
     "SR." + String(stepToAlter + 1) + "." + String(newStepRepeat));
-  IO::writeLeds(INDICATOR_NONE);
+  clearNoteFromScreen();
 }
 
 void minNoteArrowPressed(bool upArrow) {
   uint8_t newMinNote = NoteMapper::cycleMinNote(upArrow);
-  IO::writeDisplay(NoteMapper::getNoteText(newMinNote));
-  IO::writeLeds(INDICATOR_MIN_NOTE);
+  showNoteOnScreen(newMinNote, INDICATOR_MIN_NOTE);
 }
 
 void maxNoteArrowPressed(bool upArrow) {
   uint8_t newMaxNote = NoteMapper::cycleMaxNote(upArrow);
-  IO::writeDisplay(NoteMapper::getNoteText(newMaxNote));  
-  IO::writeLeds(INDICATOR_MAX_NOTE);
+  showNoteOnScreen(newMaxNote, INDICATOR_MAX_NOTE);
 }
 
 void timeDivisionArrowPressed(bool upArrow) {
@@ -313,7 +315,7 @@ void timeDivisionArrowPressed(bool upArrow) {
 
   IO::writeDisplay(
     "1/" + ((newDivider < 10) ? String(" ") : String("")) + String(newDivider));
-  IO::writeLeds(INDICATOR_NONE);
+  clearNoteFromScreen();
 }
 
 void chainInputChanged(bool value) {
@@ -333,9 +335,24 @@ void sequenceOnSelectedStepChanged(uint8_t selectedStep) {
 
 void sequenceOnSequenceModeChanged(uint8_t sequenceMode) {
   IO::writeDisplay("SEQ." + String(sequenceMode + 1));
-  IO::writeLeds(INDICATOR_NONE);
+  clearNoteFromScreen();
 }
 
 void sequenceOnSequenceEnd() {
   IO::setChainOut(true);
+}
+
+void showNoteOnScreen(uint8_t note, LEDs indicator) {
+  showingNoteOnScreen = true;
+  IO::writeDisplay(NoteMapper::getNoteText(note));
+  IO::writeLeds(indicator);
+
+  if (indicator != INDICATOR_STEP_NOTE) {
+    lastNoteDisplayed = 0;
+  }
+}
+
+void clearNoteFromScreen() {
+  showingNoteOnScreen = false;
+  IO::writeLeds(INDICATOR_NONE);
 }
