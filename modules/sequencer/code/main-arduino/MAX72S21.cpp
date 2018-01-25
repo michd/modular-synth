@@ -4,7 +4,7 @@ MAX72S21::MAX72S21(uint8_t pinChipSelect) {
   _pinChipSelect = pinChipSelect;
 
   // Init cache
-  for (uint8_t i = 0; i < MAX_DIGITS; i++) _displayCache[i] = 0x00;
+  for (uint8_t i = 0; i < MAX_DIGITS; i++) _displayCache[i] = 0xFF;
 }
 
 void MAX72S21::begin() {
