@@ -12,14 +12,18 @@ volatile uint8_t Sequence::_indexInSequence = 0;
 volatile uint32_t Sequence::_pulsesPerSubstep = (PPQ / 2) / (DEFAULT_TIME_DIVIDER / 4);
 volatile bool Sequence::_firstHalfOfStep = true;
 volatile uint32_t Sequence::_internalTicks = 0;
+volatile RunModes Sequence::_runMode = NOT_RUNNING;
 volatile bool Sequence::_running = false;
+volatile bool Sequence::_runIndicator = false;
 volatile bool Sequence::_gate = false;
 volatile bool Sequence::_trigger = false;
-BoolChangedHandler Sequence::_onRunningChangedHandler;
+volatile bool Sequence::_chained = false;
+BoolChangedHandler Sequence::_onRunningIndicatorChangedHandler;
 BoolChangedHandler Sequence::_onGateChangedHandler;
 BoolChangedHandler Sequence::_onTriggerChangedHandler;
 ByteChangedHandler Sequence::_onSelectedStepChangedHandler;
 ByteChangedHandler Sequence::_onSequenceModeChangedHandler;
+EventHandler Sequence::_onSequenceEndedHandler;
 
 // Initialize hardcoded sequences
 const uint8_t Sequence::_sequences[][MAX_SEQUENCE_LENGTH + 1] = {
@@ -55,6 +59,23 @@ void Sequence::init() {
 }
 
 void Sequence::tick() {
+  // If waiting, just blink the indicator LED
+  if (_runMode == WAITING) {
+    // Blink at 1/16 time essentially, in waiting mode
+    static const uint32_t blinkPulsesPerSubstep = (PPQ / 2) / (4 / 4);
+    // blinkPulses is only relevant to tick() but needs maintaining between calls
+    // hence it's static
+    static uint32_t blinkPulses;
+
+    blinkPulses++;
+
+    if (blinkPulses >= blinkPulsesPerSubstep) {
+      blinkPulses = 0;
+      _runIndicator = !_runIndicator;
+      (*_onRunningIndicatorChangedHandler)(_runIndicator);  
+    }
+  }
+
   if (!_running) return;
 
   uint32_t ticks = _internalTicks;
@@ -68,29 +89,50 @@ void Sequence::tick() {
   _internalTicks = ticks;
 }
 
-void Sequence::start() {
-  if (_running) return;
-
-  _running = true;
-  (*_onRunningChangedHandler)(true);
-}
-
-void Sequence::stop() {
-  if (!_running) return;
-
-  _running = false;
-  (*_onRunningChangedHandler)(false);
-
-  setGate(false);
-  _setTrigger(false);
-}
-
-void Sequence::toggleRunning() {
-  if (_running) {
-    stop();
-  } else {
-    start();
+// Only care about this if we were waiting, if so, switch to running mode
+void Sequence::chainTrigger() {
+  if (_runMode == WAITING) {
+    _runMode = RUNNING;
+    _running = true;
+    _runIndicator = true;
+    (*_onRunningIndicatorChangedHandler)(_runIndicator);  
   }
+}
+
+void Sequence::toggleRunMode() {
+  // Based on current state, set next run mode
+  switch (_runMode) {
+    case NOT_RUNNING:
+      _runMode = _chained ? WAITING : RUNNING;
+      break;
+
+    case RUNNING:
+      _runMode = NOT_RUNNING;
+      break;
+
+    case WAITING:
+      _runMode = RUNNING;
+      break;
+  }
+
+  _resetSequencePosition();
+
+  _running = _runMode == RUNNING;
+
+  // If we're not running (anymore) ensure gate and trigger are low
+  if (!_running) {    
+    setGate(false);
+    _setTrigger(false);
+  }
+
+  // Update indicator output
+  // Will ensure it blinks in tick() when waiting
+  _runIndicator = _runMode == RUNNING;
+  (*_onRunningIndicatorChangedHandler)(_runIndicator);
+}
+
+void Sequence::setChained(bool chained) {
+  _chained = chained;
 }
 
 bool Sequence::isRunning() {
@@ -224,8 +266,8 @@ void Sequence::loadFromSettings(Settings *settings) {
   }
 }
 
-void Sequence::onRunningChange(BoolChangedHandler handler) {
-  _onRunningChangedHandler = handler;
+void Sequence::onRunningIndicatorChange(BoolChangedHandler handler) {
+  _onRunningIndicatorChangedHandler = handler;
 }
 
 void Sequence::onGateChange(BoolChangedHandler handler) {
@@ -242,6 +284,10 @@ void Sequence::onSelectedStepChange(ByteChangedHandler handler) {
 
 void Sequence::onSequenceModeChange(ByteChangedHandler handler) {
   _onSequenceModeChangedHandler = handler;
+}
+
+void Sequence::onSequenceEnd(EventHandler handler) {
+  _onSequenceEndedHandler = handler;
 }
 
 void Sequence::_selectStep(uint8_t newSelectedStep) {
@@ -261,7 +307,7 @@ void Sequence::_advanceSubStep() {
   _firstHalfOfStep = !_firstHalfOfStep;
   bool firstHalf = _firstHalfOfStep;
   bool gateWasOn = _gate;
-  uint8_t repeatsForThisStep = _stepRepeat[Sequence::_currentStep];
+  uint8_t repeatsForThisStep = _stepRepeat[_currentStep];
 
   if (firstHalf) {
     if (_currentStepRepetition >= repeatsForThisStep) {
@@ -277,6 +323,17 @@ void Sequence::_advanceSubStep() {
     _currentStepRepetition++;
 
     (*_onSelectedStepChangedHandler)(_currentStep);
+  } else if (_chained && _isOnLastStep()) {
+    // TODO: it will need verifying if this is the right place to
+    // trigger this event. I think it is.
+    // I believe this will trigger it on the substep  just prior to wrapping
+    // around to the beginning, leading to the next sequencer seamlessly picking
+    // up where this one left off 
+    (*_onSequenceEndedHandler)();
+    // We're chained, so when sequence is complete, switch to waiting mode
+    _runMode = WAITING;
+    _running = false;
+    _runIndicator = false;    
   }
 
   switch (_gateMode[_currentStep]) {
@@ -317,6 +374,21 @@ void Sequence::_advanceSequence() {
   _selectStep(_selectedSequence[_indexInSequence]);
 }
 
+bool Sequence::_isOnLastStep() {
+  if (_selectedSequence[_indexInSequence + 1] == SEQUENCE_TERMINATOR) {
+    return _stepRepeat[_currentStep] == _currentStepRepetition;
+  }
+
+  uint8_t index = _indexInSequence + 1;
+
+  while (_selectedSequence[index] != SEQUENCE_TERMINATOR) {
+    if (_stepRepeat[_selectedSequence[index]] != 0) return false;
+    index++;
+  }
+
+  return true;
+}
+
 void Sequence::_initSequence(uint8_t sequenceMode) {
   sequenceMode = constrain(sequenceMode, MIN_SEQUENCE_MODE, MAX_SEQUENCE_MODE);
 
@@ -349,6 +421,7 @@ void Sequence::_initSequence(uint8_t sequenceMode) {
   }
 
   _selectedSequence[i] = SEQUENCE_TERMINATOR;
+  _resetSequencePosition();
 }
 
 uint8_t Sequence::_generateRandomStep(uint8_t previousStep) {
@@ -359,4 +432,9 @@ uint8_t Sequence::_generateRandomStep(uint8_t previousStep) {
   } while (nextStep == previousStep);
 
   return nextStep;
+}
+
+void Sequence::_resetSequencePosition() {
+  _indexInSequence = MAX_SEQUENCE_LENGTH - 1;
+  _selectStep(_selectedSequence[0]);
 }

@@ -9,13 +9,14 @@ volatile uint8_t IO::_cachedSelectedStep = 0;
 String IO::_queuedDisplayValue;
 uint16_t IO::_queuedLedsValue = 0x0000;
 bool IO::_arrowButtonHandlerSetup = false;
+volatile bool IO::_chainOutputCache = false;
 
 AdcReadHandler IO::_adcReadHandler;
 
 ButtonPressedHandler IO::_sequenceModeButtonPressedHandler;
 ButtonPressedHandler IO::_gateButtonPressedHandler;
 ButtonPressedHandler IO::_repeatButtonPressedHandler;
-ButtonPressedHandler IO::_runStopButtonPressedHandler;
+ButtonPressedHandler IO::_runModeButtonPressedHandler;
 ButtonPressedHandler IO::_scaleButtonPressedHandler;
 ButtonPressedHandler IO::_resetButtonPressedHandler;
 ButtonPressedHandler IO::_loadButtonPressedHandler;
@@ -25,6 +26,8 @@ ArrowButtonPressedHandler IO::_minNoteArrowButtonPressedHandler;
 ArrowButtonPressedHandler IO::_maxNoteArrowButtonPressedHandler;
 ArrowButtonPressedHandler IO::_timeDivisionArrowButtonPressedHandler;
 
+PinChangedHandler IO::_chainInputChangedHandler;
+
 TickHandler IO::_externalClockTickHandler;
 
 MAX72S21 IO::_display(PIN_SPI_CS_DISP);
@@ -33,7 +36,7 @@ MCP3202 IO::_adc(PIN_SPI_CS_ADC);
 MCP492X IO::_dac(PIN_SPI_CS_DAC);
 
 void IO::init() {
-  ::pinMode(PIN_RUNNING, OUTPUT);
+  ::pinMode(PIN_RUNNING_INDICATOR, OUTPUT);
   ::pinMode(PIN_GATE_OUT, OUTPUT);
   ::pinMode(PIN_TRIGGER_OUT, OUTPUT);
   ::pinMode(PIN_STEP_ADDR_A, OUTPUT);
@@ -43,18 +46,20 @@ void IO::init() {
 
   pinMode(PIN_PORTEXP_INTERRUPT, INPUT_PULLUP);
 
-  ::digitalWrite(PIN_RUNNING, 0);
+  ::digitalWrite(PIN_RUNNING_INDICATOR, 0);
   ::digitalWrite(PIN_GATE_OUT, 0);
 
   // [1] Configure port expander
   _portExp.begin();
   // Configure pins on port expander
   // Port A = buttons per step
-  uint8_t portAmodes = 0b00001111; // Change as needed
-  //                         ||||- PORTEXP_PIN_UP_ARROW                  [*]
-  //                         |||- PORTEXP_PIN_DOWN_ARROW                 [*]
-  //                         ||- PORTEXP_PIN_PARAM_SELECT_A
-  //                         |- PORTEXP_PIN_PARAM_SELECT_B   
+  uint8_t portAmodes = 0b00011111; // Change as needed
+  //                       ||||||- PORTEXP_PIN_UP_ARROW                  [*]
+  //                       |||||- PORTEXP_PIN_DOWN_ARROW                 [*]
+  //                       ||||- PORTEXP_PIN_PARAM_SELECT_A
+  //                       |||- PORTEXP_PIN_PARAM_SELECT_B
+  //                       ||- PORTEXP_PIN_CHAIN_INPUT                   [*]
+  //                       |- PORTEXP_PIN_CHAIN_OUTPUT
   // Port B = various buttons
   uint8_t portBmodes = 0b11111111; // Change as needed
   //                     ||||||||- PORTEXP_PIN_GATE_MODE_SELECT_BUTTON   [*]
@@ -120,7 +125,10 @@ void IO::setGate(bool on) {
 }
 
 void IO::setTrigger(bool on) { ::digitalWrite(PIN_TRIGGER_OUT, on); }
-void IO::setRunning(bool on) { ::digitalWrite(PIN_RUNNING, on); }
+
+void IO::setRunningIndicator(bool on) {
+  ::digitalWrite(PIN_RUNNING_INDICATOR, on);
+}
 
 void IO::setStep(uint8_t step) {
   uint8_t a = step & B001;
@@ -196,6 +204,20 @@ void IO::writeLeds(LEDs ledConfig) {
   _queueTask(WRITE_LEDS);
 }
 
+void IO::setChainOut(bool on) {
+  _portExp.digitalWrite(PORTEXP_PIN_CHAIN_OUTPUT, on);
+  // Not using port expander class cache here, as that cache returns
+  // only input cache, not the output cache, and checking against
+  // modes to return from output cache where relevant would add
+  // unnecessary overhead to the very frequence common input lookups.
+  // Hence, this single output is cached here.
+  _chainOutputCache = on;
+}
+
+bool IO::getChainOut() {
+  return _chainOutputCache;
+}
+
 void IO::onSequenceModeButtonPressed(ButtonPressedHandler handler) {
   _sequenceModeButtonPressedHandler = handler;
 
@@ -223,12 +245,12 @@ void IO::onRepeatButtonPressed(ButtonPressedHandler handler) {
     FALLING);
 }
 
-void IO::onRunStopButtonPressed(ButtonPressedHandler handler) {
-  _runStopButtonPressedHandler = handler;
+void IO::onRunModeButtonPressed(ButtonPressedHandler handler) {
+  _runModeButtonPressedHandler = handler;
 
   _portExp.attachInterrupt(
-    PORTEXP_PIN_RUN_STOP_BUTTON,
-    _internalHandleRunStopButtonPressed,
+    PORTEXP_PIN_RUN_MODE_BUTTON,
+    _internalHandleRunModeButtonPressed,
     FALLING);
 }
 
@@ -281,6 +303,14 @@ void IO::onMaxNoteArrowButtonPressed(ArrowButtonPressedHandler handler) {
 void IO::onTimeDivisionArrowButtonPressed(ArrowButtonPressedHandler handler) {
   _timeDivisionArrowButtonPressedHandler = handler;
   if (!_arrowButtonHandlerSetup) _setupArrowButtonHandler();
+}
+
+void IO::onChainInputChanged(PinChangedHandler handler) {
+  _chainInputChangedHandler = handler;
+  _portExp.attachInterrupt(
+    PORTEXP_PIN_CHAIN_INPUT,
+    _internalHandleChainInputChanged,
+    CHANGE);
 }
 
 void IO::onExternalClockTick(TickHandler handler) {
@@ -525,11 +555,11 @@ void IO::_internalHandleRepeatButtonPressed() {
   _repeatButtonPressedHandler();
 }
 
-void IO::_internalHandleRunStopButtonPressed() {
+void IO::_internalHandleRunModeButtonPressed() {
   // spiBusy was set to true in _taskProcessPortExpInterrupt, and we want
   // to mark that done before invoking whatever handler we've got
   _spiBusy = false;
-  _runStopButtonPressedHandler();
+  _runModeButtonPressedHandler();
 }
 
 void IO::_internalHandleScaleButtonPressed() {
@@ -602,6 +632,10 @@ void IO::_handleArrowButtonPressed(bool upArrow) {
     // 0 is on here as the middle pin of the switch is ground, and the pins
     // discussed are in pull-up mode. When they're floating, they're high.
   }
+}
+
+void IO::_internalHandleChainInputChanged() {
+  _chainInputChangedHandler(getPortExpPin(PORTEXP_PIN_CHAIN_INPUT));
 }
 
 void IO::_noopArrowButtonPressedHandler (bool _) {}

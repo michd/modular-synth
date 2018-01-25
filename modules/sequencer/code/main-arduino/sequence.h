@@ -47,8 +47,18 @@
 #include <Arduino.h>
 #include <stdint.h>
 
+enum RunModes {
+    // Not moving on on tick(), doesn't respond to chainTrigger()
+    NOT_RUNNING, 
+    // Moves on every tick(), switches to WAITING on sequence end if chained
+    RUNNING,
+    // Will switch to RUNNING on chainTrigger()
+    WAITING
+};
+
 typedef void (*BoolChangedHandler)(bool);
 typedef void (*ByteChangedHandler)(uint8_t);
+typedef void (*EventHandler)(void);
 
 // Sequence deals with everything to do with actual sequencing, that is,
 // figuring out which step is active, which is next, managing the gate
@@ -60,14 +70,20 @@ class Sequence {
     // Called every pulse (as in PPQ), will advance sequence when needed
     static void tick();
 
+    // Called on a positive flank of the chain input,
+    // if sequencer is in waiting mode, this sets it to running
+    static void chainTrigger();
+
     // Start running; will make sure `tick()` actually does stuff.
     static void start();
 
     // Toggle running, stop if running, start if not running
-    static void toggleRunning();
+    static void toggleRunMode();
 
     // Stop running; disables `tick()` from actually doing anything.
     static void stop();
+
+    static void setChained(bool);
 
     // Accessor to see whether the sequence is currently started
     static bool isRunning();
@@ -106,11 +122,12 @@ class Sequence {
     static void loadFromSettings(Settings *settings);
 
     // Event handlers
-    static void onRunningChange(BoolChangedHandler);
+    static void onRunningIndicatorChange(BoolChangedHandler);
     static void onGateChange(BoolChangedHandler);
     static void onTriggerChange(BoolChangedHandler);
     static void onSelectedStepChange(ByteChangedHandler);
     static void onSequenceModeChange(ByteChangedHandler);
+    static void onSequenceEnd(EventHandler);
 
   private:
     static const uint8_t _sequences[][MAX_SEQUENCE_LENGTH + 1];
@@ -125,20 +142,26 @@ class Sequence {
     static volatile uint32_t _pulsesPerSubstep;
     static volatile bool _firstHalfOfStep;
     static volatile uint32_t _internalTicks;
+    static volatile RunModes _runMode;
     static volatile bool _running;
+    static volatile bool _runIndicator;
     static volatile bool _gate;
     static volatile bool _trigger;
-    static BoolChangedHandler _onRunningChangedHandler;
+    static volatile bool _chained;
+    static BoolChangedHandler _onRunningIndicatorChangedHandler;
     static BoolChangedHandler _onGateChangedHandler;
     static BoolChangedHandler _onTriggerChangedHandler;
     static ByteChangedHandler _onSelectedStepChangedHandler;
     static ByteChangedHandler _onSequenceModeChangedHandler;
+    static EventHandler _onSequenceEndedHandler;
     static void _selectStep(uint8_t);
     static void _setTrigger(bool);
     static void _advanceSubStep();
     static void _advanceSequence();
+    static bool _isOnLastStep();
     static void _initSequence(uint8_t);
     static uint8_t _generateRandomStep(uint8_t);
+    static void _resetSequencePosition();
 };
 
 #endif // MODULE_SEQUENCE_H

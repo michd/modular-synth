@@ -16,6 +16,8 @@
 // Uncomment to enable serial logging
 //#define DEBUGLOGGING
 
+// TODO: wire up Sequence end to generate chain out pulse
+
 volatile bool initialized = false;
 
 volatile uint8_t lastNoteRead;
@@ -31,7 +33,7 @@ void setup() {
   IO::onSequenceModeButtonPressed(sequenceModeOnPressed);
   IO::onGateButtonPressed(gateModeOnPressed);
   IO::onRepeatButtonPressed(repeatOnPressed);
-  IO::onRunStopButtonPressed(Sequence::toggleRunning);
+  IO::onRunModeButtonPressed(Sequence::toggleRunMode);
   IO::onScaleButtonPressed(scaleOnPressed);
   IO::onResetButtonPressed(resetOnPressed);
   IO::onLoadButtonPressed(loadOnPressed);
@@ -41,14 +43,19 @@ void setup() {
   IO::onMaxNoteArrowButtonPressed(maxNoteArrowPressed);
   IO::onTimeDivisionArrowButtonPressed(timeDivisionArrowPressed);
 
+  IO::onChainInputChanged(chainInputChanged);
+
   IO::onExternalClockTick(externalClockTick);
 
   Sequence::init();
-  Sequence::onRunningChange(IO::setRunning);
+  Sequence::onRunningIndicatorChange(IO::setRunningIndicator);
   Sequence::onSequenceModeChange(sequenceOnSequenceModeChanged);
   Sequence::onGateChange(IO::setGate);
   Sequence::onTriggerChange(IO::setTrigger);
   Sequence::onSelectedStepChange(sequenceOnSelectedStepChanged);
+  Sequence::onSequenceEnd(sequenceOnSequenceEnd);
+
+  Sequence::setChained(!IO::getPortExpPin(PORTEXP_PIN_CHAIN_INPUT));
 
   NoteMapper::init();
 
@@ -112,6 +119,7 @@ void mapNoteAndWriteDac(unsigned int adcReading) {
 
 void externalClockTick() {
   if (!initialized) return;
+  if (IO::getChainOut()) IO::setChainOut(false);
   IO::readSelectedStep();
   Sequence::tick();
 }
@@ -124,11 +132,6 @@ void fullReset() {
 }
 
 // Button handlers
-
-// Run/stop pressed
-void runStopOnPressed() {
-  Sequence::toggleRunning();
-}
 
 // Scale button pressed
 void scaleOnPressed() {
@@ -313,6 +316,16 @@ void timeDivisionArrowPressed(bool upArrow) {
   IO::writeLeds(INDICATOR_NONE);
 }
 
+void chainInputChanged(bool value) {
+  // Rising flank = trigger
+  if (value == 1) {
+    Sequence::chainTrigger();
+  }
+
+  // Active low, if pulled to gnd we're chained.
+  Sequence::setChained(!value);
+}
+
 void sequenceOnSelectedStepChanged(uint8_t selectedStep) {
   IO::setStep(selectedStep);
   IO::readAdc(mapNoteAndWriteDac);
@@ -321,4 +334,8 @@ void sequenceOnSelectedStepChanged(uint8_t selectedStep) {
 void sequenceOnSequenceModeChanged(uint8_t sequenceMode) {
   IO::writeDisplay("SEQ." + String(sequenceMode + 1));
   IO::writeLeds(INDICATOR_NONE);
+}
+
+void sequenceOnSequenceEnd() {
+  IO::setChainOut(true);
 }

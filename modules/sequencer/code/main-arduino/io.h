@@ -9,7 +9,7 @@
 
 #define PIN_EXTERNAL_CLOCK 7
 
-#define PIN_RUNNING 8
+#define PIN_RUNNING_INDICATOR 8
 #define PIN_GATE_OUT 10
 #define PIN_TRIGGER_OUT 2
 
@@ -23,7 +23,7 @@
 #define PORTEXP_PIN_GATE_MODE_SELECT_BUTTON 9
 #define PORTEXP_PIN_REPEAT_SELECT_BUTTON 10
 #define PORTEXP_PIN_SEQUENCE_MODE_SELECT_BUTTON 11
-#define PORTEXP_PIN_RUN_STOP_BUTTON 12
+#define PORTEXP_PIN_RUN_MODE_BUTTON 12
 #define PORTEXP_PIN_SCALE_BUTTON 13
 #define PORTEXP_PIN_RESET_BUTTON 14
 #define PORTEXP_PIN_LOAD_BUTTON 15
@@ -32,6 +32,8 @@
 #define PORTEXP_PIN_DOWN_ARROW 2
 #define PORTEXP_PIN_PARAM_SELECT_A 3
 #define PORTEXP_PIN_PARAM_SELECT_B 4
+#define PORTEXP_PIN_CHAIN_INPUT 5
+#define PORTEXP_PIN_CHAIN_OUTPUT 6
 
 #define PORT_EXPANDER_CHANNEL 0
 
@@ -115,6 +117,7 @@ typedef void (*AdcReadHandler)(unsigned int);
 typedef void (*ButtonPressedHandler)(void);
 typedef void (*ArrowButtonPressedHandler)(bool);
 typedef void (*TickHandler)(void);
+typedef void (*PinChangedHandler)(bool);
 
 class IO {
   public:    
@@ -124,7 +127,7 @@ class IO {
 
     static void setTrigger(bool);
 
-    static void setRunning(bool);
+    static void setRunningIndicator(bool);
 
     // Drive multiplexers and decoder for selecting the current step
     static void setStep(uint8_t);
@@ -162,11 +165,14 @@ class IO {
     // constant formats directly
     static void writeLeds(LEDs);
 
+    static void setChainOut(bool);
+    static bool getChainOut();
+
     // Assign button press handlers
     static void onSequenceModeButtonPressed(ButtonPressedHandler);
     static void onGateButtonPressed(ButtonPressedHandler);
     static void onRepeatButtonPressed(ButtonPressedHandler);
-    static void onRunStopButtonPressed(ButtonPressedHandler);
+    static void onRunModeButtonPressed(ButtonPressedHandler);
     static void onScaleButtonPressed(ButtonPressedHandler);
     static void onResetButtonPressed(ButtonPressedHandler);
     static void onLoadButtonPressed(ButtonPressedHandler);
@@ -174,6 +180,7 @@ class IO {
     static void onMinNoteArrowButtonPressed(ArrowButtonPressedHandler);
     static void onMaxNoteArrowButtonPressed(ArrowButtonPressedHandler);
     static void onTimeDivisionArrowButtonPressed(ArrowButtonPressedHandler);
+    static void onChainInputChanged(PinChangedHandler);
 
     // External clock tick handler
     static void onExternalClockTick(TickHandler);
@@ -200,16 +207,19 @@ class IO {
     static void _internalHandleSequenceModeButtonPressed();
     static void _internalHandleGateButtonPressed();
     static void _internalHandleRepeatButtonPressed();
-    static void _internalHandleRunStopButtonPressed();
+    static void _internalHandleRunModeButtonPressed();
     static void _internalHandleScaleButtonPressed();
     static void _internalHandleResetButtonPressed();
     static void _internalHandleLoadButtonPressed();
     static void _internalHandleSaveButtonPressed();
+    
 
     static void _setupArrowButtonHandler();
     static void _internalHandleUpArrowButtonPressed();
     static void _internalHandleDownArrowButtonPressed();
     static void _handleArrowButtonPressed(bool);
+
+    static void _internalHandleChainInputChanged();
 
     static void _noopArrowButtonPressedHandler(bool);
 
@@ -224,11 +234,12 @@ class IO {
     static uint16_t _queuedLedsValue;
     static AdcReadHandler _adcReadHandler;
     static bool _arrowButtonHandlerSetup;
+    volatile static bool _chainOutputCache;
 
     static ButtonPressedHandler _sequenceModeButtonPressedHandler;
     static ButtonPressedHandler _gateButtonPressedHandler;
     static ButtonPressedHandler _repeatButtonPressedHandler;
-    static ButtonPressedHandler _runStopButtonPressedHandler;
+    static ButtonPressedHandler _runModeButtonPressedHandler;
     static ButtonPressedHandler _scaleButtonPressedHandler;
     static ButtonPressedHandler _resetButtonPressedHandler;
     static ButtonPressedHandler _loadButtonPressedHandler;
@@ -238,6 +249,8 @@ class IO {
     static ArrowButtonPressedHandler _maxNoteArrowButtonPressedHandler;
     static ArrowButtonPressedHandler _timeDivisionArrowButtonPressedHandler;
 
+    static PinChangedHandler _chainInputChangedHandler;
+    
     static TickHandler _externalClockTickHandler;
 
     static MAX72S21 _display;
