@@ -35,7 +35,11 @@
 #define PORTEXP_PIN_CHAIN_INPUT 5
 #define PORTEXP_PIN_CHAIN_OUTPUT 6
 
+#define PORTEXP_NUM_PINS 16
+
 #define PORT_EXPANDER_CHANNEL 0
+
+#define DEBOUNCE_TIME_MS 100
 
 #define PARAM_MIN_NOTE 0b01
 #define PARAM_MAX_NOTE 0b11
@@ -203,6 +207,7 @@ class IO {
     static void _processPortExpanderInterrupt();
     static void _processRunStopPressedInterrupt();
     static void _processExternalClockTick();
+    static bool _debounceButton(uint8_t);
 
     static void _internalHandleSequenceModeButtonPressed();
     static void _internalHandleGateButtonPressed();
@@ -235,6 +240,7 @@ class IO {
     static AdcReadHandler _adcReadHandler;
     static bool _arrowButtonHandlerSetup;
     volatile static bool _chainOutputCache;
+    volatile static uint32_t _debounceLastPressed[PORTEXP_NUM_PINS];
 
     static ButtonPressedHandler _sequenceModeButtonPressedHandler;
     static ButtonPressedHandler _gateButtonPressedHandler;

@@ -10,6 +10,7 @@ String IO::_queuedDisplayValue;
 uint16_t IO::_queuedLedsValue = 0x0000;
 bool IO::_arrowButtonHandlerSetup = false;
 volatile bool IO::_chainOutputCache = false;
+volatile uint32_t IO::_debounceLastPressed[PORTEXP_NUM_PINS];
 
 AdcReadHandler IO::_adcReadHandler;
 
@@ -80,6 +81,11 @@ void IO::init() {
   _portExp.inputInvert(0x0000);
   // Cache initial values
   _portExp.digitalRead();
+
+  // Initialie debounce array
+  for (uint8_t i = 0; i < PORTEXP_NUM_PINS; i++) {
+    _debounceLastPressed[i] = 0;
+  }
 
   // Assign no-op handlers to prevent potentially calling handlers that were
   // not assigned (causing undefined behavior or segfaults)
@@ -325,6 +331,21 @@ void IO::_processExternalClockTick() {
   _externalClockTickHandler();
 }
 
+bool IO::_debounceButton(uint8_t pin) {
+  uint32_t currTime = ::millis();
+  // reference to the item in the array, so we don't have to use array access
+  // notation again below
+  volatile uint32_t &timePressed = _debounceLastPressed[pin - 1];
+
+  // Not enough time passed, so debounce it
+  if (currTime - timePressed < DEBOUNCE_TIME_MS) return true;
+
+  // Enough time has passed, store time of the press for next debouncing
+  // don't debounce now
+  timePressed = currTime;
+  return false;
+}
+
 // Adds a new task to the queue, or executes it instantly if the queue is empty
 void IO::_queueTask(Tasks task) {
   // If queue is empty and spi isn't busy, execute it right away
@@ -538,6 +559,8 @@ void IO::_internalHandleSequenceModeButtonPressed() {
   // spiBusy was set to true in _taskProcessPortExpInterrupt, and we want
   // to mark that done before invoking whatever handler we've got
   _spiBusy = false;
+
+  if (_debounceButton(PORTEXP_PIN_SEQUENCE_MODE_SELECT_BUTTON)) return;
   _sequenceModeButtonPressedHandler();
 }
 
@@ -545,6 +568,8 @@ void IO::_internalHandleGateButtonPressed() {
   // spiBusy was set to true in _taskProcessPortExpInterrupt, and we want
   // to mark that done before invoking whatever handler we've got
   _spiBusy = false;
+
+  if (_debounceButton(PORTEXP_PIN_GATE_MODE_SELECT_BUTTON)) return;
   _gateButtonPressedHandler();
 }
 
@@ -552,6 +577,8 @@ void IO::_internalHandleRepeatButtonPressed() {
   // spiBusy was set to true in _taskProcessPortExpInterrupt, and we want
   // to mark that done before invoking whatever handler we've got
   _spiBusy = false;
+
+  if (_debounceButton(PORTEXP_PIN_REPEAT_SELECT_BUTTON)) return;
   _repeatButtonPressedHandler();
 }
 
@@ -559,6 +586,8 @@ void IO::_internalHandleRunModeButtonPressed() {
   // spiBusy was set to true in _taskProcessPortExpInterrupt, and we want
   // to mark that done before invoking whatever handler we've got
   _spiBusy = false;
+
+  if (_debounceButton(PORTEXP_PIN_RUN_MODE_BUTTON)) return;
   _runModeButtonPressedHandler();
 }
 
@@ -566,6 +595,8 @@ void IO::_internalHandleScaleButtonPressed() {
   // spiBusy was set to true in _taskProcessPortExpInterrupt, and we want
   // to mark that done before invoking whatever handler we've got
   _spiBusy = false;
+
+  if (_debounceButton(PORTEXP_PIN_SCALE_BUTTON)) return;
   _scaleButtonPressedHandler(); 
 }
 
@@ -573,6 +604,8 @@ void IO::_internalHandleResetButtonPressed() {
   // spiBusy was set to true in _taskProcessPortExpInterrupt, and we want
   // to mark that done before invoking whatever handler we've got
   _spiBusy = false;
+
+  if (_debounceButton(PORTEXP_PIN_RESET_BUTTON)) return;
   _resetButtonPressedHandler();  
 }
 
@@ -580,6 +613,8 @@ void IO::_internalHandleLoadButtonPressed() {
   // spiBusy was set to true in _taskProcessPortExpInterrupt, and we want
   // to mark that done before invoking whatever handler we've got
   _spiBusy = false;
+
+  if (_debounceButton(PORTEXP_PIN_LOAD_BUTTON)) return;
   _loadButtonPressedHandler();  
 }
 
@@ -587,6 +622,8 @@ void IO::_internalHandleSaveButtonPressed() {
   // spiBusy was set to true in _taskProcessPortExpInterrupt, and we want
   // to mark that done before invoking whatever handler we've got
   _spiBusy = false;
+
+  if (_debounceButton(PORTEXP_PIN_SAVE_BUTTON)) return;
   _saveButtonPressedHandler();  
 }
 
@@ -607,10 +644,20 @@ void IO::_setupArrowButtonHandler() {
 }
 
 void IO::_internalHandleUpArrowButtonPressed() {
+  // spiBusy was set to true in _taskProcessPortExpInterrupt, and we want
+  // to mark that done before invoking whatever handler we've got
+  _spiBusy = false;
+
+  if (_debounceButton(PORTEXP_PIN_UP_ARROW)) return;
   _handleArrowButtonPressed(true);
 }
 
 void IO::_internalHandleDownArrowButtonPressed() {
+  // spiBusy was set to true in _taskProcessPortExpInterrupt, and we want
+  // to mark that done before invoking whatever handler we've got
+  _spiBusy = false;
+
+  if (_debounceButton(PORTEXP_PIN_DOWN_ARROW)) return;
   _handleArrowButtonPressed(false);
 }
 
