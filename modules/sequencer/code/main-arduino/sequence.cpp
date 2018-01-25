@@ -22,7 +22,6 @@ BoolChangedHandler Sequence::_onRunningIndicatorChangedHandler;
 BoolChangedHandler Sequence::_onGateChangedHandler;
 BoolChangedHandler Sequence::_onTriggerChangedHandler;
 ByteChangedHandler Sequence::_onSelectedStepChangedHandler;
-ByteChangedHandler Sequence::_onSequenceModeChangedHandler;
 EventHandler Sequence::_onSequenceEndedHandler;
 
 // Initialize hardcoded sequences
@@ -139,20 +138,15 @@ bool Sequence::isRunning() {
   return _running;
 }
 
-void Sequence::setSequenceMode(uint8_t newSequenceMode) {
+uint8_t Sequence::setSequenceMode(uint8_t newSequenceMode) {
   if (_sequenceMode == newSequenceMode) {
-    // Trigger change handler anyway to update display
-    (*_onSequenceModeChangedHandler)(newSequenceMode);
-
-    if (_sequenceMode == SEQUENCE_MODE_RANDOM) {
-      _initSequence(_sequenceMode);
-    }
-    return;
+    if (_sequenceMode == SEQUENCE_MODE_RANDOM) _initSequence(_sequenceMode);
+    return _sequenceMode;
   }
 
   _sequenceMode = newSequenceMode;
   _initSequence(_sequenceMode);
-  (*_onSequenceModeChangedHandler)(newSequenceMode);
+  return _sequenceMode;
 }
 
 void Sequence::selectStep(uint8_t newSelectedStep) {
@@ -280,10 +274,6 @@ void Sequence::onTriggerChange(BoolChangedHandler handler) {
 
 void Sequence::onSelectedStepChange(ByteChangedHandler handler) {
   _onSelectedStepChangedHandler = handler;
-}
-
-void Sequence::onSequenceModeChange(ByteChangedHandler handler) {
-  _onSequenceModeChangedHandler = handler;
 }
 
 void Sequence::onSequenceEnd(EventHandler handler) {

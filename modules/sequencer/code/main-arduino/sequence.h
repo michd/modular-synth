@@ -89,7 +89,7 @@ class Sequence {
     static bool isRunning();
 
     // Set the sequence mode to one of the SEQUENCE_MODE_ constants
-    static void setSequenceMode(uint8_t);
+    static uint8_t setSequenceMode(uint8_t);
 
     // Manually selects the active step
     static void selectStep(uint8_t);
@@ -126,7 +126,6 @@ class Sequence {
     static void onGateChange(BoolChangedHandler);
     static void onTriggerChange(BoolChangedHandler);
     static void onSelectedStepChange(ByteChangedHandler);
-    static void onSequenceModeChange(ByteChangedHandler);
     static void onSequenceEnd(EventHandler);
 
   private:
@@ -152,7 +151,6 @@ class Sequence {
     static BoolChangedHandler _onGateChangedHandler;
     static BoolChangedHandler _onTriggerChangedHandler;
     static ByteChangedHandler _onSelectedStepChangedHandler;
-    static ByteChangedHandler _onSequenceModeChangedHandler;
     static EventHandler _onSequenceEndedHandler;
     static void _selectStep(uint8_t);
     static void _setTrigger(bool);

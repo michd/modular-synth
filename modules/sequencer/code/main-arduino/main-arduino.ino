@@ -49,7 +49,6 @@ void setup() {
 
   Sequence::init();
   Sequence::onRunningIndicatorChange(IO::setRunningIndicator);
-  Sequence::onSequenceModeChange(sequenceOnSequenceModeChanged);
   Sequence::onGateChange(IO::setGate);
   Sequence::onTriggerChange(IO::setTrigger);
   Sequence::onSelectedStepChange(sequenceOnSelectedStepChanged);
@@ -78,6 +77,7 @@ void loop() {
 
       IO::readAdc(mapNoteAndWriteDac);
     } else {
+      lastNoteDisplayed = 0;
       Sequence::setGate(false);
     }
   }
@@ -146,10 +146,11 @@ void scaleOnPressed() {
 
 void sequenceModeOnPressed() {
   uint8_t oneIndexedStep = IO::getSelectedStep();
-
-  if (oneIndexedStep != 0) {
-    Sequence::setSequenceMode(oneIndexedStep - 1);
-  }
+  if (oneIndexedStep == 0) return;
+  
+  uint8_t newSequenceMode = Sequence::setSequenceMode(oneIndexedStep - 1);
+  IO::writeDisplay("SEQ." + String(newSequenceMode + 1));
+  clearNoteFromScreen();
 }
 
 // Reset all settings to default, or only one of them
@@ -329,13 +330,23 @@ void chainInputChanged(bool value) {
 }
 
 void sequenceOnSelectedStepChanged(uint8_t selectedStep) {
+  // If we're holding a step while not running,
+  uint8_t heldStep = IO::getSelectedStep();
+
+  // Don't update selected step if the one we're holding is not the one we're
+  // updating to.
+  // This happens when changing sequence mode while not running; sequence
+  // gets reset to its first step, which is not necessarilly the same as the
+  // one we're holding.
+  // Kind of a hack but ehhhhh.
+  if (!Sequence::isRunning()
+      && heldStep > 0
+      && (heldStep - 1) != selectedStep) {
+    return;
+  }
+
   IO::setStep(selectedStep);
   IO::readAdc(mapNoteAndWriteDac);
-}
-
-void sequenceOnSequenceModeChanged(uint8_t sequenceMode) {
-  IO::writeDisplay("SEQ." + String(sequenceMode + 1));
-  clearNoteFromScreen();
 }
 
 void sequenceOnSequenceEnd() {
