@@ -49,6 +49,7 @@ void setup() {
 
   Sequence::init();
   Sequence::onRunningIndicatorChange(IO::setRunningIndicator);
+  Sequence::onRunningChange(sequenceOnRunningChange);
   Sequence::onGateChange(IO::setGate);
   Sequence::onTriggerChange(IO::setTrigger);
   Sequence::onSelectedStepChange(sequenceOnSelectedStepChanged);
@@ -75,10 +76,15 @@ void loop() {
       Sequence::selectStep(oneIndexedStep - 1);
       Sequence::setGate(true);
 
+      IO::setUseChainedRouting(false);
       IO::readAdc(mapNoteAndWriteDac);
     } else {
       lastNoteDisplayed = 0;
       Sequence::setGate(false);
+
+      // No note pressed while not running, and we're chained?
+      // route through chained signals
+      IO::setUseChainedRouting(Sequence::getChained());
     }
   }
 
@@ -327,6 +333,18 @@ void chainInputChanged(bool value) {
 
   // Active low, if pulled to gnd we're chained.
   Sequence::setChained(!value);
+}
+
+void sequenceOnRunningChange(bool running) {
+  // If we're not chained, we never want to use chained routing
+  if (!Sequence::getChained()) {
+    IO::setUseChainedRouting(false);
+    return;
+  }
+
+  // Otherwise, we want to use chained routing only if the local sequence
+  // is not currently running, AND we're not pressing a step button
+  IO::setUseChainedRouting(!running && !IO::getSelectedStep);
 }
 
 void sequenceOnSelectedStepChanged(uint8_t selectedStep) {

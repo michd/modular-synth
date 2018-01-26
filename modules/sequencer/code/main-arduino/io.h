@@ -12,6 +12,7 @@
 #define PIN_RUNNING_INDICATOR 8
 #define PIN_GATE_OUT 10
 #define PIN_TRIGGER_OUT 2
+#define PIN_ROUTE_CHAINED_OUTPUT 1
 
 #define PIN_STEP_ADDR_A A1
 #define PIN_STEP_ADDR_B A3
@@ -130,6 +131,11 @@ class IO {
     static void setGate(bool);
 
     static void setTrigger(bool);
+
+    // When set to true, multiplexers are set to output
+    // pitch/velocity/gate/trigger from the chain input
+    // instead of from the local sequencer
+    static void setUseChainedRouting(bool);
 
     static void setRunningIndicator(bool);
 

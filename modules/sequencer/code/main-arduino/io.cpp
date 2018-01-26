@@ -44,6 +44,7 @@ void IO::init() {
   ::pinMode(PIN_STEP_ADDR_B, OUTPUT);
   ::pinMode(PIN_STEP_ADDR_C, OUTPUT);
   ::pinMode(PIN_STEP_ENABLE, OUTPUT);
+  ::pinMode(PIN_ROUTE_CHAINED_OUTPUT, OUTPUT);
 
   pinMode(PIN_PORTEXP_INTERRUPT, INPUT_PULLUP);
 
@@ -131,6 +132,10 @@ void IO::setGate(bool on) {
 }
 
 void IO::setTrigger(bool on) { ::digitalWrite(PIN_TRIGGER_OUT, on); }
+
+void IO::setUseChainedRouting(bool on) {
+  ::digitalWrite(PIN_ROUTE_CHAINED_OUTPUT, on);
+}
 
 void IO::setRunningIndicator(bool on) {
   ::digitalWrite(PIN_RUNNING_INDICATOR, on);

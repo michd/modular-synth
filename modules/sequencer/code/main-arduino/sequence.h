@@ -74,15 +74,10 @@ class Sequence {
     // if sequencer is in waiting mode, this sets it to running
     static void chainTrigger();
 
-    // Start running; will make sure `tick()` actually does stuff.
-    static void start();
-
     // Toggle running, stop if running, start if not running
     static void toggleRunMode();
 
-    // Stop running; disables `tick()` from actually doing anything.
-    static void stop();
-
+    static bool getChained();
     static void setChained(bool);
 
     // Accessor to see whether the sequence is currently started
@@ -123,6 +118,8 @@ class Sequence {
 
     // Event handlers
     static void onRunningIndicatorChange(BoolChangedHandler);
+    // Distinct from onRunningIndicatorChange
+    static void onRunningChange(BoolChangedHandler);
     static void onGateChange(BoolChangedHandler);
     static void onTriggerChange(BoolChangedHandler);
     static void onSelectedStepChange(ByteChangedHandler);
@@ -143,15 +140,18 @@ class Sequence {
     static volatile uint32_t _internalTicks;
     static volatile RunModes _runMode;
     static volatile bool _running;
-    static volatile bool _runIndicator;
+    static volatile bool _runningIndicator;
     static volatile bool _gate;
     static volatile bool _trigger;
     static volatile bool _chained;
     static BoolChangedHandler _onRunningIndicatorChangedHandler;
+    static BoolChangedHandler _onRunningChangedHandler;
     static BoolChangedHandler _onGateChangedHandler;
     static BoolChangedHandler _onTriggerChangedHandler;
     static ByteChangedHandler _onSelectedStepChangedHandler;
     static EventHandler _onSequenceEndedHandler;
+    static void _setRunningIndicator(bool);
+    static void _setRunning(bool);
     static void _selectStep(uint8_t);
     static void _setTrigger(bool);
     static void _advanceSubStep();

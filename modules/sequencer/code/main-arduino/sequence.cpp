@@ -14,11 +14,12 @@ volatile bool Sequence::_firstHalfOfStep = true;
 volatile uint32_t Sequence::_internalTicks = 0;
 volatile RunModes Sequence::_runMode = NOT_RUNNING;
 volatile bool Sequence::_running = false;
-volatile bool Sequence::_runIndicator = false;
+volatile bool Sequence::_runningIndicator = false;
 volatile bool Sequence::_gate = false;
 volatile bool Sequence::_trigger = false;
 volatile bool Sequence::_chained = false;
 BoolChangedHandler Sequence::_onRunningIndicatorChangedHandler;
+BoolChangedHandler Sequence::_onRunningChangedHandler;
 BoolChangedHandler Sequence::_onGateChangedHandler;
 BoolChangedHandler Sequence::_onTriggerChangedHandler;
 ByteChangedHandler Sequence::_onSelectedStepChangedHandler;
@@ -70,8 +71,7 @@ void Sequence::tick() {
 
     if (blinkPulses >= blinkPulsesPerSubstep) {
       blinkPulses = 0;
-      _runIndicator = !_runIndicator;
-      (*_onRunningIndicatorChangedHandler)(_runIndicator);  
+      _setRunningIndicator(!_runningIndicator);
     }
   }
 
@@ -92,9 +92,8 @@ void Sequence::tick() {
 void Sequence::chainTrigger() {
   if (_runMode == WAITING) {
     _runMode = RUNNING;
-    _running = true;
-    _runIndicator = true;
-    (*_onRunningIndicatorChangedHandler)(_runIndicator);  
+    _setRunning(true);
+    _setRunningIndicator(true);
   }
 }
 
@@ -116,7 +115,7 @@ void Sequence::toggleRunMode() {
 
   _resetSequencePosition();
 
-  _running = _runMode == RUNNING;
+  _setRunning(_runMode == RUNNING);
 
   // If we're not running (anymore) ensure gate and trigger are low
   if (!_running) {    
@@ -126,9 +125,10 @@ void Sequence::toggleRunMode() {
 
   // Update indicator output
   // Will ensure it blinks in tick() when waiting
-  _runIndicator = _runMode == RUNNING;
-  (*_onRunningIndicatorChangedHandler)(_runIndicator);
+  _setRunningIndicator(_runMode == RUNNING);
 }
+
+bool Sequence::getChained() { return _chained; }
 
 void Sequence::setChained(bool chained) {
   _chained = chained;
@@ -264,6 +264,10 @@ void Sequence::onRunningIndicatorChange(BoolChangedHandler handler) {
   _onRunningIndicatorChangedHandler = handler;
 }
 
+void Sequence::onRunningChange(BoolChangedHandler handler) {
+  _onRunningChangedHandler = handler;
+}
+
 void Sequence::onGateChange(BoolChangedHandler handler) {
   _onGateChangedHandler = handler;
 }
@@ -278,6 +282,18 @@ void Sequence::onSelectedStepChange(ByteChangedHandler handler) {
 
 void Sequence::onSequenceEnd(EventHandler handler) {
   _onSequenceEndedHandler = handler;
+}
+
+void Sequence::_setRunningIndicator(bool on) {
+  if (_runningIndicator == on) return;
+  _runningIndicator = on;
+  (*_onRunningIndicatorChangedHandler)(on);
+}
+
+void Sequence::_setRunning(bool on) {
+  if (_running == on) return;
+  _running = on;
+  (*_onRunningChangedHandler)(on);
 }
 
 void Sequence::_selectStep(uint8_t newSelectedStep) {
@@ -322,8 +338,8 @@ void Sequence::_advanceSubStep() {
     (*_onSequenceEndedHandler)();
     // We're chained, so when sequence is complete, switch to waiting mode
     _runMode = WAITING;
-    _running = false;
-    _runIndicator = false;    
+    _setRunning(false);
+    _setRunningIndicator(false);
   }
 
   switch (_gateMode[_currentStep]) {
