@@ -1,9 +1,24 @@
 EESchema-DOCLIB  Version 2.0
 #
+$CMP 4051
+D Analog Multiplexer 8 to 1 lins
+K CMOS MUX MUX8
+$ENDCMP
+#
 $CMP CC04-41SURKWA
 D Kingbright 4 x 7-segment common cathode display
 K 7 SEGMENTS 4 display
 F http://docs-europe.electrocomponents.com/webdocs/13c8/0900766b813c8656.pdf
+$ENDCMP
+#
+$CMP CD4051
+D Analog Multiplexer 8 to 1 lins
+K CMOS MUX MUX8
+$ENDCMP
+#
+$CMP LED-POT
+D Potentiometer with LED
+K Potentiometer LED Slide
 $ENDCMP
 #
 $CMP MAX7221
@@ -22,6 +37,11 @@ $CMP MCP3202
 D Dual Channel 12-Bit A/D Converter with SPI Serial Interface
 K ADC SPI
 F http://ww1.microchip.com/downloads/en/DeviceDoc/21034F.pdf
+$ENDCMP
+#
+$CMP SW_PUSH_DPDT
+D Double Pole Dpuble Throw (DPDT) Push Switch
+K switch push button
 $ENDCMP
 #
 #End Doc Library
