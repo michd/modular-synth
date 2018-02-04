@@ -7,6 +7,7 @@ volatile uint8_t Sequence::_currentStepRepetition = 0;
 volatile uint8_t Sequence::_sequenceMode = SEQUENCE_MODE_FORWARD;
 volatile uint8_t Sequence::_gateMode[NUM_STEPS];
 volatile uint8_t Sequence::_stepRepeat[NUM_STEPS];
+volatile uint8_t Sequence::_stepSlide = 0b0000000;
 volatile uint8_t Sequence::_timeDivider = DEFAULT_TIME_DIVIDER;
 volatile uint8_t Sequence::_indexInSequence = 0;
 volatile uint32_t Sequence::_pulsesPerSubstep = (PPQ / 2) / (DEFAULT_TIME_DIVIDER / 4);
@@ -228,6 +229,20 @@ uint8_t Sequence::cycleStepRepeatForStep(uint8_t step) {
   return stepRepetitions;
 }
 
+bool Sequence::getSlideEnabledForStep(uint8_t step) {
+  step = constrain(step, 0, NUM_STEPS - 1);
+  return _stepSlide & (1 << step);
+}
+
+void Sequence::setSlideEnabledForStep(uint8_t step, bool on) {
+  step = constrain(step, 0, NUM_STEPS - 1);
+  if (on) {
+    _stepSlide |= (1 << step);
+  }  else {
+    _stepSlide &= ~(1 << step);
+  }
+}
+
 void Sequence::collectSettings(Settings *settingsToSave) {
   settingsToSave->timeDivider = _timeDivider;
   settingsToSave->sequenceMode = _sequenceMode;
@@ -236,6 +251,8 @@ void Sequence::collectSettings(Settings *settingsToSave) {
     settingsToSave->gateModes[i] = _gateMode[i];
     settingsToSave->stepRepeat[i] = _stepRepeat[i];
   }
+
+  settingsToSave->stepSlide = _stepSlide;
 }
 
 void Sequence::loadFromSettings(Settings *settings) {
@@ -258,6 +275,8 @@ void Sequence::loadFromSettings(Settings *settings) {
     _gateMode[i] = constrain(settings->gateModes[i], GATE_MODE_HALF_STEP, MAX_GATE_MODE_VALUE);
     _stepRepeat[i] = constrain(settings->stepRepeat[i], MIN_STEP_REPEAT, MAX_STEP_REPEAT);
   }
+
+  _stepSlide = settings->stepSlide;
 }
 
 void Sequence::onRunningIndicatorChange(BoolChangedHandler handler) {

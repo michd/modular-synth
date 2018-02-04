@@ -38,6 +38,7 @@ void setup() {
   IO::onResetButtonPressed(resetOnPressed);
   IO::onLoadButtonPressed(loadOnPressed);
   IO::onSaveButtonPressed(saveOnPressed);
+  IO::onSlideButtonPressed(slideOnPressed);
 
   IO::onMinNoteArrowButtonPressed(minNoteArrowPressed);
   IO::onMaxNoteArrowButtonPressed(maxNoteArrowPressed);
@@ -213,6 +214,13 @@ void resetOnPressed() {
     fullReset = false;
   } 
 
+  // Slide
+  if (!IO::getPortExpPin(PORTEXP_PIN_SLIDE_BUTTON)) {
+    settingsToRevertTo.stepSlide = defSettings.stepSlide;
+    resultText += "SL";
+    fullReset = false;
+  }
+
   // Reset setting controlled by the arrow buttons,
   // depending on how the param select switch is set
   if (!IO::getPortExpPin(PORTEXP_PIN_UP_ARROW) 
@@ -282,6 +290,19 @@ void saveOnPressed() {
   NoteMapper::collectSettings(&settingsToSave);  
   SettingsManager::save(settingsToSave, slot);
   IO::writeDisplay("Sav." + String(slot));
+  clearNoteFromScreen();
+}
+
+void slideOnPressed() {
+  uint8_t stepToAlter = IO::getSelectedStep();
+  if (stepToAlter == 0) return;
+  stepToAlter--;
+
+  bool nowEnabled = !Sequence::getSlideEnabledForStep(stepToAlter);
+  Sequence::setSlideEnabledForStep(stepToAlter, nowEnabled);
+
+  IO::writeDisplay(
+    "SL." + String(stepToAlter + 1) + "." + String(nowEnabled ? 1 : 0));
   clearNoteFromScreen();
 }
 
@@ -364,6 +385,7 @@ void sequenceOnSelectedStepChanged(uint8_t selectedStep) {
   }
 
   IO::setStep(selectedStep);
+  IO::setSlideEnabled(Sequence::getSlideEnabledForStep(selectedStep));
   IO::readAdc(mapNoteAndWriteDac);
 }
 

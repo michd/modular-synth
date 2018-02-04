@@ -9,6 +9,7 @@
 Settings SettingsManager::defaultSettings = {
   gateModes: { 0, 0, 0, 0, 0, 0, 0, 0 },
   stepRepeat: { 1, 1, 1, 1, 1, 1, 1, 1 },
+  stepSlide: 0b00000000,
   scale: 0,
   minNote: 12,
   maxNote: 36,
@@ -48,6 +49,8 @@ Settings SettingsManager::load(uint8_t index) {
     loadedSettings.stepRepeat[i] = EEPROM.read(++address);
   }
 
+  loadedSettings.stepSlide = EEPROM.read(++address);
+
   // Read the remaining, simply settings
   loadedSettings.scale = EEPROM.read(++address);
   loadedSettings.minNote = EEPROM.read(++address);
@@ -77,6 +80,8 @@ void SettingsManager::save(Settings settings, uint8_t index) {
   for (uint8_t i = 0; i < NUM_STEPS; i++) {
     EEPROM.write(++address, settings.stepRepeat[i]);
   }
+
+  EEPROM.write(++address, settings.stepSlide);
 
   EEPROM.write(++address, settings.scale);
   EEPROM.write(++address, settings.minNote);

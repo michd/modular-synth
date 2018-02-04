@@ -22,6 +22,7 @@ ButtonPressedHandler IO::_scaleButtonPressedHandler;
 ButtonPressedHandler IO::_resetButtonPressedHandler;
 ButtonPressedHandler IO::_loadButtonPressedHandler;
 ButtonPressedHandler IO::_saveButtonPressedHandler;
+ButtonPressedHandler IO::_slideButtonPressedHandler;
 
 ArrowButtonPressedHandler IO::_minNoteArrowButtonPressedHandler;
 ArrowButtonPressedHandler IO::_maxNoteArrowButtonPressedHandler;
@@ -45,23 +46,28 @@ void IO::init() {
   ::pinMode(PIN_STEP_ADDR_C, OUTPUT);
   ::pinMode(PIN_STEP_ENABLE, OUTPUT);
   ::pinMode(PIN_ROUTE_CHAINED_OUTPUT, OUTPUT);
+  ::pinMode(PIN_ENABLE_SLIDE_OUTPUT, OUTPUT);
 
-  pinMode(PIN_PORTEXP_INTERRUPT, INPUT_PULLUP);
+
+
+  ::pinMode(PIN_PORTEXP_INTERRUPT, INPUT_PULLUP);
 
   ::digitalWrite(PIN_RUNNING_INDICATOR, 0);
   ::digitalWrite(PIN_GATE_OUT, 0);
+  ::digitalWrite(PIN_ENABLE_SLIDE_OUTPUT, 1);
 
   // [1] Configure port expander
   _portExp.begin();
   // Configure pins on port expander
   // Port A = buttons per step
-  uint8_t portAmodes = 0b00011111; // Change as needed
-  //                       ||||||- PORTEXP_PIN_UP_ARROW                  [*]
-  //                       |||||- PORTEXP_PIN_DOWN_ARROW                 [*]
-  //                       ||||- PORTEXP_PIN_PARAM_SELECT_A
-  //                       |||- PORTEXP_PIN_PARAM_SELECT_B
-  //                       ||- PORTEXP_PIN_CHAIN_INPUT                   [*]
-  //                       |- PORTEXP_PIN_CHAIN_OUTPUT
+  uint8_t portAmodes = 0b01011111; // Change as needed
+  //                      |||||||- PORTEXP_PIN_UP_ARROW                  [*]
+  //                      ||||||- PORTEXP_PIN_DOWN_ARROW                 [*]
+  //                      |||||- PORTEXP_PIN_PARAM_SELECT_A
+  //                      ||||- PORTEXP_PIN_PARAM_SELECT_B
+  //                      |||- PORTEXP_PIN_CHAIN_INPUT                   [*]
+  //                      ||- PORTEXP_PIN_CHAIN_OUTPUT
+  //                      |- PORTEXP_PIN_SLIDE_BUTTON                    [*]
   // Port B = various buttons
   uint8_t portBmodes = 0b11111111; // Change as needed
   //                     ||||||||- PORTEXP_PIN_GATE_MODE_SELECT_BUTTON   [*]
@@ -229,6 +235,10 @@ bool IO::getChainOut() {
   return _chainOutputCache;
 }
 
+void IO::setSlideEnabled(bool on) {
+  ::digitalWrite(PIN_ENABLE_SLIDE_OUTPUT, on);
+}
+
 void IO::onSequenceModeButtonPressed(ButtonPressedHandler handler) {
   _sequenceModeButtonPressedHandler = handler;
 
@@ -298,6 +308,15 @@ void IO::onSaveButtonPressed(ButtonPressedHandler handler) {
   _portExp.attachInterrupt(
     PORTEXP_PIN_SAVE_BUTTON,
     _internalHandleSaveButtonPressed,
+    FALLING);
+}
+
+void IO::onSlideButtonPressed(ButtonPressedHandler handler) {
+  _slideButtonPressedHandler = handler;
+
+  _portExp.attachInterrupt(
+    PORTEXP_PIN_SLIDE_BUTTON,
+    _internalHandleSlideButtonPressed,
     FALLING);
 }
 
@@ -629,7 +648,16 @@ void IO::_internalHandleSaveButtonPressed() {
   _spiBusy = false;
 
   if (_debounceButton(PORTEXP_PIN_SAVE_BUTTON)) return;
-  _saveButtonPressedHandler();  
+  _saveButtonPressedHandler();
+}
+
+void IO::_internalHandleSlideButtonPressed() {
+  // spiBusy was set to true in _taskProcessPortExpInterrupt, and we want
+  // to mark that done before invoking whatever handler we've got
+  _spiBusy = false;
+
+  if (_debounceButton(PORTEXP_PIN_SAVE_BUTTON)) return;
+  _slideButtonPressedHandler();
 }
 
 void IO::_setupArrowButtonHandler() {
