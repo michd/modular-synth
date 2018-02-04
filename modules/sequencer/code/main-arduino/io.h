@@ -13,6 +13,7 @@
 #define PIN_GATE_OUT 10
 #define PIN_TRIGGER_OUT 2
 #define PIN_ROUTE_CHAINED_OUTPUT 1
+#define PIN_ENABLE_SLIDE_OUTPUT 0
 
 #define PIN_STEP_ADDR_A A1
 #define PIN_STEP_ADDR_B A3
@@ -35,6 +36,7 @@
 #define PORTEXP_PIN_PARAM_SELECT_B 4
 #define PORTEXP_PIN_CHAIN_INPUT 5
 #define PORTEXP_PIN_CHAIN_OUTPUT 6
+#define PORTEXP_PIN_SLIDE_BUTTON 7
 
 #define PORTEXP_NUM_PINS 16
 
@@ -178,6 +180,8 @@ class IO {
     static void setChainOut(bool);
     static bool getChainOut();
 
+    static void setSlideEnabled(bool);
+
     // Assign button press handlers
     static void onSequenceModeButtonPressed(ButtonPressedHandler);
     static void onGateButtonPressed(ButtonPressedHandler);
@@ -187,6 +191,7 @@ class IO {
     static void onResetButtonPressed(ButtonPressedHandler);
     static void onLoadButtonPressed(ButtonPressedHandler);
     static void onSaveButtonPressed(ButtonPressedHandler);
+    static void onSlideButtonPressed(ButtonPressedHandler);
     static void onMinNoteArrowButtonPressed(ArrowButtonPressedHandler);
     static void onMaxNoteArrowButtonPressed(ArrowButtonPressedHandler);
     static void onTimeDivisionArrowButtonPressed(ArrowButtonPressedHandler);
@@ -223,6 +228,7 @@ class IO {
     static void _internalHandleResetButtonPressed();
     static void _internalHandleLoadButtonPressed();
     static void _internalHandleSaveButtonPressed();
+    static void _internalHandleSlideButtonPressed();
     
 
     static void _setupArrowButtonHandler();
@@ -256,6 +262,7 @@ class IO {
     static ButtonPressedHandler _resetButtonPressedHandler;
     static ButtonPressedHandler _loadButtonPressedHandler;
     static ButtonPressedHandler _saveButtonPressedHandler;
+    static ButtonPressedHandler _slideButtonPressedHandler;
 
     static ArrowButtonPressedHandler _minNoteArrowButtonPressedHandler;
     static ArrowButtonPressedHandler _maxNoteArrowButtonPressedHandler;

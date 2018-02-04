@@ -15,6 +15,9 @@ struct Settings {
   // Step repetitions, one for each step
   uint8_t stepRepeat[NUM_STEPS];
 
+  // Slide enabled, per step
+  uint8_t stepSlide;
+
   // Musical scale, one of the NoteMapper SCALE_x constants
   // Used for mapping to desired notes from pot values
   uint8_t scale;

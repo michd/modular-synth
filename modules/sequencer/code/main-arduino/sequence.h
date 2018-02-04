@@ -110,6 +110,9 @@ class Sequence {
     static uint8_t setStepRepeatForStep(uint8_t step, uint8_t repetitions);
     static uint8_t cycleStepRepeatForStep(uint8_t step);
 
+    static bool getSlideEnabledForStep(uint8_t step);
+    static void setSlideEnabledForStep(uint8_t step, bool on);
+
     // Writes Sequence's local settings to teh given settings struct
     static void collectSettings(Settings *settingsToSave);
 
@@ -122,6 +125,7 @@ class Sequence {
     static void onRunningChange(BoolChangedHandler);
     static void onGateChange(BoolChangedHandler);
     static void onTriggerChange(BoolChangedHandler);
+    static void onSlideChange(BoolChangedHandler);
     static void onSelectedStepChange(ByteChangedHandler);
     static void onSequenceEnd(EventHandler);
 
@@ -134,6 +138,7 @@ class Sequence {
     static volatile uint8_t _sequenceMode;
     static volatile uint8_t _gateMode[NUM_STEPS];
     static volatile uint8_t _stepRepeat[NUM_STEPS];
+    static volatile uint8_t _stepSlide;
     static volatile uint8_t _timeDivider;
     static volatile uint32_t _pulsesPerSubstep;
     static volatile bool _firstHalfOfStep;
