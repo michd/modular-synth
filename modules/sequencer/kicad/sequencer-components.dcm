@@ -16,6 +16,11 @@ D Analog Multiplexer 8 to 1 lins
 K CMOS MUX MUX8
 $ENDCMP
 #
+$CMP LED-BUTTON
+D Normally open momentary switch with built-in LED
+K LED Push Button SPST Switch
+$ENDCMP
+#
 $CMP LED-POT
 D Potentiometer with LED
 K Potentiometer LED Slide
@@ -25,6 +30,12 @@ $CMP MAX7221
 D Serially Interfaced, 8-Digit LED Display Driver
 K SPI 7-segment LED
 F https://datasheets.maximintegrated.com/en/ds/MAX7219-MAX7221.pdf
+$ENDCMP
+#
+$CMP MC14551B
+D Quad 2-channel Analog Multiplexer/demultiplexer
+K Multiplexer Demultiplexer 
+F http://www.onsemi.com/pub/Collateral/MC14551B-D.PDF
 $ENDCMP
 #
 $CMP MCP23S17
@@ -42,6 +53,12 @@ $ENDCMP
 $CMP SW_PUSH_DPDT
 D Double Pole Dpuble Throw (DPDT) Push Switch
 K switch push button
+$ENDCMP
+#
+$CMP TS12A4517
+D Dual supply, low on-state resistoance SPST CMOS analog switch
+K CMOS SWITCH
+F http://www.ti.com/lit/ds/symlink/ts12a4516.pdf
 $ENDCMP
 #
 #End Doc Library
