@@ -1,0 +1,11 @@
+Bourns PTV09 Series
+
+PTV09A-4020U-B104
+
+4 = Horizontal / Rear mount, bushingless
+0 = No detent
+20 = 20mm shaft length
+U = Insulated knurled 40 teeth with indicating dent
+B = linear
+104 = 100k resistance
+
