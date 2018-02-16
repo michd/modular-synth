@@ -1,0 +1,7 @@
+(fp_lib_table
+  (lib (name CC04-41SURKWA)(type KiCad)(uri "$(KIPRJMOD)\\CC04-41SURKWA.pretty")(options "")(descr ""))
+  (lib (name "Bourns PTL")(type KiCad)(uri "$(KIPRJMOD)\\Bourns PTL.pretty")(options "")(descr ""))
+  (lib (name 6-pin-momentary-push-button)(type KiCad)(uri "$(KIPRJMOD)\\6-pin-momentary-push-button.pretty")(options "")(descr ""))
+  (lib (name MHS123K)(type KiCad)(uri "$(KIPRJMOD)\\MHS123K.pretty")(options "")(descr ""))
+  (lib (name 5GTH9)(type KiCad)(uri "$(KIPRJMOD)\\5GTH9.pretty")(options "")(descr ""))
+)
