@@ -1,0 +1,64 @@
+EESchema-DOCLIB  Version 2.0
+#
+$CMP 4051
+D Analog Multiplexer 8 to 1 lins
+K CMOS MUX MUX8
+$ENDCMP
+#
+$CMP CC04-41SURKWA
+D Kingbright 4 x 7-segment common cathode display
+K 7 SEGMENTS 4 display
+F http://docs-europe.electrocomponents.com/webdocs/13c8/0900766b813c8656.pdf
+$ENDCMP
+#
+$CMP CD4051
+D Analog Multiplexer 8 to 1 lins
+K CMOS MUX MUX8
+$ENDCMP
+#
+$CMP LED-BUTTON
+D Normally open momentary switch with built-in LED
+K LED Push Button SPST Switch
+$ENDCMP
+#
+$CMP LED-POT
+D Potentiometer with LED
+K Potentiometer LED Slide
+$ENDCMP
+#
+$CMP MAX7221
+D Serially Interfaced, 8-Digit LED Display Driver
+K SPI 7-segment LED
+F https://datasheets.maximintegrated.com/en/ds/MAX7219-MAX7221.pdf
+$ENDCMP
+#
+$CMP MC14551B
+D Quad 2-channel Analog Multiplexer/demultiplexer
+K Multiplexer Demultiplexer 
+F http://www.onsemi.com/pub/Collateral/MC14551B-D.PDF
+$ENDCMP
+#
+$CMP MCP23S17
+D 16-Bit I/O Expander with Serial Interface
+K I/O GPIO
+F http://ww1.microchip.com/downloads/en/DeviceDoc/20001952C.pdf
+$ENDCMP
+#
+$CMP MCP3202
+D Dual Channel 12-Bit A/D Converter with SPI Serial Interface
+K ADC SPI
+F http://ww1.microchip.com/downloads/en/DeviceDoc/21034F.pdf
+$ENDCMP
+#
+$CMP SW_PUSH_DPDT
+D Double Pole Dpuble Throw (DPDT) Push Switch
+K switch push button
+$ENDCMP
+#
+$CMP TS12A4517
+D Dual supply, low on-state resistoance SPST CMOS analog switch
+K CMOS SWITCH
+F http://www.ti.com/lit/ds/symlink/ts12a4516.pdf
+$ENDCMP
+#
+#End Doc Library

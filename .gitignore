@@ -58,3 +58,8 @@ _autosave-*
 # Exported BOM files
 *.xml
 *.csv
+
+# Atmel studio
+Debug/
+Release/
+.vs/
